@@ -60,13 +60,15 @@ var update = function (modifier) {
       robot.y += robot.speed * modifier;
     }
   } else if (38 in keysDown) { //up
-    if (origin[1] === 0) {
-      robot.y -= robot.speed * modifier;
-    } else if (origin[1] < 0) {
+    if (origin[1] < 0) {
       origin[1] = 0;
-      robot.y -= robot.speed * modifier;
-    } else {
+    } else if (robot.y === 187.5 && origin[1] > 0) {
       origin[1] -= robot.speed * modifier;
+    } else if (robot.y < 187.5 && origin[1] > 0) {
+      robot.y = 187.5;
+      origin[1] -= robot.speed * modifier;
+    } else {
+      robot.y -= robot.speed * modifier;
     }
   }
 };
