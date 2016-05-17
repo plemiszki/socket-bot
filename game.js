@@ -3,18 +3,96 @@ var c = canvas.getContext("2d");
 
 const BLOCK_LENGTH = 75;
 
-var grid = [
+var foregroundGrid = [
   ["block", "", "", "", "block", "block", "block", "block"],
   ["block", "", "", "", "block", "block", "block", "block"],
   ["block", "", "", "", "block", "block", "block", "block"],
   ["block", "", "", "", "block", "block", "block", "block"],
-  ["block", "robot", "", "", "", "", "", ""],
-  ["block", "block", "block", "block", "block", "block", "block", "block", "block"]
-]
+  ["block", "", "", "", "", "", "", ""],
+  rowOf(20, "block")
+];
 
-renderForeground([100, 100]);
+var backgroundGrid = [
+  rowOf(20, "brick"),
+  rowOf(20, "brick"),
+  rowOf(20, "brick"),
+  rowOf(20, "brick"),
+  rowOf(20, "brick")
+];
 
-var keysDown = {};
+var levelWidth = backgroundGrid[0].length * BLOCK_LENGTH;
+
+function Robot(pos) {
+  this.x = pos[0],
+  this.y = pos[1],
+  this.speed = 256;
+  this.draw = function () {
+    drawOuterSquare([this.x, this.y], 'red');
+  }
+};
+
+var update = function (modifier) {
+  if (39 in keysDown) { //right
+    if (levelWidth - origin[0] < BLOCK_LENGTH * 8) {
+      origin[0] = levelWidth - (BLOCK_LENGTH * 8);
+      // todo: move robot by the difference?
+    } else if (robot.x === 263.5 && (levelWidth - origin[0]) > (BLOCK_LENGTH * 8)) {
+      origin[0] += robot.speed * modifier;
+    } else if (robot.x > 263.5 && (levelWidth - origin[0]) > (BLOCK_LENGTH * 8)) {
+      robot.x = 263.5;
+      origin[0] += robot.speed * modifier;
+    } else {
+      robot.x += robot.speed * modifier;
+    }
+  } else if (37 in keysDown) { //left
+    if (origin[0] < 0) {
+      origin[0] = 0;
+    } else if (robot.x === 263.5 && origin[0] > 0) {
+      origin[0] -= robot.speed * modifier;
+    } else if (robot.x < 263.5 && origin[0] > 0) {
+      robot.x = 263.5;
+      origin[0] -= robot.speed * modifier;
+    } else {
+      robot.x -= robot.speed * modifier;
+    }
+  }
+  if (38 in keysDown) { //up
+    if (origin[1] === 0) {
+      robot.y -= robot.speed * modifier;
+    } else if (origin[1] < 0) {
+      origin[1] = 0;
+      robot.y -= robot.speed * modifier;
+    } else {
+      origin[1] -= robot.speed * modifier;
+    }
+  } else if (40 in keysDown) { //down
+    if (robot.y === 187.5) {
+      origin[1] += robot.speed * modifier;
+    } else if (robot.y > 187.5) {
+      robot.y = 187.5;
+      origin[1] += robot.speed * modifier;
+    } else {
+      robot.y += robot.speed * modifier;
+    }
+  }
+};
+
+var main = function () {
+  var now = Date.now();
+  var delta = now - then;
+
+  update(delta / 1000);
+  renderScreen();
+  robot.draw();
+  then = now;
+  window.requestAnimationFrame(main);
+};
+
+var renderScreen = function () {
+  renderBackground(origin);
+  renderForeground(origin);
+  robot.draw();
+}
 
 addEventListener("keydown", function (e) {
   keysDown[e.keyCode] = true;
@@ -26,46 +104,102 @@ addEventListener("keyup", function (e) {
   console.log(keysDown);
 }, false);
 
-function renderForeground(origin) {
+function renderBackground(origin) {
   var row_top_y = 0;
-  for (var row = 0; row < grid.length; row++) {
+  for (var row = 0; row < backgroundGrid.length; row++) {
     var col_left_x = 0;
-    for (var col = 0; col < grid[row].length; col++) {
+    for (var col = 0; col < backgroundGrid[row].length; col++) {
+
+      //skip if there's a block covering this square
+      if (foregroundGrid[row][col] === "block") {
+        col_left_x += 75;
+        continue;
+      }
 
       var x_block = (-1 * origin[0]) + col_left_x + 0.5;
       var y_block = (-1 * origin[1]) + row_top_y + 0.5;
 
-      if (grid[row][col] === "block") {
-        drawBlock([x_block, y_block]);
-      } else if(grid[row][col] === "robot"){
-        drawRobot([x_block, y_block]);
+      if(backgroundGrid[row][col] === "brick"){
+        var leftEdges = foregroundGrid[row][col - 1] !== "block"
+        drawBrick([x_block, y_block], '#39a33c', leftEdges);
       }
+
       col_left_x += 75;
     }
+
     row_top_y += 75;
   }
 }
 
-function drawRobot(pos) {
+function renderForeground(origin) {
+  var row_top_y = 0;
+  for (var row = 0; row < foregroundGrid.length; row++) {
+    var col_left_x = 0;
+    for (var col = 0; col < foregroundGrid[row].length; col++) {
+
+      var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+      var y_block = (-1 * origin[1]) + row_top_y + 0.5;
+
+      if (foregroundGrid[row][col] === "block") {
+        drawBlock([x_block, y_block]);
+      }
+
+      col_left_x += 75;
+    }
+
+    row_top_y += 75;
+  }
+}
+
+function rowOf(rowLength, something) {
+  var rowArray = [];
+  for (var i = 0; i < rowLength; i++) {
+    rowArray.push(something);
+  }
+  return rowArray;
+};
+
+function drawBrick(pos, color, leftEdges) {
   var x = pos[0];
   var y = pos[1];
-  drawOuterSquare(pos, 'red');
+  var rowHeight = (BLOCK_LENGTH / 4);
+  drawOuterSquare(pos, color, color);
+  c.strokeStyle = '#000';
+  for (var i = 0; i < 4; i++) {
+    var thisRowY = Math.floor(y + (rowHeight * i)) + 0.5;
+    drawLine([x, thisRowY], [x + BLOCK_LENGTH - 0.5, thisRowY]);
+    if (i % 2 == 0) {
+      if (leftEdges === true) {
+        drawLine([x, thisRowY], [x, thisRowY + rowHeight - 0.5]);
+      }
+      drawLine(
+        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY],
+        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY + rowHeight - 0.5]
+      );
+    } else {
+      drawLine(
+        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY],
+        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY + rowHeight - 0.5]
+      );
+      drawLine(
+        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY],
+        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY + rowHeight - 0.5]
+      );
+    }
+  }
 }
 
 function drawBlock(pos) {
-
   var x = pos[0];
   var y = pos[1];
-
   var frontGrad = c.createLinearGradient(x, y, x, y + 75);
   frontGrad.addColorStop(0, '#2c2929');
   frontGrad.addColorStop(1, '#161515');
-
   var backGrad = c.createLinearGradient(x, y, x, y + 75);
   backGrad.addColorStop(0, '#292626');
   backGrad.addColorStop(1, '#000000');
 
-  drawOuterSquare(pos, '#000', frontGrad)
+  drawOuterSquare(pos, '#000', frontGrad);
 
   const EDGE_TO_INNER = 8;
   const TRI_LENGTH = 40;
@@ -127,3 +261,17 @@ function drawOuterSquare(pos, stroke, fill) {
     c.fill();
   }
 }
+
+function drawLine(start, finish) {
+  c.beginPath();
+  c.moveTo(start[0], start[1]);
+  c.lineTo(finish[0], finish[1]);
+  c.lineWidth = 1;
+  c.stroke();
+}
+
+var origin = [0,0];
+var robot = new Robot([0.5,0.5]);
+var keysDown = {};
+var then = Date.now();
+main();
