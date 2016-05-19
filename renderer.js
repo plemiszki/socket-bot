@@ -5,10 +5,10 @@ function Renderer(context, game) {
   this.game = game;
 }
 
-Renderer.prototype.renderScreen = function (robot) {
+Renderer.prototype.renderScreen = function () {
   this.renderBackground(this.game.origin, this.game.currentLevel);
   this.renderForeground(this.game.origin, this.game.currentLevel);
-  robot.draw();
+  this.renderRobot(this.game.robot);
 }
 
 Renderer.prototype.renderForeground = function (origin, currentLevel) {
@@ -56,6 +56,10 @@ Renderer.prototype.renderBackground = function (origin, currentLevel) {
 
     row_top_y += 75;
   }
+}
+
+Renderer.prototype.renderRobot = function (robot) {
+  this.drawOuterSquare([robot.x, robot.y], 'red');
 }
 
 Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
