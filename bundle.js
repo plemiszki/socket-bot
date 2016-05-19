@@ -45,9 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var currentLevel = __webpack_require__(1);
-
-	var canvas = document.getElementById('canvas');
-	var c = canvas.getContext("2d");
+	var Renderer = __webpack_require__(3)
 
 	const BLOCK_LENGTH = 75;
 
@@ -63,7 +61,7 @@
 	  this.y = pos[1],
 	  this.speed = 256;
 	  this.draw = function () {
-	    drawOuterSquare([this.x, this.y], 'red');
+	    renderer.drawOuterSquare([this.x, this.y], 'red');
 	  }
 	};
 
@@ -94,7 +92,6 @@
 	  }
 	  if (40 in keysDown) { //down
 	    if (levelHeight - origin[1] < BLOCK_LENGTH * 6) {
-	      console.log("wat?");
 	      origin[1] = levelHeight - (BLOCK_LENGTH * 6);
 	      // todo: move robot by the difference?
 	    } else if (robot.y === 187.5 && (levelHeight - origin[1]) > (BLOCK_LENGTH * 6)) {
@@ -117,15 +114,15 @@
 	      robot.y -= robot.speed * modifier;
 	    }
 	  }
+	  var coords = document.getElementById("coords");
+	  coords.innerHTML = "Right Side: " + robot.x;
 	};
 
 	var main = function () {
 	  var now = Date.now();
 	  var delta = now - then;
-
 	  update(delta / 1000);
 	  renderScreen();
-	  robot.draw();
 	  then = now;
 	  window.requestAnimationFrame(main);
 	};
@@ -163,7 +160,7 @@
 
 	      if(currentLevel.backgroundGrid[row][col] === "brick"){
 	        var leftEdges = currentLevel.foregroundGrid[row][col - 1] !== "block"
-	        drawBrick([x_block, y_block], '#39a33c', leftEdges);
+	        renderer.drawBrick([x_block, y_block], '#39a33c', leftEdges);
 	      }
 
 	      col_left_x += 75;
@@ -183,7 +180,7 @@
 	      var y_block = (-1 * origin[1]) + row_top_y + 0.5;
 
 	      if (currentLevel.foregroundGrid[row][col] === "block") {
-	        drawBlock([x_block, y_block]);
+	        renderer.drawBlock([x_block, y_block]);
 	      }
 
 	      col_left_x += 75;
@@ -193,129 +190,23 @@
 	  }
 	}
 
-	function drawBrick(pos, color, leftEdges) {
-	  var x = pos[0];
-	  var y = pos[1];
-	  var rowHeight = (BLOCK_LENGTH / 4);
-	  drawOuterSquare(pos, color, color);
-	  c.strokeStyle = '#000';
-	  for (var i = 0; i < 4; i++) {
-	    var thisRowY = Math.floor(y + (rowHeight * i)) + 0.5;
-	    drawLine([x, thisRowY], [x + BLOCK_LENGTH - 0.5, thisRowY]);
-	    if (i % 2 == 0) {
-	      if (leftEdges === true) {
-	        drawLine([x, thisRowY], [x, thisRowY + rowHeight - 0.5]);
-	      }
-	      drawLine(
-	        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY],
-	        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY + rowHeight - 0.5]
-	      );
-	    } else {
-	      drawLine(
-	        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY],
-	        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY + rowHeight - 0.5]
-	      );
-	      drawLine(
-	        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY],
-	        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY + rowHeight - 0.5]
-	      );
-	    }
-	  }
-	}
-
-	function drawBlock(pos) {
-	  var x = pos[0];
-	  var y = pos[1];
-	  var frontGrad = c.createLinearGradient(x, y, x, y + 75);
-	  frontGrad.addColorStop(0, '#2c2929');
-	  frontGrad.addColorStop(1, '#161515');
-	  var backGrad = c.createLinearGradient(x, y, x, y + 75);
-	  backGrad.addColorStop(0, '#292626');
-	  backGrad.addColorStop(1, '#000000');
-
-	  drawOuterSquare(pos, '#000', frontGrad);
-
-	  const EDGE_TO_INNER = 8;
-	  const TRI_LENGTH = 40;
-	  const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
-	  const START_TRIANGLE = EDGE_TO_INNER + ((INNER_RECT_LENGTH - TRI_LENGTH) / 2);
-
-	  //left triangle
-	  c.fillStyle = backGrad;
-	  c.beginPath();
-	  c.moveTo(x + EDGE_TO_INNER, y + START_TRIANGLE);
-	  c.lineTo(x + EDGE_TO_INNER, y + START_TRIANGLE + TRI_LENGTH);
-	  c.lineTo(x + EDGE_TO_INNER + (TRI_LENGTH / 2), y + START_TRIANGLE + (TRI_LENGTH / 2));
-	  c.closePath();
-	  c.fill();
-	  c.stroke();
-
-	  //top triangle
-	  c.beginPath();
-	  c.moveTo(x + START_TRIANGLE, y + EDGE_TO_INNER);
-	  c.lineTo(x + START_TRIANGLE + TRI_LENGTH, y + EDGE_TO_INNER);
-	  c.lineTo(x + START_TRIANGLE + (TRI_LENGTH / 2), y + EDGE_TO_INNER + (TRI_LENGTH / 2));
-	  c.closePath();
-	  c.fill();
-	  c.stroke();
-
-	  //right triangle
-	  c.beginPath();
-	  c.moveTo(x + BLOCK_LENGTH - EDGE_TO_INNER, y + START_TRIANGLE);
-	  c.lineTo(x + BLOCK_LENGTH - EDGE_TO_INNER, y + START_TRIANGLE + TRI_LENGTH);
-	  c.lineTo(x + BLOCK_LENGTH - EDGE_TO_INNER - (TRI_LENGTH / 2), y + START_TRIANGLE + (TRI_LENGTH / 2));
-	  c.closePath();
-	  c.fill();
-	  c.stroke();
-
-	  //bottom triangle
-	  c.beginPath();
-	  c.moveTo(x + START_TRIANGLE, y + BLOCK_LENGTH - EDGE_TO_INNER);
-	  c.lineTo(x + START_TRIANGLE + TRI_LENGTH, y + BLOCK_LENGTH - EDGE_TO_INNER);
-	  c.lineTo(x + START_TRIANGLE + (TRI_LENGTH / 2), y + BLOCK_LENGTH - EDGE_TO_INNER - (TRI_LENGTH / 2));
-	  c.closePath();
-	  c.fill();
-	  c.stroke();
-	}
-
-	function drawOuterSquare(pos, stroke, fill) {
-	  var x = pos[0];
-	  var y = pos[1];
-	  c.beginPath();
-	  c.moveTo(x, y);
-	  c.lineTo(x + BLOCK_LENGTH - 1, y);
-	  c.lineTo(x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1);
-	  c.lineTo(x, y + BLOCK_LENGTH - 1);
-	  c.closePath();
-	  c.strokeStyle = stroke;
-	  c.lineWidth = 1;
-	  c.stroke();
-	  if(fill != undefined){
-	    c.fillStyle = fill;
-	    c.fill();
-	  }
-	}
-
-	function drawLine(start, finish) {
-	  c.beginPath();
-	  c.moveTo(start[0], start[1]);
-	  c.lineTo(finish[0], finish[1]);
-	  c.lineWidth = 1;
-	  c.stroke();
-	}
-
+	var canvas = document.getElementById('canvas');
+	var c = canvas.getContext("2d");
+	var renderer = new Renderer(c);
 	var origin = [0,0];
 	var robot = new Robot([0.5,0.5]);
 	var keysDown = {};
 	var then = Date.now();
-	main();
+	document.addEventListener("DOMContentLoaded", function () {
+	  main();
+	})
 
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var obj = __webpack_require__(3);
+	var obj = __webpack_require__(2);
 	var Level = obj.Level;
 	var LevelBuilder = obj.LevelBuilder;
 	var builder = new LevelBuilder();
@@ -346,8 +237,7 @@
 
 
 /***/ },
-/* 2 */,
-/* 3 */
+/* 2 */
 /***/ function(module, exports) {
 
 	function Level(name, foregroundGrid, backgroundGrid) {
@@ -383,6 +273,130 @@
 	  Level: Level,
 	  LevelBuilder: LevelBuilder
 	};
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	const BLOCK_LENGTH = 75;
+
+	function Renderer(context, game) {
+	  this.c = context;
+	}
+
+	Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
+	  var x = pos[0];
+	  var y = pos[1];
+	  var rowHeight = (BLOCK_LENGTH / 4);
+	  this.drawOuterSquare(pos, color, color);
+	  this.c.strokeStyle = '#000';
+	  for (var i = 0; i < 4; i++) {
+	    var thisRowY = Math.floor(y + (rowHeight * i)) + 0.5;
+	    this.drawLine([x, thisRowY], [x + BLOCK_LENGTH - 0.5, thisRowY]);
+	    if (i % 2 == 0) {
+	      if (leftEdges === true) {
+	        this.drawLine([x, thisRowY], [x, thisRowY + rowHeight - 0.5]);
+	      }
+	      this.drawLine(
+	        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY],
+	        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY + rowHeight - 0.5]
+	      );
+	    } else {
+	      this.drawLine(
+	        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY],
+	        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY + rowHeight - 0.5]
+	      );
+	      this.drawLine(
+	        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY],
+	        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY + rowHeight - 0.5]
+	      );
+	    }
+	  }
+	}
+
+	Renderer.prototype.drawBlock = function (pos) {
+	  var x = pos[0];
+	  var y = pos[1];
+	  var frontGrad = this.c.createLinearGradient(x, y, x, y + 75);
+	  frontGrad.addColorStop(0, '#2c2929');
+	  frontGrad.addColorStop(1, '#161515');
+	  var backGrad = this.c.createLinearGradient(x, y, x, y + 75);
+	  backGrad.addColorStop(0, '#292626');
+	  backGrad.addColorStop(1, '#000000');
+
+	  this.drawOuterSquare(pos, '#000', frontGrad);
+
+	  const EDGE_TO_INNER = 8;
+	  const TRI_LENGTH = 40;
+	  const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
+	  const START_TRIANGLE = EDGE_TO_INNER + ((INNER_RECT_LENGTH - TRI_LENGTH) / 2);
+
+	  //left triangle
+	  this.c.fillStyle = backGrad;
+	  this.c.beginPath();
+	  this.c.moveTo(x + EDGE_TO_INNER, y + START_TRIANGLE);
+	  this.c.lineTo(x + EDGE_TO_INNER, y + START_TRIANGLE + TRI_LENGTH);
+	  this.c.lineTo(x + EDGE_TO_INNER + (TRI_LENGTH / 2), y + START_TRIANGLE + (TRI_LENGTH / 2));
+	  this.c.closePath();
+	  this.c.fill();
+	  this.c.stroke();
+
+	  //top triangle
+	  this.c.beginPath();
+	  this.c.moveTo(x + START_TRIANGLE, y + EDGE_TO_INNER);
+	  this.c.lineTo(x + START_TRIANGLE + TRI_LENGTH, y + EDGE_TO_INNER);
+	  this.c.lineTo(x + START_TRIANGLE + (TRI_LENGTH / 2), y + EDGE_TO_INNER + (TRI_LENGTH / 2));
+	  this.c.closePath();
+	  this.c.fill();
+	  this.c.stroke();
+
+	  //right triangle
+	  this.c.beginPath();
+	  this.c.moveTo(x + BLOCK_LENGTH - EDGE_TO_INNER, y + START_TRIANGLE);
+	  this.c.lineTo(x + BLOCK_LENGTH - EDGE_TO_INNER, y + START_TRIANGLE + TRI_LENGTH);
+	  this.c.lineTo(x + BLOCK_LENGTH - EDGE_TO_INNER - (TRI_LENGTH / 2), y + START_TRIANGLE + (TRI_LENGTH / 2));
+	  this.c.closePath();
+	  this.c.fill();
+	  this.c.stroke();
+
+	  //bottom triangle
+	  this.c.beginPath();
+	  this.c.moveTo(x + START_TRIANGLE, y + BLOCK_LENGTH - EDGE_TO_INNER);
+	  this.c.lineTo(x + START_TRIANGLE + TRI_LENGTH, y + BLOCK_LENGTH - EDGE_TO_INNER);
+	  this.c.lineTo(x + START_TRIANGLE + (TRI_LENGTH / 2), y + BLOCK_LENGTH - EDGE_TO_INNER - (TRI_LENGTH / 2));
+	  this.c.closePath();
+	  this.c.fill();
+	  this.c.stroke();
+	}
+
+	Renderer.prototype.drawOuterSquare = function (pos, stroke, fill) {
+	  var x = pos[0];
+	  var y = pos[1];
+	  this.c.beginPath();
+	  this.c.moveTo(x, y);
+	  this.c.lineTo(x + BLOCK_LENGTH - 1, y);
+	  this.c.lineTo(x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1);
+	  this.c.lineTo(x, y + BLOCK_LENGTH - 1);
+	  this.c.closePath();
+	  this.c.strokeStyle = stroke;
+	  this.c.lineWidth = 1;
+	  this.c.stroke();
+	  if(fill != undefined){
+	    this.c.fillStyle = fill;
+	    this.c.fill();
+	  }
+	}
+
+	Renderer.prototype.drawLine = function (start, finish) {
+	  this.c.beginPath();
+	  this.c.moveTo(start[0], start[1]);
+	  this.c.lineTo(finish[0], finish[1]);
+	  this.c.lineWidth = 1;
+	  this.c.stroke();
+	}
+
+	module.exports = Renderer;
 
 
 /***/ }
