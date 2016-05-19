@@ -2,6 +2,60 @@ const BLOCK_LENGTH = 75;
 
 function Renderer(context, game) {
   this.c = context;
+  this.game = game;
+}
+
+Renderer.prototype.renderScreen = function (robot) {
+  this.renderBackground(this.game.origin, this.game.currentLevel);
+  this.renderForeground(this.game.origin, this.game.currentLevel);
+  robot.draw();
+}
+
+Renderer.prototype.renderForeground = function (origin, currentLevel) {
+  var row_top_y = 0;
+  for (var row = 0; row < currentLevel.foregroundGrid.length; row++) {
+    var col_left_x = 0;
+    for (var col = 0; col < currentLevel.foregroundGrid[row].length; col++) {
+
+      var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+      var y_block = (-1 * origin[1]) + row_top_y + 0.5;
+
+      if (currentLevel.foregroundGrid[row][col] === "block") {
+        this.drawBlock([x_block, y_block]);
+      }
+
+      col_left_x += 75;
+    }
+
+    row_top_y += 75;
+  }
+}
+
+Renderer.prototype.renderBackground = function (origin, currentLevel) {
+  var row_top_y = 0;
+  for (var row = 0; row < currentLevel.backgroundGrid.length; row++) {
+    var col_left_x = 0;
+    for (var col = 0; col < currentLevel.backgroundGrid[row].length; col++) {
+
+      //skip if there's a block covering this square
+      if (currentLevel.foregroundGrid[row][col] === "block") {
+        col_left_x += 75;
+        continue;
+      }
+
+      var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+      var y_block = (-1 * origin[1]) + row_top_y + 0.5;
+
+      if(currentLevel.backgroundGrid[row][col] === "brick"){
+        var leftEdges = currentLevel.foregroundGrid[row][col - 1] !== "block"
+        this.drawBrick([x_block, y_block], '#39a33c', leftEdges);
+      }
+
+      col_left_x += 75;
+    }
+
+    row_top_y += 75;
+  }
 }
 
 Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
