@@ -29,6 +29,23 @@ Game.prototype.main = function (passedThen) {
   });
 };
 
+Game.prototype.moveLeft = function (pixels, modifier) {
+  var returnOrigin = this.origin;
+  var returnPos = [this.robot.x, this.robot.y];
+
+  if (this.origin[0] < 0) {
+    returnOrigin[0] = 0;
+  } else if (this.robot.x === 263.5 && this.origin[0] > 0) {
+    returnOrigin[0] -= pixels * modifier;
+  } else if (this.robot.x < 263.5 && this.origin[0] > 0) {
+    returnPos[0] = 263.5;
+    returnOrigin[0] -= pixels * modifier;
+  } else {
+    returnPos[0] -= pixels * modifier;
+  }
+  return [returnOrigin, returnPos];
+};
+
 Game.prototype.update = function (modifier) {
   var ghostPosX = this.robot.x;
   var ghostPosY = this.robot.y;
@@ -38,83 +55,52 @@ Game.prototype.update = function (modifier) {
   if (39 in this.keysDown) { //right
     if (this.levelWidth - this.origin[0] < this.BLOCK_LENGTH * 8) {
       ghostOrigin[0] = this.levelWidth - (this.BLOCK_LENGTH * 8);
-      // this.origin[0] = this.levelWidth - (this.BLOCK_LENGTH * 8);
     } else if (this.robot.x === 263.5 && (this.levelWidth - this.origin[0]) > (this.BLOCK_LENGTH * 8)) {
       ghostOrigin[0] += this.robot.speed * modifier;
-      // this.origin[0] += this.robot.speed * modifier;
     } else if (this.robot.x > 263.5 && (this.levelWidth - this.origin[0]) > (this.BLOCK_LENGTH * 8)) {
       ghostPos[0] = 263.5;
       ghostOrigin[0] += this.robot.speed * modifier;
-      // this.robot.x = 263.5;
-      // this.origin[0] += this.robot.speed * modifier;
     } else {
       ghostPos[0] += this.robot.speed * modifier;
-      // this.robot.x += this.robot.speed * modifier;
     }
     this.setGhostToReal(ghostPos, ghostOrigin);
   } else if (37 in this.keysDown) { //left
-    if (this.origin[0] < 0) {
-      ghostOrigin[0] = 0;
-    } else if (this.robot.x === 263.5 && this.origin[0] > 0) {
-      ghostOrigin[0] -= this.robot.speed * modifier;
-    } else if (this.robot.x < 263.5 && this.origin[0] > 0) {
-      ghostPos[0] = 263.5;
-      ghostOrigin[0] -= this.robot.speed * modifier;
-    } else {
-      ghostPos[0] -= this.robot.speed * modifier;
-    }
-
+    var returnArrays = this.moveLeft(this.robot.speed, modifier);
+    ghostOrigin = returnArrays[0];
+    ghostPos = returnArrays[1];
     ghostCol = this.getColumn(ghostPos, ghostOrigin)
     if (this.currentLevel.foregroundGrid[1][ghostCol] == "block") {
       robotX = this.getRealX([this.robot.x, this.robot.y], this.origin);
       edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
       difference = robotX - edge;
-      if (this.origin[0] < 0) {
-        this.origin[0] = 0;
-      } else if (this.robot.x === 263.5 && this.origin[0] > 0) {
-        this.origin[0] -= difference;
-      } else if (this.robot.x < 263.5 && this.origin[0] > 0) {
-        this.robot.x = 263.5;
-        this.origin[0] -= difference
-      } else {
-        this.robot.x -= difference;
-      }
-    } else {
-      this.setGhostToReal(ghostPos, ghostOrigin);
+      returnArrays = this.moveLeft(difference, 1);
+      ghostOrigin = returnArrays[0];
+      ghostPos = returnArrays[1];
     }
+    this.setGhostToReal(ghostPos, ghostOrigin);
   }
   if (40 in this.keysDown) { //down
     if (this.levelHeight - this.origin[1] < this.BLOCK_LENGTH * 6) {
       ghostOrigin[1] = this.levelHeight - (this.BLOCK_LENGTH * 6);
-      // this.origin[1] = this.levelHeight - (this.BLOCK_LENGTH * 6);
     } else if (this.robot.y === 187.5 && (this.levelHeight - this.origin[1]) > (this.BLOCK_LENGTH * 6)) {
       ghostOrigin[1] += this.robot.speed * modifier;
-      // this.origin[1] += this.robot.speed * modifier;
     } else if (this.robot.y > 187.5 && (this.levelHeight - this.origin[1]) > (this.BLOCK_LENGTH * 6)) {
       ghostPos[1] = 187.5;
       ghostOrigin[1] += this.robot.speed * modifier;
-      // this.robot.y = 187.5;
-      // this.origin[1] += this.robot.speed * modifier;
     } else {
       ghostPos[1] += this.robot.speed * modifier;
-      // this.robot.y += this.robot.speed * modifier;
     }
     this.setGhostToReal(ghostPos, ghostOrigin);
   } else if (38 in this.keysDown) { //up
     if (this.origin[1] < 0) {
       ghostOrigin[1] = 0;
-      // this.origin[1] = 0;
     } else if (this.robot.y === 187.5 && this.origin[1] > 0) {
       ghostOrigin[1] -= this.robot.speed * modifier;
-      // this.origin[1] -= this.robot.speed * modifier;
     } else if (this.robot.y < 187.5 && this.origin[1] > 0) {
       ghostPos[1] = 187.5;
       ghostOrigin[1] -= this.robot.speed * modifier;
-      // this.robot.y = 187.5;
-      // this.origin[1] -= this.robot.speed * modifier;
     } else {
       ghostPos[1] -= this.robot.speed * modifier;
-      // this.robot.y -= this.robot.speed * modifier;
     }
     this.setGhostToReal(ghostPos, ghostOrigin);
   }
