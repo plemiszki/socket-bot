@@ -298,16 +298,36 @@
 	}
 
 	Renderer.prototype.renderScreen = function () {
-	  this.renderBackground(this.game.origin, this.game.currentLevel);
-	  this.renderForeground(this.game.origin, this.game.currentLevel);
+	  var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
+	  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
+	  this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderRobot(this.game.robot);
 	}
 
-	Renderer.prototype.renderForeground = function (origin, currentLevel) {
-	  var row_top_y = 0;
-	  for (var row = 0; row < currentLevel.foregroundGrid.length; row++) {
-	    var col_left_x = 0;
-	    for (var col = 0; col < currentLevel.foregroundGrid[row].length; col++) {
+	Renderer.prototype.getVisibleSquares = function (origin, currentLevel) {
+	  var topRow = Math.floor(origin[1] / BLOCK_LENGTH);
+	  if (topRow === -1) { topRow = 0 };
+	  var bottomRow = Math.floor((origin[1] + (BLOCK_LENGTH * 6) - 1) / BLOCK_LENGTH);
+	  if (bottomRow >= this.game.currentLevel.foregroundGrid.length) { bottomRow = this.game.currentLevel.foregroundGrid.length - 1 }
+	  var leftCol = Math.floor(origin[0] / BLOCK_LENGTH);
+	  if (leftCol === -1) { leftCol = 0 };
+	  var rightCol = Math.floor((origin[0] + (BLOCK_LENGTH * 8) - 1) / BLOCK_LENGTH);
+	  if (rightCol >= this.game.currentLevel.foregroundGrid[0].length) { rightCol = this.game.currentLevel.foregroundGrid[0].length - 1 }
+
+	  return [topRow, leftCol, bottomRow, rightCol];
+	};
+
+	Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSquares) {
+	  var el = document.getElementById("coord-window");
+	  el.innerHTML = "LEFT: " + cornerSquares[1] + "<br>"
+	                + "TOP: " + cornerSquares[0] + "<br>"
+	                + "RIGHT: " + cornerSquares[3] + "<br>"
+	                + "BOTTOM: " + cornerSquares[2];
+
+	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
+	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
+	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	    for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
 
 	      var x_block = (-1 * origin[0]) + col_left_x + 0.5;
 	      var y_block = (-1 * origin[1]) + row_top_y + 0.5;
@@ -325,13 +345,13 @@
 	  }
 	}
 
-	Renderer.prototype.renderBackground = function (origin, currentLevel) {
-	  var row_top_y = 0;
-	  for (var row = 0; row < currentLevel.backgroundGrid.length; row++) {
-	    var col_left_x = 0;
-	    for (var col = 0; col < currentLevel.backgroundGrid[row].length; col++) {
+	Renderer.prototype.renderBackground = function (origin, currentLevel, cornerSquares) {
+	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
+	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
+	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	    for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
 
-	      //skip if there's a block covering this square
+	      //skip if there's a foreground block covering this square
 	      if (currentLevel.foregroundGrid[row][col] === "block") {
 	        col_left_x += 75;
 	        continue;
