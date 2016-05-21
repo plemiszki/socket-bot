@@ -1,6 +1,5 @@
 function Robot(startingPos) {
-  this.x = startingPos[0],
-  this.y = startingPos[1],
+  this.pos = startingPos;
   this.speed = 256;
 };
 

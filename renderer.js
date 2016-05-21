@@ -59,7 +59,7 @@ Renderer.prototype.renderBackground = function (origin, currentLevel) {
 }
 
 Renderer.prototype.renderRobot = function (robot) {
-  this.drawOuterSquare([robot.x, robot.y], 'red');
+  this.drawOuterSquare(robot.pos, 'red');
 }
 
 Renderer.prototype.drawBrick = function (pos, color, leftEdges) {

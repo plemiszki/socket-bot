@@ -1,8 +1,9 @@
-html, body, section, article, h1, h2, p, strong, em, a {
+html, body, section, article, h1, h2, p, strong, em, a, ul {
   margin: 0;
   border: 0;
   padding: 0;
   outline: 0;
+  list-style-type: none;
 
   box-sizing: inherit;
   font: inherit;
@@ -23,6 +24,28 @@ content {
   width: 600px;
   margin: auto;
   /*border: 1px solid red;*/
+}
+
+.group:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.coord-grid {
+  width: 306px;
+  margin: auto;
+  position: relative;
+  margin-top: 20px;
+}
+
+.coord-grid li {
+  float: left;
+  display: block;
+  width: 100px;
+  height: 60px;
+  border: solid 1px red;
+  text-align: center;
 }
 
 canvas {
