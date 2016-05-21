@@ -5,7 +5,7 @@ function Game(renderer) {
   this.renderer = renderer;
   this.levelSequence = [];
   this.origin = [0,0]
-  this.currentLevel = require('./testLevel.js')
+  this.currentLevel = require('./levels/level1.js')
   this.keysDown = {};
   this.robot = new Robot([75.5,75.5]);
   this.BLOCK_LENGTH = 75;
@@ -40,8 +40,8 @@ Game.prototype.update = function (modifier) {
   if (39 in this.keysDown) { //right
     ghostArrays = this.moveRight(this.robot.speed, modifier);
     ghostCol = this.getRightColumn(ghostArrays)
-    if (this.currentLevel.foregroundGrid[topRow][ghostCol] === "block" ||
-        this.currentLevel.foregroundGrid[bottomRow][ghostCol] === "block") {
+    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
       robotX = this.getRealRightX(realArrays);
       edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
       difference = edge - robotX;
@@ -50,8 +50,8 @@ Game.prototype.update = function (modifier) {
   } else if (37 in this.keysDown) { //left
     ghostArrays = this.moveLeft(this.robot.speed, modifier);
     ghostCol = this.getLeftColumn(ghostArrays)
-    if (this.currentLevel.foregroundGrid[topRow][ghostCol] === "block" ||
-        this.currentLevel.foregroundGrid[bottomRow][ghostCol] === "block") {
+    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
       robotX = this.getRealLeftX(realArrays);
       edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
       difference = robotX - edge;
@@ -61,8 +61,8 @@ Game.prototype.update = function (modifier) {
   if (40 in this.keysDown) { //down
     ghostArrays = this.moveDown(this.robot.speed, modifier);
     ghostRow = this.getBottomRow(ghostArrays)
-    if (this.currentLevel.foregroundGrid[ghostRow][leftCol] === "block" ||
-        this.currentLevel.foregroundGrid[ghostRow][rightCol] === "block") {
+    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
       robotY = this.getRealBottomY(realArrays);
       edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
       difference = edge - robotY;
@@ -71,8 +71,8 @@ Game.prototype.update = function (modifier) {
   } else if (38 in this.keysDown) { //up
     ghostArrays = this.moveUp(this.robot.speed, modifier);
     ghostRow = this.getTopRow(ghostArrays)
-    if (this.currentLevel.foregroundGrid[ghostRow][leftCol] === "block" ||
-        this.currentLevel.foregroundGrid[ghostRow][rightCol] === "block") {
+    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
       robotY = this.getRealTopY(realArrays);
       edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
       difference = robotY - edge;
@@ -94,6 +94,14 @@ Game.prototype.update = function (modifier) {
   var bottomLi = document.getElementById("bottom");
   bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
                     + "row: " + this.getBottomRow(realArrays);
+};
+
+Game.prototype.passThrough = function (object) {
+  if (object === "block" || object === "platform") {
+    return false;
+  } else {
+    return true;
+  }
 };
 
 Game.prototype.moveLeft = function (pixels, modifier) {

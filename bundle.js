@@ -51,7 +51,7 @@
 	  this.renderer = renderer;
 	  this.levelSequence = [];
 	  this.origin = [0,0]
-	  this.currentLevel = __webpack_require__(1)
+	  this.currentLevel = __webpack_require__(5)
 	  this.keysDown = {};
 	  this.robot = new Robot([75.5,75.5]);
 	  this.BLOCK_LENGTH = 75;
@@ -86,8 +86,8 @@
 	  if (39 in this.keysDown) { //right
 	    ghostArrays = this.moveRight(this.robot.speed, modifier);
 	    ghostCol = this.getRightColumn(ghostArrays)
-	    if (this.currentLevel.foregroundGrid[topRow][ghostCol] === "block" ||
-	        this.currentLevel.foregroundGrid[bottomRow][ghostCol] === "block") {
+	    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+	        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
 	      robotX = this.getRealRightX(realArrays);
 	      edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
 	      difference = edge - robotX;
@@ -96,8 +96,8 @@
 	  } else if (37 in this.keysDown) { //left
 	    ghostArrays = this.moveLeft(this.robot.speed, modifier);
 	    ghostCol = this.getLeftColumn(ghostArrays)
-	    if (this.currentLevel.foregroundGrid[topRow][ghostCol] === "block" ||
-	        this.currentLevel.foregroundGrid[bottomRow][ghostCol] === "block") {
+	    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+	        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
 	      robotX = this.getRealLeftX(realArrays);
 	      edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
 	      difference = robotX - edge;
@@ -107,8 +107,8 @@
 	  if (40 in this.keysDown) { //down
 	    ghostArrays = this.moveDown(this.robot.speed, modifier);
 	    ghostRow = this.getBottomRow(ghostArrays)
-	    if (this.currentLevel.foregroundGrid[ghostRow][leftCol] === "block" ||
-	        this.currentLevel.foregroundGrid[ghostRow][rightCol] === "block") {
+	    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+	        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
 	      robotY = this.getRealBottomY(realArrays);
 	      edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
 	      difference = edge - robotY;
@@ -117,8 +117,8 @@
 	  } else if (38 in this.keysDown) { //up
 	    ghostArrays = this.moveUp(this.robot.speed, modifier);
 	    ghostRow = this.getTopRow(ghostArrays)
-	    if (this.currentLevel.foregroundGrid[ghostRow][leftCol] === "block" ||
-	        this.currentLevel.foregroundGrid[ghostRow][rightCol] === "block") {
+	    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+	        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
 	      robotY = this.getRealTopY(realArrays);
 	      edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
 	      difference = robotY - edge;
@@ -140,6 +140,14 @@
 	  var bottomLi = document.getElementById("bottom");
 	  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
 	                    + "row: " + this.getBottomRow(realArrays);
+	};
+
+	Game.prototype.passThrough = function (object) {
+	  if (object === "block" || object === "platform") {
+	    return false;
+	  } else {
+	    return true;
+	  }
 	};
 
 	Game.prototype.moveLeft = function (pixels, modifier) {
@@ -277,79 +285,8 @@
 
 
 /***/ },
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var obj = __webpack_require__(2);
-	var Level = obj.Level;
-	var LevelBuilder = obj.LevelBuilder;
-	var builder = new LevelBuilder();
-
-	var foregroundGrid = [
-	  builder.rowOf(12, "block"),
-	  ["block", "", "", "", "", "", "", ""],
-	  ["block", "", "", "", "", "", "", ""],
-	  ["block", "", "", "block", "block", "block", "block", ""],
-	  ["block", "", "", "", "", "", "", ""],
-	  ["block"],
-	  builder.rowOf(12, "block")
-	];
-
-	var backgroundGrid = [
-	  builder.rowOf(12, "brick"),
-	  builder.rowOf(12, "brick"),
-	  builder.rowOf(12, "brick"),
-	  builder.rowOf(12, "brick"),
-	  builder.rowOf(12, "brick"),
-	  builder.rowOf(12, "brick"),
-	  builder.rowOf(12, "brick")
-	];
-
-	testLevel = new Level("test", foregroundGrid, backgroundGrid);
-
-	module.exports = testLevel;
-
-
-/***/ },
-/* 2 */
-/***/ function(module, exports) {
-
-	function Level(name, foregroundGrid, backgroundGrid) {
-	  this.name = name;
-	  this.foregroundGrid = foregroundGrid;
-	  this.backgroundGrid = backgroundGrid;
-	}
-
-	function LevelBuilder() {};
-
-	LevelBuilder.prototype.rowOf = function (rowLength, something) {
-	  var rowArray = [];
-	  for (var i = 0; i < rowLength; i++) {
-	    rowArray.push(something);
-	  }
-	  return rowArray;
-	};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	module.exports = {
-	  Level: Level,
-	  LevelBuilder: LevelBuilder
-	};
-
-
-/***/ },
+/* 1 */,
+/* 2 */,
 /* 3 */
 /***/ function(module, exports) {
 
@@ -377,6 +314,8 @@
 
 	      if (currentLevel.foregroundGrid[row][col] === "block") {
 	        this.drawBlock([x_block, y_block]);
+	      } else if (currentLevel.foregroundGrid[row][col] === "platform") {
+	        this.drawPlatform([x_block, y_block], '#67480E', '#211704');
 	      }
 
 	      col_left_x += 75;
@@ -403,7 +342,7 @@
 
 	      if(currentLevel.backgroundGrid[row][col] === "brick"){
 	        var leftEdges = currentLevel.foregroundGrid[row][col - 1] !== "block"
-	        this.drawBrick([x_block, y_block], '#39a33c', leftEdges);
+	        this.drawBrick([x_block, y_block], '#632612', leftEdges);
 	      }
 
 	      col_left_x += 75;
@@ -416,6 +355,26 @@
 	Renderer.prototype.renderRobot = function (robot) {
 	  this.drawOuterSquare(robot.pos, 'red');
 	}
+
+	Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
+	  var x = pos[0];
+	  var y = pos[1];
+	  var height = Math.floor(BLOCK_LENGTH/3);
+	  var grad = this.c.createLinearGradient(x, y, x, y + height);
+	  grad.addColorStop(0, topColor);
+	  grad.addColorStop(1, bottomColor);
+	  this.c.beginPath();
+	  this.c.moveTo(x, y);
+	  this.c.lineTo(x + BLOCK_LENGTH - 1, y);
+	  this.c.lineTo(x + BLOCK_LENGTH - 1, y + height);
+	  this.c.lineTo(x, y + height);
+	  this.c.closePath();
+	  this.c.strokeStyle = '#000';
+	  this.c.lineWidth = 1;
+	  this.c.stroke();
+	  this.c.fillStyle = grad;
+	  this.c.fill();
+	};
 
 	Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
 	  var x = pos[0];
@@ -541,6 +500,92 @@
 	};
 
 	module.exports = Robot;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var obj = __webpack_require__(7);
+	var Level = obj.Level;
+	var LevelBuilder = obj.LevelBuilder;
+	var builder = new LevelBuilder();
+
+	var foregroundGrid = [
+	  builder.rowOf(24, "block"),
+	  ["block"].concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(8, "")).concat(["block"]),
+	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(18, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
+	  builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
+	  builder.rowOf(24, "block")
+	];
+
+	var backgroundGrid = [
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick")
+	];
+
+	level1 = new Level("test", foregroundGrid, backgroundGrid);
+
+	module.exports = level1;
+
+
+/***/ },
+/* 6 */,
+/* 7 */
+/***/ function(module, exports) {
+
+	function Level(name, foregroundGrid, backgroundGrid) {
+	  this.name = name;
+	  this.foregroundGrid = foregroundGrid;
+	  this.backgroundGrid = backgroundGrid;
+	}
+
+	function LevelBuilder() {};
+
+	LevelBuilder.prototype.rowOf = function (rowLength, something) {
+	  var rowArray = [];
+	  for (var i = 0; i < rowLength; i++) {
+	    rowArray.push(something);
+	  }
+	  return rowArray;
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	module.exports = {
+	  Level: Level,
+	  LevelBuilder: LevelBuilder
+	};
 
 
 /***/ }

@@ -22,6 +22,8 @@ Renderer.prototype.renderForeground = function (origin, currentLevel) {
 
       if (currentLevel.foregroundGrid[row][col] === "block") {
         this.drawBlock([x_block, y_block]);
+      } else if (currentLevel.foregroundGrid[row][col] === "platform") {
+        this.drawPlatform([x_block, y_block], '#67480E', '#211704');
       }
 
       col_left_x += 75;
@@ -48,7 +50,7 @@ Renderer.prototype.renderBackground = function (origin, currentLevel) {
 
       if(currentLevel.backgroundGrid[row][col] === "brick"){
         var leftEdges = currentLevel.foregroundGrid[row][col - 1] !== "block"
-        this.drawBrick([x_block, y_block], '#39a33c', leftEdges);
+        this.drawBrick([x_block, y_block], '#632612', leftEdges);
       }
 
       col_left_x += 75;
@@ -61,6 +63,26 @@ Renderer.prototype.renderBackground = function (origin, currentLevel) {
 Renderer.prototype.renderRobot = function (robot) {
   this.drawOuterSquare(robot.pos, 'red');
 }
+
+Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
+  var x = pos[0];
+  var y = pos[1];
+  var height = Math.floor(BLOCK_LENGTH/3);
+  var grad = this.c.createLinearGradient(x, y, x, y + height);
+  grad.addColorStop(0, topColor);
+  grad.addColorStop(1, bottomColor);
+  this.c.beginPath();
+  this.c.moveTo(x, y);
+  this.c.lineTo(x + BLOCK_LENGTH - 1, y);
+  this.c.lineTo(x + BLOCK_LENGTH - 1, y + height);
+  this.c.lineTo(x, y + height);
+  this.c.closePath();
+  this.c.strokeStyle = '#000';
+  this.c.lineWidth = 1;
+  this.c.stroke();
+  this.c.fillStyle = grad;
+  this.c.fill();
+};
 
 Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
   var x = pos[0];
