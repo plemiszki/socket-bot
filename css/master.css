@@ -44,8 +44,12 @@ content {
   display: block;
   width: 100px;
   height: 60px;
-  border: solid 1px red;
+  border: solid 1px black;
   text-align: center;
+}
+
+#middle-block {
+  border: solid 1px red;
 }
 
 canvas {

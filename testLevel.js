@@ -5,9 +5,9 @@ var builder = new LevelBuilder();
 
 var foregroundGrid = [
   builder.rowOf(12, "block"),
-  ["block", "", "", "", "block", "block", "block", "block"],
-  ["block", "", "", "", "block", "block", "block", "block"],
-  ["block", "", "", "", "block", "block", "block", "block"],
+  ["block", "", "", "", "", "", "", ""],
+  ["block", "", "", "", "", "", "", ""],
+  ["block", "", "", "block", "block", "block", "block", ""],
   ["block", "", "", "", "", "", "", ""],
   ["block"],
   builder.rowOf(12, "block")

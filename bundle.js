@@ -76,30 +76,29 @@
 	};
 
 	Game.prototype.update = function (modifier) {
+	  var realArrays = [this.origin, this.robot.pos]
+	  var topRow = this.getTopRow(realArrays);
+	  var bottomRow = this.getBottomRow(realArrays);
+	  var leftCol = this.getLeftColumn(realArrays);
+	  var rightCol = this.getRightColumn(realArrays);
 	  var ghostArrays = [this.origin, this.robot.pos];
-	  var ghostPos = this.robot.pos;
-	  var ghostOrigin = this.origin;
-	  var row = this.getTopRow(this.robot.pos, this.origin);
-	  var col = this.getLeftColumn(this.robot.pos, this.origin);
 
 	  if (39 in this.keysDown) { //right
 	    ghostArrays = this.moveRight(this.robot.speed, modifier);
-	    ghostOrigin = ghostArrays[0];
-	    ghostPos = ghostArrays[1];
-	    ghostCol = this.getRightColumn(ghostPos, ghostOrigin)
-	    if (this.currentLevel.foregroundGrid[row][ghostCol] == "block") {
-	      robotX = this.getRealRightX([this.origin, this.robot.pos]);
+	    ghostCol = this.getRightColumn(ghostArrays)
+	    if (this.currentLevel.foregroundGrid[topRow][ghostCol] === "block" ||
+	        this.currentLevel.foregroundGrid[bottomRow][ghostCol] === "block") {
+	      robotX = this.getRealRightX(realArrays);
 	      edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
 	      difference = edge - robotX;
 	      ghostArrays = this.moveRight(difference, 1);
 	    }
 	  } else if (37 in this.keysDown) { //left
 	    ghostArrays = this.moveLeft(this.robot.speed, modifier);
-	    ghostOrigin = ghostArrays[0];
-	    ghostPos = ghostArrays[1];
-	    ghostCol = this.getLeftColumn(ghostPos, ghostOrigin)
-	    if (this.currentLevel.foregroundGrid[row][ghostCol] == "block") {
-	      robotX = this.getRealLeftX([this.origin, this.robot.pos]);
+	    ghostCol = this.getLeftColumn(ghostArrays)
+	    if (this.currentLevel.foregroundGrid[topRow][ghostCol] === "block" ||
+	        this.currentLevel.foregroundGrid[bottomRow][ghostCol] === "block") {
+	      robotX = this.getRealLeftX(realArrays);
 	      edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
 	      difference = robotX - edge;
 	      ghostArrays = this.moveLeft(difference, 1);
@@ -107,22 +106,20 @@
 	  }
 	  if (40 in this.keysDown) { //down
 	    ghostArrays = this.moveDown(this.robot.speed, modifier);
-	    ghostOrigin = ghostArrays[0];
-	    ghostPos = ghostArrays[1];
-	    ghostRow = this.getBottomRow(ghostPos, ghostOrigin)
-	    if (this.currentLevel.foregroundGrid[ghostRow][col] == "block") {
-	      robotY = this.getRealBottomY([this.origin, this.robot.pos]);
+	    ghostRow = this.getBottomRow(ghostArrays)
+	    if (this.currentLevel.foregroundGrid[ghostRow][leftCol] === "block" ||
+	        this.currentLevel.foregroundGrid[ghostRow][rightCol] === "block") {
+	      robotY = this.getRealBottomY(realArrays);
 	      edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
 	      difference = edge - robotY;
 	      ghostArrays = this.moveDown(difference, 1);
 	    }
 	  } else if (38 in this.keysDown) { //up
 	    ghostArrays = this.moveUp(this.robot.speed, modifier);
-	    ghostOrigin = ghostArrays[0];
-	    ghostPos = ghostArrays[1];
-	    ghostRow = this.getTopRow(ghostPos, ghostOrigin)
-	    if (this.currentLevel.foregroundGrid[ghostRow][col] == "block") {
-	      robotY = this.getRealTopY([this.origin, this.robot.pos]);
+	    ghostRow = this.getTopRow(ghostArrays)
+	    if (this.currentLevel.foregroundGrid[ghostRow][leftCol] === "block" ||
+	        this.currentLevel.foregroundGrid[ghostRow][rightCol] === "block") {
+	      robotY = this.getRealTopY(realArrays);
 	      edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
 	      difference = robotY - edge;
 	      ghostArrays = this.moveUp(difference, 1);
@@ -132,21 +129,17 @@
 	  this.setGhostToReal(ghostArrays);
 
 	  var leftLi = document.getElementById("left");
-	  leftLi.innerHTML = "LEFT:<br>"
-	                    + this.getRealLeftX([this.origin, this.robot.pos]) + "<br>"
-	                    + "col: " + this.getLeftColumn(this.robot.pos, this.origin);
+	  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
+	                    + "col: " + this.getLeftColumn(realArrays);
 	  var rightLi = document.getElementById("right");
-	  rightLi.innerHTML = "RIGHT:<br>"
-	                    + this.getRealRightX([this.origin, this.robot.pos]) + "<br>"
-	                    + "col: " + this.getRightColumn(this.robot.pos, this.origin);
+	  rightLi.innerHTML = "RIGHT:<br>" + this.getRealRightX(realArrays) + "<br>"
+	                    + "col: " + this.getRightColumn(realArrays);
 	  var topLi = document.getElementById("top");
-	  topLi.innerHTML = "TOP:<br>"
-	                    + this.getRealTopY([this.origin, this.robot.pos]) + "<br>"
-	                    + "row: " + this.getTopRow(this.robot.pos, this.origin);
+	  topLi.innerHTML = "TOP:<br>" + this.getRealTopY(realArrays) + "<br>"
+	                    + "row: " + this.getTopRow(realArrays);
 	  var bottomLi = document.getElementById("bottom");
-	  bottomLi.innerHTML = "BOTTOM:<br>"
-	                    + this.getRealBottomY([this.origin, this.robot.pos]) + "<br>"
-	                    + "row: " + this.getBottomRow(this.robot.pos, this.origin);
+	  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
+	                    + "row: " + this.getBottomRow(realArrays);
 	};
 
 	Game.prototype.moveLeft = function (pixels, modifier) {
@@ -222,26 +215,26 @@
 	  this.robot.pos = ghostArrays[1];
 	}
 
-	Game.prototype.getLeftColumn = function (robotPos, origin) {
-	  var xInLevel = this.getRealLeftX([origin, robotPos]);
+	Game.prototype.getLeftColumn = function (arrays) {
+	  var xInLevel = this.getRealLeftX(arrays);
 	  var column = Math.floor(xInLevel / this.BLOCK_LENGTH);
 	  return column;
 	}
 
-	Game.prototype.getRightColumn = function (robotPos, origin) {
-	  var xInLevel = this.getRealRightX([origin, robotPos]);
+	Game.prototype.getRightColumn = function (arrays) {
+	  var xInLevel = this.getRealRightX(arrays);
 	  var column = Math.floor(xInLevel / this.BLOCK_LENGTH);
 	  return column;
 	}
 
-	Game.prototype.getTopRow = function (robotPos, origin) {
-	  var yInLevel = this.getRealTopY([origin, robotPos]);
+	Game.prototype.getTopRow = function (arrays) {
+	  var yInLevel = this.getRealTopY(arrays);
 	  var row = Math.floor(yInLevel / this.BLOCK_LENGTH);
 	  return row;
 	}
 
-	Game.prototype.getBottomRow = function (robotPos, origin) {
-	  var yInLevel = this.getRealBottomY([origin, robotPos]);
+	Game.prototype.getBottomRow = function (arrays) {
+	  var yInLevel = this.getRealBottomY(arrays);
 	  var row = Math.floor(yInLevel / this.BLOCK_LENGTH);
 	  return row;
 	}
@@ -294,9 +287,9 @@
 
 	var foregroundGrid = [
 	  builder.rowOf(12, "block"),
-	  ["block", "", "", "", "block", "block", "block", "block"],
-	  ["block", "", "", "", "block", "block", "block", "block"],
-	  ["block", "", "", "", "block", "block", "block", "block"],
+	  ["block", "", "", "", "", "", "", ""],
+	  ["block", "", "", "", "", "", "", ""],
+	  ["block", "", "", "block", "block", "block", "block", ""],
 	  ["block", "", "", "", "", "", "", ""],
 	  ["block"],
 	  builder.rowOf(12, "block")
