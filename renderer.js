@@ -44,6 +44,8 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
         this.drawBlock([x_block, y_block]);
       } else if (currentLevel.foregroundGrid[row][col] === "platform") {
         this.drawPlatform([x_block, y_block], '#67480E', '#211704');
+      } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
+        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block])
       }
 
       col_left_x += 75;
@@ -83,6 +85,10 @@ Renderer.prototype.renderBackground = function (origin, currentLevel, cornerSqua
 Renderer.prototype.renderRobot = function (robot) {
   this.drawOuterSquare(robot.pos, 'red');
 }
+
+Renderer.prototype.drawDoor = function (door, pos) {
+  this.drawOuterSquare(pos, 'green');
+};
 
 Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
   var x = pos[0];

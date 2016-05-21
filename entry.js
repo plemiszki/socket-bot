@@ -2,13 +2,18 @@ var Renderer = require('./renderer.js')
 var Robot = require('./robot.js')
 
 function Game(renderer) {
+  var level1 = require('./levels/level1.js');
+  this.levelSequence = [level1];
+
   this.renderer = renderer;
-  this.levelSequence = [];
   this.origin = [0,0]
-  this.currentLevel = require('./levels/level1.js')
+  // this.currentLevel = undefined;
   this.keysDown = {};
-  this.robot = new Robot([75.5,75.5]);
   this.BLOCK_LENGTH = 75;
+}
+
+Game.prototype.startLevel = function (level) {
+  this.currentLevel = level;
   this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
   this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
 
@@ -16,7 +21,14 @@ function Game(renderer) {
     this.currentLevel.backgroundGrid[0].length !== this.currentLevel.foregroundGrid[0].length) {
       throw "foregroundGrid and backgroundGrid dimensions don't match!"
   }
-}
+
+  //fix this later - a starting robot might not be positioned in the middle of the screen
+  this.origin[0] = this.currentLevel.startingPos[0] - 263.5;
+  this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
+  this.robot = new Robot([263.5, 187.5]);
+
+  this.main(Date.now());
+};
 
 Game.prototype.main = function (passedThen) {
   var now = Date.now();
@@ -97,7 +109,11 @@ Game.prototype.update = function (modifier) {
 };
 
 Game.prototype.passThrough = function (object) {
-  if (object === "block" || object === "platform") {
+  if (
+    object === "block" ||
+    object === "platform" ||
+    object.toString() === "door" && object.status === "closed"
+  ) {
     return false;
   } else {
     return true;
@@ -234,5 +250,5 @@ document.addEventListener("DOMContentLoaded", function () {
     // console.log(keysDown);
   }, false);
 
-  gameInstance.main(Date.now());
+  gameInstance.startLevel(gameInstance.levelSequence[0]);
 });

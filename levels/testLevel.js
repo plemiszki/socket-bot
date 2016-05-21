@@ -1,4 +1,4 @@
-var obj = require('./Level.js');
+var obj = require('./../level_builder.js');
 var Level = obj.Level;
 var LevelBuilder = obj.LevelBuilder;
 var builder = new LevelBuilder();

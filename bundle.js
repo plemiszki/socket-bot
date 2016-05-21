@@ -48,13 +48,18 @@
 	var Robot = __webpack_require__(4)
 
 	function Game(renderer) {
+	  var level1 = __webpack_require__(5);
+	  this.levelSequence = [level1];
+
 	  this.renderer = renderer;
-	  this.levelSequence = [];
 	  this.origin = [0,0]
-	  this.currentLevel = __webpack_require__(5)
+	  // this.currentLevel = undefined;
 	  this.keysDown = {};
-	  this.robot = new Robot([75.5,75.5]);
 	  this.BLOCK_LENGTH = 75;
+	}
+
+	Game.prototype.startLevel = function (level) {
+	  this.currentLevel = level;
 	  this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
 	  this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
 
@@ -62,7 +67,14 @@
 	    this.currentLevel.backgroundGrid[0].length !== this.currentLevel.foregroundGrid[0].length) {
 	      throw "foregroundGrid and backgroundGrid dimensions don't match!"
 	  }
-	}
+
+	  //fix this later - a starting robot might not be positioned in the middle of the screen
+	  this.origin[0] = this.currentLevel.startingPos[0] - 263.5;
+	  this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
+	  this.robot = new Robot([263.5, 187.5]);
+
+	  this.main(Date.now());
+	};
 
 	Game.prototype.main = function (passedThen) {
 	  var now = Date.now();
@@ -143,7 +155,11 @@
 	};
 
 	Game.prototype.passThrough = function (object) {
-	  if (object === "block" || object === "platform") {
+	  if (
+	    object === "block" ||
+	    object === "platform" ||
+	    object.toString() === "door" && object.status === "closed"
+	  ) {
 	    return false;
 	  } else {
 	    return true;
@@ -280,7 +296,7 @@
 	    // console.log(keysDown);
 	  }, false);
 
-	  gameInstance.main(Date.now());
+	  gameInstance.startLevel(gameInstance.levelSequence[0]);
 	});
 
 
@@ -336,6 +352,8 @@
 	        this.drawBlock([x_block, y_block]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "platform") {
 	        this.drawPlatform([x_block, y_block], '#67480E', '#211704');
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
+	        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block])
 	      }
 
 	      col_left_x += 75;
@@ -375,6 +393,10 @@
 	Renderer.prototype.renderRobot = function (robot) {
 	  this.drawOuterSquare(robot.pos, 'red');
 	}
+
+	Renderer.prototype.drawDoor = function (door, pos) {
+	  this.drawOuterSquare(pos, 'green');
+	};
 
 	Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
 	  var x = pos[0];
@@ -526,14 +548,20 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var obj = __webpack_require__(7);
+	var obj = __webpack_require__(8);
 	var Level = obj.Level;
 	var LevelBuilder = obj.LevelBuilder;
+	var Door = obj.Door;
+
 	var builder = new LevelBuilder();
+	var doors = [
+	  new Door(101, "right"),
+	  new Door(102, "left")
+	];
 
 	var foregroundGrid = [
 	  builder.rowOf(24, "block"),
-	  ["block"].concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(8, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(5, "")).concat(doors[1]).concat(builder.rowOf(2, "")).concat(["block"]),
 	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat(builder.rowOf(5, "block")),
@@ -563,20 +591,24 @@
 	  builder.rowOf(24, "brick")
 	];
 
-	level1 = new Level("test", foregroundGrid, backgroundGrid);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5]);
 
 	module.exports = level1;
 
 
 /***/ },
 /* 6 */,
-/* 7 */
-/***/ function(module, exports) {
+/* 7 */,
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
 
-	function Level(name, foregroundGrid, backgroundGrid) {
+	var Door = __webpack_require__(9)
+
+	function Level(name, foregroundGrid, backgroundGrid, robotPos) {
 	  this.name = name;
 	  this.foregroundGrid = foregroundGrid;
 	  this.backgroundGrid = backgroundGrid;
+	  this.startingPos = robotPos;
 	}
 
 	function LevelBuilder() {};
@@ -589,23 +621,26 @@
 	  return rowArray;
 	};
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 	module.exports = {
 	  Level: Level,
-	  LevelBuilder: LevelBuilder
+	  LevelBuilder: LevelBuilder,
+	  Door: Door
 	};
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	function Door(id, side) {
+	  this.id = id;
+	  this.status = "closed";
+	  this.aniFrame = undefined;
+	  this.toString = function () { return "door" };
+	  this.side = side;
+	};
+
+	module.exports = Door;
 
 
 /***/ }
