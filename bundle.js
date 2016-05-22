@@ -433,17 +433,13 @@
 	  var grad = this.c.createLinearGradient(x, y, x, y + height);
 	  grad.addColorStop(0, topColor);
 	  grad.addColorStop(1, bottomColor);
+
 	  this.c.beginPath();
-	  this.c.moveTo(x, y);
-	  this.c.lineTo(x + BLOCK_LENGTH - 1, y);
-	  this.c.lineTo(x + BLOCK_LENGTH - 1, y + height);
-	  this.c.lineTo(x, y + height);
-	  this.c.closePath();
-	  this.c.strokeStyle = '#000';
-	  this.c.lineWidth = 1;
-	  this.c.stroke();
+	  this.c.rect(x, y, BLOCK_LENGTH - 1, height)
 	  this.c.fillStyle = grad;
 	  this.c.fill();
+	  this.c.strokeStyle = '#000';
+	  this.c.stroke();
 	};
 
 	Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
@@ -542,11 +538,11 @@
 	  this.c.closePath();
 	  this.c.strokeStyle = stroke;
 	  this.c.lineWidth = 1;
-	  this.c.stroke();
 	  if(fill != undefined){
 	    this.c.fillStyle = fill;
 	    this.c.fill();
 	  }
+	  this.c.stroke();
 	}
 
 	Renderer.prototype.drawLine = function (start, finish) {
