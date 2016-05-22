@@ -87,7 +87,35 @@ Renderer.prototype.renderRobot = function (robot) {
 }
 
 Renderer.prototype.drawDoor = function (door, pos) {
-  this.drawOuterSquare(pos, 'green');
+  var x = pos[0];
+  var y = pos[1];
+  var width = Math.floor(BLOCK_LENGTH / 3);
+
+  var topLeftCorner;
+  var topRightCorner;
+  var bottomRightCorner;
+  var bottomLeftCorner;
+
+  if (door.side === "right") {
+    topLeftCorner = [x + BLOCK_LENGTH - 1 - width, y];
+    topRightCorner = [x + BLOCK_LENGTH - 1, y];
+    bottomRightCorner = [x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1];
+    bottomLeftCorner = [x + BLOCK_LENGTH - 1 - width, y + BLOCK_LENGTH - 1];
+  } else {
+    topLeftCorner = [x, y];
+    topRightCorner = [x + width, y];
+    bottomRightCorner = [x + width, y + BLOCK_LENGTH - 1];
+    bottomLeftCorner = [x, y + BLOCK_LENGTH - 1];
+  }
+
+  this.c.fillStyle = '#fff';
+  this.c.fillRect(topLeftCorner[0], topLeftCorner[1], width, BLOCK_LENGTH - 1);
+
+  this.c.strokeStyle = '#000';
+  this.drawLine(topLeftCorner, topRightCorner);
+  this.drawLine(topRightCorner, bottomRightCorner);
+  this.drawLine(bottomRightCorner, bottomLeftCorner);
+  this.drawLine(bottomLeftCorner, topLeftCorner);
 };
 
 Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
