@@ -48,14 +48,12 @@
 	var Robot = __webpack_require__(4)
 
 	function Game(renderer) {
+	  this.renderer = renderer;
+	  this.BLOCK_LENGTH = 75;
 	  var level1 = __webpack_require__(5);
 	  this.levelSequence = [level1];
-
-	  this.renderer = renderer;
 	  this.origin = [0,0]
-	  // this.currentLevel = undefined;
 	  this.keysDown = {};
-	  this.BLOCK_LENGTH = 75;
 	}
 
 	Game.prototype.startLevel = function (level) {
@@ -73,6 +71,7 @@
 	  this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
 	  this.robot = new Robot([263.5, 187.5]);
 
+	  this.status = "inControl"
 	  this.main(Date.now());
 	};
 
@@ -95,63 +94,100 @@
 	  var rightCol = this.getRightColumn(realArrays);
 	  var ghostArrays = [this.origin, this.robot.pos];
 
-	  if (39 in this.keysDown) { //right
-	    ghostArrays = this.moveRight(this.robot.speed, modifier);
-	    ghostCol = this.getRightColumn(ghostArrays)
-	    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-	        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
-	      robotX = this.getRealRightX(realArrays);
-	      edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
-	      difference = edge - robotX;
-	      ghostArrays = this.moveRight(difference, 1);
+	  if (this.status === "inControl") {
+
+	    if (38 in this.keysDown) { //up
+	      var belowRow = bottomRow + 1;
+	      if (leftCol === rightCol) {
+	        for (var el = 0; el < this.currentLevel.elevators.length; el++) {
+	          if (this.currentLevel.elevators[el].col === leftCol) {
+	            this.rideElevator([this.currentLevel.elevators[el]], 0);
+	          }
+	        }
+	      } else {
+	        for (var el = 0; el < this.currentLevel.elevators.length; el++) {
+	          if (this.currentLevel.elevators[el].col === leftCol) {
+	            for (var el2 = 0; el2 < this.currentLevel.elevators.length; el2++) {
+	              if (
+	                this.currentLevel.elevators[el2] !== this.currentLevel.elevators[el] &&
+	                this.currentLevel.elevators[el2].col === rightCol
+	              ) {
+	                this.rideElevator([
+	                  this.currentLevel.elevators[el],
+	                  this.currentLevel.elevators[el2]
+	                ], 0);
+	              }
+	            }
+	          }
+	        }
+	      }
 	    }
-	  } else if (37 in this.keysDown) { //left
-	    ghostArrays = this.moveLeft(this.robot.speed, modifier);
-	    ghostCol = this.getLeftColumn(ghostArrays)
-	    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-	        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
-	      robotX = this.getRealLeftX(realArrays);
-	      edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
-	      difference = robotX - edge;
-	      ghostArrays = this.moveLeft(difference, 1);
+
+	    if (39 in this.keysDown) { //right
+	      ghostArrays = this.moveRight(this.robot.speed, modifier);
+	      ghostCol = this.getRightColumn(ghostArrays)
+	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+	        robotX = this.getRealRightX(realArrays);
+	        edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
+	        difference = edge - robotX;
+	        ghostArrays = this.moveRight(difference, 1);
+	      }
+	    } else if (37 in this.keysDown) { //left
+	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
+	      ghostCol = this.getLeftColumn(ghostArrays)
+	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+	        robotX = this.getRealLeftX(realArrays);
+	        edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
+	        difference = robotX - edge;
+	        ghostArrays = this.moveLeft(difference, 1);
+	      }
 	    }
-	  }
-	  if (40 in this.keysDown) { //down
-	    ghostArrays = this.moveDown(this.robot.speed, modifier);
-	    ghostRow = this.getBottomRow(ghostArrays)
-	    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
-	        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
-	      robotY = this.getRealBottomY(realArrays);
-	      edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
-	      difference = edge - robotY;
-	      ghostArrays = this.moveDown(difference, 1);
-	    }
-	  } else if (38 in this.keysDown) { //up
+
+	    // if (40 in this.keysDown) { //down
+	    //   ghostArrays = this.moveDown(this.robot.speed, modifier);
+	    //   ghostRow = this.getBottomRow(ghostArrays)
+	    //   if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+	    //       this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
+	    //     robotY = this.getRealBottomY(realArrays);
+	    //     edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
+	    //     difference = edge - robotY;
+	    //     ghostArrays = this.moveDown(difference, 1);
+	    //   }
+	    // } else if (38 in this.keysDown) { //up
+	    //   ghostArrays = this.moveUp(this.robot.speed, modifier);
+	    //   ghostRow = this.getTopRow(ghostArrays)
+	    //   if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+	    //       this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
+	    //     robotY = this.getRealTopY(realArrays);
+	    //     edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
+	    //     difference = robotY - edge;
+	    //     ghostArrays = this.moveUp(difference, 1);
+	    //   }
+	    // }
+	  } else if (this.status === "rising") {
 	    ghostArrays = this.moveUp(this.robot.speed, modifier);
-	    ghostRow = this.getTopRow(ghostArrays)
-	    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
-	        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
-	      robotY = this.getRealTopY(realArrays);
-	      edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
-	      difference = robotY - edge;
-	      ghostArrays = this.moveUp(difference, 1);
-	    }
 	  }
 
 	  this.setGhostToReal(ghostArrays);
+	  this.updateDebugHTML(realArrays);
+	  this.checkElevator();
+	};
 
-	  var leftLi = document.getElementById("left");
-	  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
-	                    + "col: " + this.getLeftColumn(realArrays);
-	  var rightLi = document.getElementById("right");
-	  rightLi.innerHTML = "RIGHT:<br>" + this.getRealRightX(realArrays) + "<br>"
-	                    + "col: " + this.getRightColumn(realArrays);
-	  var topLi = document.getElementById("top");
-	  topLi.innerHTML = "TOP:<br>" + this.getRealTopY(realArrays) + "<br>"
-	                    + "row: " + this.getTopRow(realArrays);
-	  var bottomLi = document.getElementById("bottom");
-	  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
-	                    + "row: " + this.getBottomRow(realArrays);
+	Game.prototype.checkElevator = function () {
+	  if (this.status === "rising") {
+	    console.log(this.stopAt);
+	    console.log(this.getRealTopY([this.origin, this.robot.pos]));
+	    if (this.getRealBottomY([this.origin, this.robot.pos]) <= this.stopAt) {
+	      this.status = "inControl";
+	    }
+	  }
+	};
+
+	Game.prototype.rideElevator = function (elevatorArray, stopAt) {
+	  this.status = "rising";
+	  this.stopAt = stopAt;
 	};
 
 	Game.prototype.passThrough = function (object) {
@@ -279,6 +315,21 @@
 	  return arrays[0][1] + (arrays[1][1] + this.BLOCK_LENGTH - 1);
 	}
 
+	Game.prototype.updateDebugHTML = function (realArrays) {
+	  var leftLi = document.getElementById("left");
+	  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
+	                    + "col: " + this.getLeftColumn(realArrays);
+	  var rightLi = document.getElementById("right");
+	  rightLi.innerHTML = "RIGHT:<br>" + this.getRealRightX(realArrays) + "<br>"
+	                    + "col: " + this.getRightColumn(realArrays);
+	  var topLi = document.getElementById("top");
+	  topLi.innerHTML = "TOP:<br>" + this.getRealTopY(realArrays) + "<br>"
+	                    + "row: " + this.getTopRow(realArrays);
+	  var bottomLi = document.getElementById("bottom");
+	  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
+	                    + "row: " + this.getBottomRow(realArrays);
+	};
+
 	document.addEventListener("DOMContentLoaded", function () {
 	  var canvas = document.getElementById('canvas');
 	  var context = canvas.getContext("2d");
@@ -317,6 +368,7 @@
 	  var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
 	  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
+	  this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderRobot(this.game.robot);
 	}
 
@@ -390,9 +442,54 @@
 	  }
 	}
 
+	Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquares) {
+	  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	  //iterate through each visible column:
+	  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
+	    //iterate through elevators to see if there's one in this column:
+	    for (var elv = 0; elv < currentLevel.elevators.length; elv++) {
+	      if (currentLevel.elevators[elv].col === col) {
+	        //if so, find where the top is:
+	        var topRow = currentLevel.elevators[elv].topRow;
+	        var height = currentLevel.elevators[elv].height;
+
+	        var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
+	        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+	        this.drawPlatform([x_block, platform_top_y - height], '#67480E', '#211704');
+	        // this.drawPlatform([x_block, 0], '#67480E', '#211704');
+	      }
+
+
+	      // var row_top_y = 0;
+	      // for (var row = 0; row < currentLevel.foregroundGrid.length; row++) {
+	      //   var col_left_x = 0
+	      //   for (var col = 0; col < currentLevel.foregroundGrid[0].length; col++) {
+	      //     var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+	      //     var y_block = (-1 * origin[1]) + row_top_y + 0.5;
+	      //
+	      //     //draw the top:
+	      //     if (topRow === row && baseCol === col) {
+	      //       this.drawPlatform([x_block, y_block - height], '#67480E', '#211704');
+	      //     }
+	      //
+	      //     col_left_x += 75;
+	      //   }
+	      //
+	      //   row_top_y += 75;
+	      // }
+	    }
+
+	    col_left_x += 75;
+	  }
+	};
+
 	Renderer.prototype.renderRobot = function (robot) {
 	  this.drawOuterSquare(robot.pos, 'red');
 	}
+
+	Renderer.prototype.drawElevator = function (elevator, pos) {
+	  this.drawOuterSquare(pos, 'white')
+	};
 
 	Renderer.prototype.drawDoor = function (door, pos) {
 	  var x = pos[0];
@@ -576,11 +673,16 @@
 	var Level = obj.Level;
 	var LevelBuilder = obj.LevelBuilder;
 	var Door = obj.Door;
+	var Elevator = obj.Elevator;
 
 	var builder = new LevelBuilder();
 	var doors = [
 	  new Door(101, "right"),
 	  new Door(102, "left")
+	];
+	var elevators = [
+	  new Elevator([10, 5], 101, 4),
+	  new Elevator([10, 6], 101, 4)
 	];
 
 	var foregroundGrid = [
@@ -594,7 +696,7 @@
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
+	  builder.rowOf(5, "block").concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(10, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
 	  builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
 	  builder.rowOf(24, "block")
 	];
@@ -615,7 +717,7 @@
 	  builder.rowOf(24, "brick")
 	];
 
-	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5]);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
 
 	module.exports = level1;
 
@@ -627,12 +729,14 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Door = __webpack_require__(9)
+	var Elevator = __webpack_require__(10)
 
-	function Level(name, foregroundGrid, backgroundGrid, robotPos) {
+	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators) {
 	  this.name = name;
 	  this.foregroundGrid = foregroundGrid;
 	  this.backgroundGrid = backgroundGrid;
 	  this.startingPos = robotPos;
+	  this.elevators = elevators;
 	}
 
 	function LevelBuilder() {};
@@ -648,7 +752,8 @@
 	module.exports = {
 	  Level: Level,
 	  LevelBuilder: LevelBuilder,
-	  Door: Door
+	  Door: Door,
+	  Elevator: Elevator
 	};
 
 
@@ -657,14 +762,31 @@
 /***/ function(module, exports) {
 
 	function Door(id, side) {
+	  this.toString = function () { return "door" };
 	  this.id = id;
 	  this.status = "closed";
 	  this.aniFrame = undefined;
-	  this.toString = function () { return "door" };
 	  this.side = side;
 	};
 
 	module.exports = Door;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	function Elevator(baseRowCol, id, startingHeight) {
+	  this.toString = function () { return "elevator" };
+	  this.id = id;
+	  this.col = baseRowCol[1];
+	  this.baseRow = baseRowCol[0];
+	  this.blockHeight = startingHeight;
+	  this.topRow = this.baseRow - this.blockHeight;
+	  this.height = 0;
+	}
+
+	module.exports = Elevator;
 
 
 /***/ }

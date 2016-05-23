@@ -1,8 +1,8 @@
 function Door(id, side) {
+  this.toString = function () { return "door" };
   this.id = id;
   this.status = "closed";
   this.aniFrame = undefined;
-  this.toString = function () { return "door" };
   this.side = side;
 };
 

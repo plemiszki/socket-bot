@@ -2,14 +2,12 @@ var Renderer = require('./renderer.js')
 var Robot = require('./robot.js')
 
 function Game(renderer) {
+  this.renderer = renderer;
+  this.BLOCK_LENGTH = 75;
   var level1 = require('./levels/level1.js');
   this.levelSequence = [level1];
-
-  this.renderer = renderer;
   this.origin = [0,0]
-  // this.currentLevel = undefined;
   this.keysDown = {};
-  this.BLOCK_LENGTH = 75;
 }
 
 Game.prototype.startLevel = function (level) {
@@ -27,6 +25,7 @@ Game.prototype.startLevel = function (level) {
   this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
   this.robot = new Robot([263.5, 187.5]);
 
+  this.status = "inControl"
   this.main(Date.now());
 };
 
@@ -49,63 +48,100 @@ Game.prototype.update = function (modifier) {
   var rightCol = this.getRightColumn(realArrays);
   var ghostArrays = [this.origin, this.robot.pos];
 
-  if (39 in this.keysDown) { //right
-    ghostArrays = this.moveRight(this.robot.speed, modifier);
-    ghostCol = this.getRightColumn(ghostArrays)
-    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
-      robotX = this.getRealRightX(realArrays);
-      edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
-      difference = edge - robotX;
-      ghostArrays = this.moveRight(difference, 1);
+  if (this.status === "inControl") {
+
+    if (38 in this.keysDown) { //up
+      var belowRow = bottomRow + 1;
+      if (leftCol === rightCol) {
+        for (var el = 0; el < this.currentLevel.elevators.length; el++) {
+          if (this.currentLevel.elevators[el].col === leftCol) {
+            this.rideElevator([this.currentLevel.elevators[el]], 0);
+          }
+        }
+      } else {
+        for (var el = 0; el < this.currentLevel.elevators.length; el++) {
+          if (this.currentLevel.elevators[el].col === leftCol) {
+            for (var el2 = 0; el2 < this.currentLevel.elevators.length; el2++) {
+              if (
+                this.currentLevel.elevators[el2] !== this.currentLevel.elevators[el] &&
+                this.currentLevel.elevators[el2].col === rightCol
+              ) {
+                this.rideElevator([
+                  this.currentLevel.elevators[el],
+                  this.currentLevel.elevators[el2]
+                ], 0);
+              }
+            }
+          }
+        }
+      }
     }
-  } else if (37 in this.keysDown) { //left
-    ghostArrays = this.moveLeft(this.robot.speed, modifier);
-    ghostCol = this.getLeftColumn(ghostArrays)
-    if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-        this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
-      robotX = this.getRealLeftX(realArrays);
-      edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
-      difference = robotX - edge;
-      ghostArrays = this.moveLeft(difference, 1);
+
+    if (39 in this.keysDown) { //right
+      ghostArrays = this.moveRight(this.robot.speed, modifier);
+      ghostCol = this.getRightColumn(ghostArrays)
+      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+        robotX = this.getRealRightX(realArrays);
+        edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
+        difference = edge - robotX;
+        ghostArrays = this.moveRight(difference, 1);
+      }
+    } else if (37 in this.keysDown) { //left
+      ghostArrays = this.moveLeft(this.robot.speed, modifier);
+      ghostCol = this.getLeftColumn(ghostArrays)
+      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
+      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+        robotX = this.getRealLeftX(realArrays);
+        edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
+        difference = robotX - edge;
+        ghostArrays = this.moveLeft(difference, 1);
+      }
     }
-  }
-  if (40 in this.keysDown) { //down
-    ghostArrays = this.moveDown(this.robot.speed, modifier);
-    ghostRow = this.getBottomRow(ghostArrays)
-    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
-        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
-      robotY = this.getRealBottomY(realArrays);
-      edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
-      difference = edge - robotY;
-      ghostArrays = this.moveDown(difference, 1);
-    }
-  } else if (38 in this.keysDown) { //up
+
+    // if (40 in this.keysDown) { //down
+    //   ghostArrays = this.moveDown(this.robot.speed, modifier);
+    //   ghostRow = this.getBottomRow(ghostArrays)
+    //   if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+    //       this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
+    //     robotY = this.getRealBottomY(realArrays);
+    //     edge = 0.5 + (ghostRow * this.BLOCK_LENGTH) - 1;
+    //     difference = edge - robotY;
+    //     ghostArrays = this.moveDown(difference, 1);
+    //   }
+    // } else if (38 in this.keysDown) { //up
+    //   ghostArrays = this.moveUp(this.robot.speed, modifier);
+    //   ghostRow = this.getTopRow(ghostArrays)
+    //   if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
+    //       this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
+    //     robotY = this.getRealTopY(realArrays);
+    //     edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
+    //     difference = robotY - edge;
+    //     ghostArrays = this.moveUp(difference, 1);
+    //   }
+    // }
+  } else if (this.status === "rising") {
     ghostArrays = this.moveUp(this.robot.speed, modifier);
-    ghostRow = this.getTopRow(ghostArrays)
-    if (this.passThrough(this.currentLevel.foregroundGrid[ghostRow][leftCol]) === false ||
-        this.passThrough(this.currentLevel.foregroundGrid[ghostRow][rightCol]) === false) {
-      robotY = this.getRealTopY(realArrays);
-      edge = 0.5 + ((ghostRow + 1) * this.BLOCK_LENGTH);
-      difference = robotY - edge;
-      ghostArrays = this.moveUp(difference, 1);
-    }
   }
 
   this.setGhostToReal(ghostArrays);
+  this.updateDebugHTML(realArrays);
+  this.checkElevator();
+};
 
-  var leftLi = document.getElementById("left");
-  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
-                    + "col: " + this.getLeftColumn(realArrays);
-  var rightLi = document.getElementById("right");
-  rightLi.innerHTML = "RIGHT:<br>" + this.getRealRightX(realArrays) + "<br>"
-                    + "col: " + this.getRightColumn(realArrays);
-  var topLi = document.getElementById("top");
-  topLi.innerHTML = "TOP:<br>" + this.getRealTopY(realArrays) + "<br>"
-                    + "row: " + this.getTopRow(realArrays);
-  var bottomLi = document.getElementById("bottom");
-  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
-                    + "row: " + this.getBottomRow(realArrays);
+Game.prototype.checkElevator = function () {
+  if (this.status === "rising") {
+    console.log(this.stopAt);
+    console.log(this.getRealTopY([this.origin, this.robot.pos]));
+    if (this.getRealBottomY([this.origin, this.robot.pos]) <= this.stopAt) {
+      this.status = "inControl";
+    }
+  }
+};
+
+Game.prototype.rideElevator = function (elevatorArray, stopAt) {
+  this.status = "rising";
+  this.stopAt = stopAt;
 };
 
 Game.prototype.passThrough = function (object) {
@@ -232,6 +268,21 @@ Game.prototype.getRealTopY = function (arrays) {
 Game.prototype.getRealBottomY = function (arrays) {
   return arrays[0][1] + (arrays[1][1] + this.BLOCK_LENGTH - 1);
 }
+
+Game.prototype.updateDebugHTML = function (realArrays) {
+  var leftLi = document.getElementById("left");
+  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
+                    + "col: " + this.getLeftColumn(realArrays);
+  var rightLi = document.getElementById("right");
+  rightLi.innerHTML = "RIGHT:<br>" + this.getRealRightX(realArrays) + "<br>"
+                    + "col: " + this.getRightColumn(realArrays);
+  var topLi = document.getElementById("top");
+  topLi.innerHTML = "TOP:<br>" + this.getRealTopY(realArrays) + "<br>"
+                    + "row: " + this.getTopRow(realArrays);
+  var bottomLi = document.getElementById("bottom");
+  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
+                    + "row: " + this.getBottomRow(realArrays);
+};
 
 document.addEventListener("DOMContentLoaded", function () {
   var canvas = document.getElementById('canvas');

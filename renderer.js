@@ -9,6 +9,7 @@ Renderer.prototype.renderScreen = function () {
   var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
   this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
+  this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderRobot(this.game.robot);
 }
 
@@ -82,9 +83,54 @@ Renderer.prototype.renderBackground = function (origin, currentLevel, cornerSqua
   }
 }
 
+Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquares) {
+  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+  //iterate through each visible column:
+  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
+    //iterate through elevators to see if there's one in this column:
+    for (var elv = 0; elv < currentLevel.elevators.length; elv++) {
+      if (currentLevel.elevators[elv].col === col) {
+        //if so, find where the top is:
+        var topRow = currentLevel.elevators[elv].topRow;
+        var height = currentLevel.elevators[elv].height;
+
+        var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
+        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+        this.drawPlatform([x_block, platform_top_y - height], '#67480E', '#211704');
+        // this.drawPlatform([x_block, 0], '#67480E', '#211704');
+      }
+
+
+      // var row_top_y = 0;
+      // for (var row = 0; row < currentLevel.foregroundGrid.length; row++) {
+      //   var col_left_x = 0
+      //   for (var col = 0; col < currentLevel.foregroundGrid[0].length; col++) {
+      //     var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+      //     var y_block = (-1 * origin[1]) + row_top_y + 0.5;
+      //
+      //     //draw the top:
+      //     if (topRow === row && baseCol === col) {
+      //       this.drawPlatform([x_block, y_block - height], '#67480E', '#211704');
+      //     }
+      //
+      //     col_left_x += 75;
+      //   }
+      //
+      //   row_top_y += 75;
+      // }
+    }
+
+    col_left_x += 75;
+  }
+};
+
 Renderer.prototype.renderRobot = function (robot) {
   this.drawOuterSquare(robot.pos, 'red');
 }
+
+Renderer.prototype.drawElevator = function (elevator, pos) {
+  this.drawOuterSquare(pos, 'white')
+};
 
 Renderer.prototype.drawDoor = function (door, pos) {
   var x = pos[0];
