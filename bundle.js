@@ -167,6 +167,8 @@
 	    } else if (realRobotBottom < this.stopAt) {
 	      var difference = this.stopAt - realRobotBottom
 	      this.moveDown(difference, 1);
+	      this.elevatorArray.forEach(function (elevator)
+	      {elevator.height -= (difference);}.bind(this))
 	      this.status = "inControl";
 	    }
 	  }
@@ -265,9 +267,7 @@
 	  var returnOrigin = this.origin;
 	  var returnPos = this.robot.pos;
 
-	  if (this.origin[1] < 0) {
-	    returnOrigin[1] = 0;
-	  } else if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
+	  if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
 	    returnOrigin[1] -= pixels * modifier;
 	  } else if (this.robot.pos[1] < 187.5 && this.origin[1] > 0) {
 	    returnPos[1] = 187.5;
@@ -275,6 +275,13 @@
 	  } else {
 	    returnPos[1] -= pixels * modifier;
 	  }
+
+	  if (returnOrigin[1] < 0) {
+	    var difference = 0 - returnOrigin[1]
+	    returnOrigin[1] = 0;
+	    returnPos[1] -= difference;
+	  }
+
 	  return [returnOrigin, returnPos];
 	};
 
