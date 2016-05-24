@@ -11,6 +11,8 @@ Renderer.prototype.renderScreen = function () {
   this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderRobot(this.game.robot);
+  var renderDiv = document.getElementById("renderCount");
+  renderDiv.innerHTML = ++this.game.renderCount;
 }
 
 Renderer.prototype.getVisibleSquares = function (origin, currentLevel) {
