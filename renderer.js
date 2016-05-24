@@ -96,7 +96,7 @@ Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquar
 
         var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
         var x_block = (-1 * origin[0]) + col_left_x + 0.5;
-        this.drawPlatform([x_block, platform_top_y - height], '#67480E', '#211704');
+        this.drawPlatform([x_block, platform_top_y - height], '#67480E', '#211705');
         // this.drawPlatform([x_block, 0], '#67480E', '#211704');
       }
 
@@ -127,10 +127,6 @@ Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquar
 Renderer.prototype.renderRobot = function (robot) {
   this.drawOuterSquare(robot.pos, 'red');
 }
-
-Renderer.prototype.drawElevator = function (elevator, pos) {
-  this.drawOuterSquare(pos, 'white')
-};
 
 Renderer.prototype.drawDoor = function (door, pos) {
   var x = pos[0];

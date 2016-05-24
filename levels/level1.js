@@ -10,8 +10,18 @@ var doors = [
   new Door(102, "left")
 ];
 var elevators = [
-  new Elevator([10, 5], 101, 4),
-  new Elevator([10, 6], 101, 4)
+  new Elevator({
+    id: 101,
+    baseRowCol: [10, 5],
+    startingHeight: 4,
+    heights: [4, 8]
+  }),
+  new Elevator({
+    id: 101,
+    baseRowCol: [10, 6],
+    startingHeight: 4,
+    heights: [4, 6]
+  }),
 ];
 
 var foregroundGrid = [
