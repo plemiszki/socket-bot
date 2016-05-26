@@ -11,8 +11,6 @@ Renderer.prototype.renderScreen = function () {
   this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderRobot(this.game.robot);
-  var renderDiv = document.getElementById("renderCount");
-  renderDiv.innerHTML = ++this.game.renderCount;
 }
 
 Renderer.prototype.getVisibleSquares = function (origin, currentLevel) {
@@ -95,9 +93,21 @@ Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquar
         //if so, find where the top is:
         var topRow = currentLevel.elevators[elv].topRow;
         var additionalPixels = currentLevel.elevators[elv].additionalPixels;
-        var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
         var x_block = (-1 * origin[0]) + col_left_x + 0.5;
-        this.drawPlatform([x_block, platform_top_y - additionalPixels], '#67480E', '#211705');
+        var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
+        var adjustedPlatformTop = platform_top_y - additionalPixels;
+        const COLUMN_WIDTH = 25;
+        var inset = Math.floor((BLOCK_LENGTH - COLUMN_WIDTH) / 2)
+        var column_top_y = adjustedPlatformTop + Math.floor(BLOCK_LENGTH/3);
+
+        this.c.beginPath();
+        this.c.rect(x_block + inset, column_top_y, COLUMN_WIDTH, 70)
+        this.c.fillStyle = '#fff';
+        this.c.fill();
+        this.c.strokeStyle = '#000';
+        this.c.stroke();
+
+        this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
       }
     }
 

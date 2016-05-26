@@ -14,13 +14,15 @@ var elevators = [
     id: 101,
     baseRowCol: [10, 5],
     startingHeight: 4,
-    heights: [0, 4, 8]
+    heights: [0, 4, 8],
+    speed: 400
   }),
   new Elevator({
     id: 101,
     baseRowCol: [10, 6],
     startingHeight: 4,
-    heights: [0, 4, 8]
+    heights: [0, 4, 8],
+    speed: 400
   }),
   new Elevator({
     id: 102,

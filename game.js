@@ -52,16 +52,16 @@ Game.prototype.update = function (modifier) {
 
   if (this.status === "rising") {
 
-    ghostArrays = this.moveUp(this.robot.speed, modifier);
+    ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
     this.elevatorArray.forEach(function (elevator) {
-      elevator.additionalPixels += (this.robot.speed * modifier);
+      elevator.additionalPixels += (elevator.speed * modifier);
     }.bind(this))
 
   } else if (this.status === "descending") {
 
-    ghostArrays = this.moveDown(this.robot.speed, modifier);
+    ghostArrays = this.moveDown(this.elevatorArray[0].speed, modifier);
     this.elevatorArray.forEach(function (elevator) {
-      elevator.additionalPixels -= (this.robot.speed * modifier);
+      elevator.additionalPixels -= (elevator.speed * modifier);
     }.bind(this))
 
   } else if (this.status === "inControl") {
