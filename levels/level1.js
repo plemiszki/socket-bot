@@ -20,7 +20,7 @@ var elevators = [
     id: 101,
     baseRowCol: [10, 6],
     startingHeight: 4,
-    heights: [4, 6]
+    heights: [4, 8]
   }),
 ];
 

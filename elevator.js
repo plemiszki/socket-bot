@@ -7,7 +7,7 @@ function Elevator(options) {
   this.heights = options.heights;
 
   this.topRow = this.baseRow - this.blocksHigh;
-  this.height = 0;
+  this.additionalPixels = 0;
   this.toString = function () { return "elevator" };
 }
 

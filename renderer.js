@@ -94,32 +94,11 @@ Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquar
       if (currentLevel.elevators[elv].col === col) {
         //if so, find where the top is:
         var topRow = currentLevel.elevators[elv].topRow;
-        var height = currentLevel.elevators[elv].height;
-
+        var additionalPixels = currentLevel.elevators[elv].additionalPixels;
         var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
         var x_block = (-1 * origin[0]) + col_left_x + 0.5;
-        this.drawPlatform([x_block, platform_top_y - height], '#67480E', '#211705');
-        // this.drawPlatform([x_block, 0], '#67480E', '#211704');
+        this.drawPlatform([x_block, platform_top_y - additionalPixels], '#67480E', '#211705');
       }
-
-
-      // var row_top_y = 0;
-      // for (var row = 0; row < currentLevel.foregroundGrid.length; row++) {
-      //   var col_left_x = 0
-      //   for (var col = 0; col < currentLevel.foregroundGrid[0].length; col++) {
-      //     var x_block = (-1 * origin[0]) + col_left_x + 0.5;
-      //     var y_block = (-1 * origin[1]) + row_top_y + 0.5;
-      //
-      //     //draw the top:
-      //     if (topRow === row && baseCol === col) {
-      //       this.drawPlatform([x_block, y_block - height], '#67480E', '#211704');
-      //     }
-      //
-      //     col_left_x += 75;
-      //   }
-      //
-      //   row_top_y += 75;
-      // }
     }
 
     col_left_x += 75;
