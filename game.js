@@ -42,7 +42,6 @@ Game.prototype.main = function (passedThen) {
   });
 };
 
-
 Game.prototype.update = function (modifier) {
   var realArrays = [this.origin, this.robot.pos]
   var topRow = this.getTopRow(realArrays);
@@ -101,44 +100,6 @@ Game.prototype.update = function (modifier) {
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
   }
-};
-
-Game.prototype.checkElevator = function () {
-  if (this.status === "rising") {
-    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos])
-    if (realRobotBottom === this.stopAt) {
-      this._afterElevatorInNewSpot();
-    } else if (realRobotBottom < this.stopAt) {
-      var difference = this.stopAt - realRobotBottom
-      this.moveDown(difference, 1);
-      this.elevatorArray.forEach(function (elevator) {
-        elevator.additionalPixels -= (difference);
-      }.bind(this))
-      this._afterElevatorInNewSpot();
-    }
-  } else if (this.status === "descending") {
-    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos])
-    if (realRobotBottom === this.stopAt) {
-      this._afterElevatorInNewSpot();
-    } else if (realRobotBottom > this.stopAt) {
-      var difference = realRobotBottom - this.stopAt
-      this.moveUp(difference, 1);
-      this.elevatorArray.forEach(function (elevator) {
-        elevator.additionalPixels += (difference);
-      }.bind(this))
-      this._afterElevatorInNewSpot();
-    }
-  }
-};
-
-Game.prototype._afterElevatorInNewSpot = function () {
-  this.status = "inControl";
-  var newElevatorHeight = this.newElevatorHeight;
-  this.elevatorArray.forEach(function (elevator) {
-    elevator.blocksHigh = newElevatorHeight;
-    elevator.topRow = elevator.baseRow - elevator.blocksHigh;
-    elevator.additionalPixels = 0;
-  })
 };
 
 Game.prototype.passThrough = function (object) {
@@ -212,18 +173,48 @@ Game.prototype.launchElevatorMaybe = function (elevatorArray, dir) {
 
 Game.prototype.endOfElevator = function (elevatorArray, dir, blockHeightIndex) {
   if (dir === "up") {
-    if ((blockHeightIndex + 1) === elevatorArray[0].heights.length) {
-      return true
-    } else {
-      return false
-    }
+    return (blockHeightIndex + 1) === elevatorArray[0].heights.length
   } else if (dir === "down") {
-    if (blockHeightIndex === 0) {
-      return true
-    } else {
-      return false
+    return blockHeightIndex === 0
+  }
+};
+
+Game.prototype.checkElevator = function () {
+  if (this.status === "rising") {
+    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos])
+    if (realRobotBottom === this.stopAt) {
+      this._afterElevatorInNewSpot();
+    } else if (realRobotBottom < this.stopAt) {
+      var difference = this.stopAt - realRobotBottom
+      this.moveDown(difference, 1);
+      this.elevatorArray.forEach(function (elevator) {
+        elevator.additionalPixels -= (difference);
+      }.bind(this))
+      this._afterElevatorInNewSpot();
+    }
+  } else if (this.status === "descending") {
+    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos])
+    if (realRobotBottom === this.stopAt) {
+      this._afterElevatorInNewSpot();
+    } else if (realRobotBottom > this.stopAt) {
+      var difference = realRobotBottom - this.stopAt
+      this.moveUp(difference, 1);
+      this.elevatorArray.forEach(function (elevator) {
+        elevator.additionalPixels += (difference);
+      }.bind(this))
+      this._afterElevatorInNewSpot();
     }
   }
+};
+
+Game.prototype._afterElevatorInNewSpot = function () {
+  this.status = "inControl";
+  var newElevatorHeight = this.newElevatorHeight;
+  this.elevatorArray.forEach(function (elevator) {
+    elevator.blocksHigh = newElevatorHeight;
+    elevator.topRow = elevator.baseRow - elevator.blocksHigh;
+    elevator.additionalPixels = 0;
+  })
 };
 
 Game.prototype.moveLeft = function (pixels, modifier) {
@@ -263,13 +254,15 @@ Game.prototype.moveRight = function (pixels, modifier) {
 Game.prototype.moveUp = function (pixels, modifier) {
   var returnOrigin = this.origin;
   var returnPos = this.robot.pos;
+  var difference;
 
   if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
     returnOrigin[1] -= pixels * modifier;
   } else if (this.robot.pos[1] < 187.5 && this.origin[1] > 0) {
-    returnPos[1] = 187.5;
+    difference = 187.5 - this.robot.pos[1];
     returnOrigin[1] -= pixels * modifier;
-    //TODO: move robot up by the difference
+    returnPos[1] = 187.5;
+    returnOrigin[1] -= difference;
   } else {
     returnPos[1] -= pixels * modifier;
   }
@@ -299,12 +292,12 @@ Game.prototype.moveDown = function (pixels, modifier) {
     returnPos[1] += pixels * modifier;
   }
 
-  // var topOfScreenToLevelBottom = this.levelHeight - returnOrigin[1];
-  // if (topOfScreenToLevelBottom < this.BLOCK_LENGTH * 6) {
-  //   var difference = (this.BLOCK_LENGTH * 6) - topOfScreenToLevelBottom;
-  //   returnOrigin[1] = this.levelHeight - (this.BLOCK_LENGTH * 6);
-  //   returnPos[1] += difference;
-  // }
+  var topOfScreenToLevelBottom = this.levelHeight - returnOrigin[1];
+  if (topOfScreenToLevelBottom < this.BLOCK_LENGTH * 6) {
+    difference = (this.BLOCK_LENGTH * 6) - topOfScreenToLevelBottom;
+    returnOrigin[1] = this.levelHeight - (this.BLOCK_LENGTH * 6);
+    returnPos[1] += difference;
+  }
 
   return [returnOrigin, returnPos];
 };

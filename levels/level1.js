@@ -14,14 +14,32 @@ var elevators = [
     id: 101,
     baseRowCol: [10, 5],
     startingHeight: 4,
-    heights: [4, 8]
+    heights: [0, 4, 8]
   }),
   new Elevator({
     id: 101,
     baseRowCol: [10, 6],
     startingHeight: 4,
-    heights: [4, 8]
+    heights: [0, 4, 8]
   }),
+  new Elevator({
+    id: 102,
+    baseRowCol: [10, 1],
+    startingHeight: 0,
+    heights: [0, 6]
+  }),
+  new Elevator({
+    id: 103,
+    baseRowCol: [12, 17],
+    startingHeight: 6,
+    heights: [0, 3, 6, 10]
+  }),
+  new Elevator({
+    id: 103,
+    baseRowCol: [12, 18],
+    startingHeight: 6,
+    heights: [0, 3, 6, 10]
+  })
 ];
 
 var foregroundGrid = [
@@ -35,7 +53,7 @@ var foregroundGrid = [
   ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-  builder.rowOf(5, "block").concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(10, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+  ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(10, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
   builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
   builder.rowOf(24, "block")
 ];
