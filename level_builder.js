@@ -1,5 +1,6 @@
 var Door = require('./door.js')
 var Elevator = require('./elevator.js')
+var ButtonBlock = require('./buttonBlock.js')
 
 function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators) {
   this.name = name;
@@ -23,5 +24,6 @@ module.exports = {
   Level: Level,
   LevelBuilder: LevelBuilder,
   Door: Door,
-  Elevator: Elevator
+  Elevator: Elevator,
+  ButtonBlock: ButtonBlock
 };

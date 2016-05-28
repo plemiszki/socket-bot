@@ -73,14 +73,21 @@
 /***/ function(module, exports) {
 
 	const BLOCK_LENGTH = 75;
+	const EDGE_TO_INNER = 8;
+	const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
 	function Renderer(context, game) {
 	  this.c = context;
 	  this.game = game;
+
+	  this.gradientArray = this.fillGradientArray("rgb(43,216,233)", 50);
+	  this.gradientIndex = 0;
+	  this.gradientSign = 1;
 	}
 
 	Renderer.prototype.renderScreen = function () {
 	  var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
+	  this.incrementGradientIndex();
 	  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
@@ -121,6 +128,8 @@
 	        this.drawPlatform([x_block, y_block], '#67480E', '#211704');
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
 	        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block])
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "buttonBlock") {
+	        this.drawButtonBlock(currentLevel.foregroundGrid[row][col],[x_block, y_block])
 	      }
 
 	      col_left_x += 75;
@@ -284,6 +293,12 @@
 	  // }
 	}
 
+	Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
+	  this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
+	  this.c.rect(pos[0] + EDGE_TO_INNER, pos[1] + EDGE_TO_INNER, INNER_RECT_LENGTH, INNER_RECT_LENGTH)
+	  this.c.stroke()
+	};
+
 	Renderer.prototype.drawBlock = function (pos) {
 	  var x = pos[0];
 	  var y = pos[1];
@@ -296,9 +311,7 @@
 
 	  this.drawOuterSquare(pos, '#000', frontGrad);
 
-	  const EDGE_TO_INNER = 8;
 	  const TRI_LENGTH = 40;
-	  const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 	  const START_TRIANGLE = EDGE_TO_INNER + ((INNER_RECT_LENGTH - TRI_LENGTH) / 2);
 
 	  //left triangle
@@ -363,6 +376,36 @@
 	  this.c.lineTo(finish[0], finish[1]);
 	  this.c.lineWidth = 1;
 	  this.c.stroke();
+	}
+
+	Renderer.prototype.incrementGradientIndex = function () {
+	  this.gradientIndex = this.gradientIndex + (1 * this.gradientSign)
+	  if (this.gradientIndex === this.gradientArray.length) {
+	    this.gradientSign = -1;
+	    this.gradientIndex = this.gradientArray.length - 2
+	  } else if (this.gradientIndex === -1) {
+	    this.gradientSign = 1;
+	    this.gradientIndex = 1;
+	  }
+	};
+
+	Renderer.prototype.fillGradientArray = function (rgbColor, arrayLength) {
+	  returnArray = [rgbColor];
+	  for (var i = 0; i < arrayLength; i++) {
+	    rgbColor = this.shadeRGBColor(rgbColor, -0.02)
+	    returnArray.push(rgbColor);
+	  }
+	  return returnArray;
+	};
+
+	Renderer.prototype.shadeRGBColor = function (color, percent) {
+	    var f = color.split(",");
+	    var t = percent < 0 ? 0 : 255;
+	    var p = percent < 0 ? percent * -1 : percent;
+	    var R = parseInt(f[0].slice(4));
+	    var G = parseInt(f[1]);
+	    var B = parseInt(f[2]);
+	    return "rgb("+(Math.round((t-R)*p)+R)+","+(Math.round((t-G)*p)+G)+","+(Math.round((t-B)*p)+B)+")";
 	}
 
 	module.exports = Renderer;
@@ -470,7 +513,7 @@
 	  }
 
 	  this.setGhostToReal(ghostArrays);
-	  this.updateDebugHTML(realArrays);
+	  // this.updateDebugHTML(realArrays);
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
 	  }
@@ -479,6 +522,7 @@
 	Game.prototype.passThrough = function (object) {
 	  if ( object === "block" || object === "platform"
 	      || object.toString() === "door" && object.status === "closed"
+	      || object.toString() === "buttonBlock"
 	  ) {
 	    return false;
 	  } else {
@@ -760,11 +804,16 @@
 	var LevelBuilder = obj.LevelBuilder;
 	var Door = obj.Door;
 	var Elevator = obj.Elevator;
+	var ButtonBlock = obj.ButtonBlock;
 
 	var builder = new LevelBuilder();
 	var doors = [
 	  new Door(101, "right"),
 	  new Door(102, "left")
+	];
+	var buttonBlocks = [
+	  new ButtonBlock(101, "left"),
+	  new ButtonBlock(102, "right")
 	];
 	var elevators = [
 	  new Elevator({
@@ -801,10 +850,10 @@
 
 	var foregroundGrid = [
 	  builder.rowOf(24, "block"),
-	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(5, "")).concat(doors[1]).concat(builder.rowOf(2, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(5, "")).concat(doors[1]).concat(builder.rowOf(2, "")).concat(["block"]),
 	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(18, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
@@ -831,7 +880,8 @@
 	  builder.rowOf(24, "brick")
 	];
 
-	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
+	// level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators);
 
 	module.exports = level1;
 
@@ -842,6 +892,7 @@
 
 	var Door = __webpack_require__(6)
 	var Elevator = __webpack_require__(7)
+	var ButtonBlock = __webpack_require__(8)
 
 	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators) {
 	  this.name = name;
@@ -865,7 +916,8 @@
 	  Level: Level,
 	  LevelBuilder: LevelBuilder,
 	  Door: Door,
-	  Elevator: Elevator
+	  Elevator: Elevator,
+	  ButtonBlock: ButtonBlock
 	};
 
 
@@ -902,6 +954,45 @@
 	}
 
 	module.exports = Elevator;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var PowerObject = __webpack_require__(9);
+
+	function ButtonBlock(id, side) {
+	  this.initializePowerObject();
+	  this.id = id;
+	  this.side = side;
+	  this.toString = function () { return "buttonBlock" };
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = PowerObject.prototype;
+	ButtonBlock.prototype = new Surrogate();
+	ButtonBlock.prototype.constructor = ButtonBlock;
+
+	module.exports = ButtonBlock;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	function PowerObject() {
+	}
+
+	PowerObject.prototype.initializePowerObject = function () {
+	  this.hasPower = false;
+	};
+
+	PowerObject.prototype.getPowerStatus = function () {
+	  return (this.hasPower)
+	};
+
+	module.exports = PowerObject;
 
 
 /***/ }

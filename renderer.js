@@ -1,12 +1,19 @@
 const BLOCK_LENGTH = 75;
+const EDGE_TO_INNER = 8;
+const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
 function Renderer(context, game) {
   this.c = context;
   this.game = game;
+
+  this.gradientArray = this.fillGradientArray("rgb(43,216,233)", 50);
+  this.gradientIndex = 0;
+  this.gradientSign = 1;
 }
 
 Renderer.prototype.renderScreen = function () {
   var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
+  this.incrementGradientIndex();
   this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
@@ -47,6 +54,8 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
         this.drawPlatform([x_block, y_block], '#67480E', '#211704');
       } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
         this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block])
+      } else if (currentLevel.foregroundGrid[row][col].toString() === "buttonBlock") {
+        this.drawButtonBlock(currentLevel.foregroundGrid[row][col],[x_block, y_block])
       }
 
       col_left_x += 75;
@@ -210,6 +219,12 @@ Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
   // }
 }
 
+Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
+  this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
+  this.c.rect(pos[0] + EDGE_TO_INNER, pos[1] + EDGE_TO_INNER, INNER_RECT_LENGTH, INNER_RECT_LENGTH)
+  this.c.stroke()
+};
+
 Renderer.prototype.drawBlock = function (pos) {
   var x = pos[0];
   var y = pos[1];
@@ -222,9 +237,7 @@ Renderer.prototype.drawBlock = function (pos) {
 
   this.drawOuterSquare(pos, '#000', frontGrad);
 
-  const EDGE_TO_INNER = 8;
   const TRI_LENGTH = 40;
-  const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
   const START_TRIANGLE = EDGE_TO_INNER + ((INNER_RECT_LENGTH - TRI_LENGTH) / 2);
 
   //left triangle
@@ -289,6 +302,36 @@ Renderer.prototype.drawLine = function (start, finish) {
   this.c.lineTo(finish[0], finish[1]);
   this.c.lineWidth = 1;
   this.c.stroke();
+}
+
+Renderer.prototype.incrementGradientIndex = function () {
+  this.gradientIndex = this.gradientIndex + (1 * this.gradientSign)
+  if (this.gradientIndex === this.gradientArray.length) {
+    this.gradientSign = -1;
+    this.gradientIndex = this.gradientArray.length - 2
+  } else if (this.gradientIndex === -1) {
+    this.gradientSign = 1;
+    this.gradientIndex = 1;
+  }
+};
+
+Renderer.prototype.fillGradientArray = function (rgbColor, arrayLength) {
+  returnArray = [rgbColor];
+  for (var i = 0; i < arrayLength; i++) {
+    rgbColor = this.shadeRGBColor(rgbColor, -0.02)
+    returnArray.push(rgbColor);
+  }
+  return returnArray;
+};
+
+Renderer.prototype.shadeRGBColor = function (color, percent) {
+    var f = color.split(",");
+    var t = percent < 0 ? 0 : 255;
+    var p = percent < 0 ? percent * -1 : percent;
+    var R = parseInt(f[0].slice(4));
+    var G = parseInt(f[1]);
+    var B = parseInt(f[2]);
+    return "rgb("+(Math.round((t-R)*p)+R)+","+(Math.round((t-G)*p)+G)+","+(Math.round((t-B)*p)+B)+")";
 }
 
 module.exports = Renderer;

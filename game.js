@@ -96,7 +96,7 @@ Game.prototype.update = function (modifier) {
   }
 
   this.setGhostToReal(ghostArrays);
-  this.updateDebugHTML(realArrays);
+  // this.updateDebugHTML(realArrays);
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
   }
@@ -105,6 +105,7 @@ Game.prototype.update = function (modifier) {
 Game.prototype.passThrough = function (object) {
   if ( object === "block" || object === "platform"
       || object.toString() === "door" && object.status === "closed"
+      || object.toString() === "buttonBlock"
   ) {
     return false;
   } else {
