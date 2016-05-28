@@ -174,9 +174,22 @@
 	        var inset = Math.floor((BLOCK_LENGTH - COLUMN_WIDTH) / 2)
 	        var column_top_y = adjustedPlatformTop + Math.floor(BLOCK_LENGTH/3);
 
+	        var realBaseBottomY = ((currentLevel.elevators[elv].baseRow + 1) * BLOCK_LENGTH) + 0.5;
+	        var relBaseBottomY = realBaseBottomY - origin[1]
+	        var height = relBaseBottomY - column_top_y
+
+	        if (450 - column_top_y < height) {
+	          height = 450 - column_top_y;
+	        }
+
+	        var grad = this.c.createLinearGradient(x_block + inset, 0, x_block + inset + COLUMN_WIDTH, 0);
+	        grad.addColorStop(0, '#1A1919');
+	        grad.addColorStop(0.5, '#68625F');
+	        grad.addColorStop(1, '#1A1919');
+
 	        this.c.beginPath();
-	        this.c.rect(x_block + inset, column_top_y, COLUMN_WIDTH, 70)
-	        this.c.fillStyle = '#fff';
+	        this.c.rect(x_block + inset, column_top_y, COLUMN_WIDTH, height)
+	        this.c.fillStyle = grad;
 	        this.c.fill();
 	        this.c.strokeStyle = '#000';
 	        this.c.stroke();
@@ -247,28 +260,28 @@
 	  var rowHeight = (BLOCK_LENGTH / 4);
 	  this.drawOuterSquare(pos, color, color);
 	  this.c.strokeStyle = '#000';
-	  for (var i = 0; i < 4; i++) {
-	    var thisRowY = Math.floor(y + (rowHeight * i)) + 0.5;
-	    this.drawLine([x, thisRowY], [x + BLOCK_LENGTH - 0.5, thisRowY]);
-	    if (i % 2 == 0) {
-	      if (leftEdges === true) {
-	        this.drawLine([x, thisRowY], [x, thisRowY + rowHeight - 0.5]);
-	      }
-	      this.drawLine(
-	        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY],
-	        [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY + rowHeight - 0.5]
-	      );
-	    } else {
-	      this.drawLine(
-	        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY],
-	        [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY + rowHeight - 0.5]
-	      );
-	      this.drawLine(
-	        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY],
-	        [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY + rowHeight - 0.5]
-	      );
-	    }
-	  }
+	  // for (var i = 0; i < 4; i++) {
+	  //   var thisRowY = Math.floor(y + (rowHeight * i)) + 0.5;
+	  //   this.drawLine([x, thisRowY], [x + BLOCK_LENGTH - 0.5, thisRowY]);
+	  //   if (i % 2 == 0) {
+	  //     if (leftEdges === true) {
+	  //       this.drawLine([x, thisRowY], [x, thisRowY + rowHeight - 0.5]);
+	  //     }
+	  //     this.drawLine(
+	  //       [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY],
+	  //       [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY + rowHeight - 0.5]
+	  //     );
+	  //   } else {
+	  //     this.drawLine(
+	  //       [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY],
+	  //       [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY + rowHeight - 0.5]
+	  //     );
+	  //     this.drawLine(
+	  //       [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY],
+	  //       [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY + rowHeight - 0.5]
+	  //     );
+	  //   }
+	  // }
 	}
 
 	Renderer.prototype.drawBlock = function (pos) {
@@ -758,15 +771,13 @@
 	    id: 101,
 	    baseRowCol: [10, 5],
 	    startingHeight: 4,
-	    heights: [0, 4, 8],
-	    speed: 400
+	    heights: [0, 4, 8]
 	  }),
 	  new Elevator({
 	    id: 101,
 	    baseRowCol: [10, 6],
 	    startingHeight: 4,
-	    heights: [0, 4, 8],
-	    speed: 400
+	    heights: [0, 4, 8]
 	  }),
 	  new Elevator({
 	    id: 102,
@@ -801,7 +812,7 @@
 	  ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(10, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
 	  builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
-	  builder.rowOf(24, "block")
+	  builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))
 	];
 
 	var backgroundGrid = [
@@ -882,7 +893,7 @@
 	  this.col = options.baseRowCol[1];
 	  this.baseRow = options.baseRowCol[0];
 	  this.blocksHigh = options.startingHeight || 0;
-	  this.speed = options.speed || 256;
+	  this.speed = options.speed || 400;
 	  this.heights = options.heights;
 
 	  this.topRow = this.baseRow - this.blocksHigh;

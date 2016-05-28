@@ -14,15 +14,13 @@ var elevators = [
     id: 101,
     baseRowCol: [10, 5],
     startingHeight: 4,
-    heights: [0, 4, 8],
-    speed: 400
+    heights: [0, 4, 8]
   }),
   new Elevator({
     id: 101,
     baseRowCol: [10, 6],
     startingHeight: 4,
-    heights: [0, 4, 8],
-    speed: 400
+    heights: [0, 4, 8]
   }),
   new Elevator({
     id: 102,
@@ -57,7 +55,7 @@ var foregroundGrid = [
   ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(8, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
   ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(10, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
   builder.rowOf(17, "block").concat(builder.rowOf(6, "")).concat(["block"]),
-  builder.rowOf(24, "block")
+  builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))
 ];
 
 var backgroundGrid = [
