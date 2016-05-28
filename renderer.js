@@ -5,7 +5,6 @@ const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 function Renderer(context, game) {
   this.c = context;
   this.game = game;
-
   this.gradientArray = this.fillGradientArray("rgb(43,216,233)", 50);
   this.gradientIndex = 0;
   this.gradientSign = 1;
@@ -220,6 +219,47 @@ Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
 }
 
 Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
+
+  this.drawPowerBlock(pos);
+
+  const BUTTON_PANEL_WIDTH = 15;
+  const BUTTON_PANEL_HEIGHT = 30;
+  var buttonPanelX;
+  if (buttonBlock.side === "left") {
+    buttonPanelX = pos[0] - BUTTON_PANEL_WIDTH
+  } else {
+    buttonPanelX = pos[0] + BLOCK_LENGTH - 1
+  }
+  var buttonPanelY = pos[1] + ((BLOCK_LENGTH - BUTTON_PANEL_HEIGHT) / 2) + 0.5
+  var grad = this.c.createLinearGradient(buttonPanelX, buttonPanelY, buttonPanelX, buttonPanelY + BUTTON_PANEL_HEIGHT);
+  grad.addColorStop(0, '#858181');
+  grad.addColorStop(1, '#434242');
+  this.drawRectangle({
+    x: buttonPanelX,
+    y: buttonPanelY,
+    width: BUTTON_PANEL_WIDTH,
+    height: BUTTON_PANEL_HEIGHT,
+    fill: grad
+  });
+
+  const BUTTON_WIDTH = 5;
+  const BUTTON_HEIGHT = 8;
+  var buttonX;
+  if (buttonBlock.side === "left") {
+    buttonX = buttonPanelX - BUTTON_WIDTH;
+  } else {
+    buttonX = buttonPanelX + BUTTON_PANEL_WIDTH;
+  }
+  this.drawRectangle({
+    x: buttonX,
+    y: buttonPanelY + ((BUTTON_PANEL_HEIGHT - BUTTON_HEIGHT) / 2),
+    width: BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
+    fill: '#FF0000'
+  });
+};
+
+Renderer.prototype.drawPowerBlock = function (pos) {
   this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
   this.c.rect(pos[0] + EDGE_TO_INNER, pos[1] + EDGE_TO_INNER, INNER_RECT_LENGTH, INNER_RECT_LENGTH)
   this.c.stroke()
@@ -303,6 +343,21 @@ Renderer.prototype.drawLine = function (start, finish) {
   this.c.lineWidth = 1;
   this.c.stroke();
 }
+
+Renderer.prototype.drawRectangle = function (object) {
+  var x = object.x;
+  var y = object.y;
+  var width = object.width;
+  var height = object.height;
+  var stroke = object.stroke || '#000';
+  var fill = object.fill || '#fff';
+  this.c.beginPath();
+  this.c.rect(x, y, width, height);
+  this.c.fillStyle = fill;
+  this.c.fill();
+  this.c.strokeStyle = stroke;
+  this.c.stroke();
+};
 
 Renderer.prototype.incrementGradientIndex = function () {
   this.gradientIndex = this.gradientIndex + (1 * this.gradientSign)
