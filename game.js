@@ -81,6 +81,10 @@ Game.prototype.update = function (modifier) {
         edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
         difference = edge - robotX;
         ghostArrays = this.moveRight(difference, 1);
+      } else if (this.getLeftButtonEdge(ghostArrays) !== -1) {
+        robotX = this.getRealRightX(realArrays);
+        difference = this.getLeftButtonEdge(ghostArrays) - robotX;
+        ghostArrays = this.moveRight(difference, 1);
       }
     } else if (37 in this.keysDown) { //left
       ghostArrays = this.moveLeft(this.robot.speed, modifier);
@@ -91,14 +95,58 @@ Game.prototype.update = function (modifier) {
         edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
         difference = robotX - edge;
         ghostArrays = this.moveLeft(difference, 1);
+      } else if (this.getRightButtonEdge(ghostArrays) !== -1) {
+        robotX = this.getRealLeftX(realArrays);
+        difference = robotX - this.getRightButtonEdge(ghostArrays);
+        ghostArrays = this.moveLeft(difference, 1);
       }
     }
   }
 
   this.setGhostToReal(ghostArrays);
-  // this.updateDebugHTML(realArrays);
+  this.updateDebugHTML(realArrays);
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
+  }
+};
+
+Game.prototype.getLeftButtonEdge = function (arrays) {
+  var nextColumnToRight = this.getRightColumn(arrays) + 1
+  if (
+    this.currentLevel.foregroundGrid[
+      this.getTopRow(arrays)
+    ][nextColumnToRight].toString() === "buttonBlock"
+  ) {
+    var robotRightX = this.getRealRightX(arrays);
+    var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
+    var buttonEdge = blockRealRightX - this.renderer.BUTTON_PANEL_WIDTH - 1
+    if (robotRightX > buttonEdge) {
+      return buttonEdge
+    } else {
+      return -1
+    }
+  } else {
+    return -1;
+  }
+};
+
+Game.prototype.getRightButtonEdge = function (arrays) {
+  var nextColumnToLeft = this.getLeftColumn(arrays) - 1
+  if (
+    this.currentLevel.foregroundGrid[
+      this.getTopRow(arrays)
+    ][nextColumnToLeft].toString() === "buttonBlock"
+  ) {
+    var robotLeftX = this.getRealLeftX(arrays);
+    var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
+    var buttonEdge = blockRealLeftX + this.renderer.BUTTON_PANEL_WIDTH
+    if (robotLeftX < buttonEdge) {
+      return buttonEdge
+    } else {
+      return -1
+    }
+  } else {
+    return -1;
   }
 };
 
@@ -347,6 +395,14 @@ Game.prototype.getRealTopY = function (arrays) {
 Game.prototype.getRealBottomY = function (arrays) {
   return arrays[0][1] + (arrays[1][1] + this.BLOCK_LENGTH - 1);
 }
+
+Game.prototype.getBlockRealRightX = function (column) {
+  return (0.5 + (column + 1) * this.BLOCK_LENGTH);
+};
+
+Game.prototype.getBlockRealLeftX = function (column) {
+  return (0.5 + (column) * this.BLOCK_LENGTH);
+};
 
 Game.prototype.updateDebugHTML = function (realArrays) {
   var leftLi = document.getElementById("left");

@@ -82,6 +82,8 @@
 	  this.gradientArray = this.fillGradientArray("rgb(43,216,233)", 50);
 	  this.gradientIndex = 0;
 	  this.gradientSign = 1;
+	  this.BUTTON_PANEL_WIDTH = 15;
+	  this.BUTTON_PANEL_HEIGHT = 30;
 	}
 
 	Renderer.prototype.renderScreen = function () {
@@ -254,12 +256,13 @@
 	  grad.addColorStop(0, topColor);
 	  grad.addColorStop(1, bottomColor);
 
-	  this.c.beginPath();
-	  this.c.rect(x, y, BLOCK_LENGTH - 1, height)
-	  this.c.fillStyle = grad;
-	  this.c.fill();
-	  this.c.strokeStyle = '#000';
-	  this.c.stroke();
+	  this.drawRectangle({
+	    x: x,
+	    y: y,
+	    width: BLOCK_LENGTH - 1,
+	    height: height,
+	    fill: grad
+	  });
 	};
 
 	Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
@@ -296,23 +299,26 @@
 
 	  this.drawPowerBlock(pos);
 
-	  const BUTTON_PANEL_WIDTH = 15;
-	  const BUTTON_PANEL_HEIGHT = 30;
 	  var buttonPanelX;
 	  if (buttonBlock.side === "left") {
-	    buttonPanelX = pos[0] - BUTTON_PANEL_WIDTH
+	    buttonPanelX = pos[0] - this.BUTTON_PANEL_WIDTH
 	  } else {
 	    buttonPanelX = pos[0] + BLOCK_LENGTH - 1
 	  }
-	  var buttonPanelY = pos[1] + ((BLOCK_LENGTH - BUTTON_PANEL_HEIGHT) / 2) + 0.5
-	  var grad = this.c.createLinearGradient(buttonPanelX, buttonPanelY, buttonPanelX, buttonPanelY + BUTTON_PANEL_HEIGHT);
+	  var buttonPanelY = pos[1] + ((BLOCK_LENGTH - this.BUTTON_PANEL_HEIGHT) / 2) + 0.5
+	  var grad = this.c.createLinearGradient(
+	    buttonPanelX,
+	    buttonPanelY,
+	    buttonPanelX,
+	    buttonPanelY + this.BUTTON_PANEL_HEIGHT
+	  );
 	  grad.addColorStop(0, '#858181');
 	  grad.addColorStop(1, '#434242');
 	  this.drawRectangle({
 	    x: buttonPanelX,
 	    y: buttonPanelY,
-	    width: BUTTON_PANEL_WIDTH,
-	    height: BUTTON_PANEL_HEIGHT,
+	    width: this.BUTTON_PANEL_WIDTH,
+	    height: this.BUTTON_PANEL_HEIGHT,
 	    fill: grad
 	  });
 
@@ -322,11 +328,11 @@
 	  if (buttonBlock.side === "left") {
 	    buttonX = buttonPanelX - BUTTON_WIDTH;
 	  } else {
-	    buttonX = buttonPanelX + BUTTON_PANEL_WIDTH;
+	    buttonX = buttonPanelX + this.BUTTON_PANEL_WIDTH;
 	  }
 	  this.drawRectangle({
 	    x: buttonX,
-	    y: buttonPanelY + ((BUTTON_PANEL_HEIGHT - BUTTON_HEIGHT) / 2),
+	    y: buttonPanelY + ((this.BUTTON_PANEL_HEIGHT - BUTTON_HEIGHT) / 2),
 	    width: BUTTON_WIDTH,
 	    height: BUTTON_HEIGHT,
 	    fill: '#FF0000'
@@ -335,8 +341,12 @@
 
 	Renderer.prototype.drawPowerBlock = function (pos) {
 	  this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
-	  this.c.rect(pos[0] + EDGE_TO_INNER, pos[1] + EDGE_TO_INNER, INNER_RECT_LENGTH, INNER_RECT_LENGTH)
-	  this.c.stroke()
+	  this.drawRectangle({
+	    x: pos[0] + EDGE_TO_INNER,
+	    y: pos[1] + EDGE_TO_INNER,
+	    width: INNER_RECT_LENGTH,
+	    height: INNER_RECT_LENGTH
+	  });
 	};
 
 	Renderer.prototype.drawBlock = function (pos) {
@@ -393,21 +403,14 @@
 	}
 
 	Renderer.prototype.drawOuterSquare = function (pos, stroke, fill) {
-	  var x = pos[0];
-	  var y = pos[1];
-	  this.c.beginPath();
-	  this.c.moveTo(x, y);
-	  this.c.lineTo(x + BLOCK_LENGTH - 1, y);
-	  this.c.lineTo(x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1);
-	  this.c.lineTo(x, y + BLOCK_LENGTH - 1);
-	  this.c.closePath();
-	  this.c.strokeStyle = stroke;
-	  this.c.lineWidth = 1;
-	  if(fill != undefined){
-	    this.c.fillStyle = fill;
-	    this.c.fill();
-	  }
-	  this.c.stroke();
+	  this.drawRectangle({
+	    x: pos[0],
+	    y: pos[1],
+	    width: BLOCK_LENGTH - 1,
+	    height: BLOCK_LENGTH - 1,
+	    stroke: stroke,
+	    fill: fill
+	  });
 	}
 
 	Renderer.prototype.drawLine = function (start, finish) {
@@ -424,11 +427,13 @@
 	  var width = object.width;
 	  var height = object.height;
 	  var stroke = object.stroke || '#000';
-	  var fill = object.fill || '#fff';
+	  var fill = object.fill || undefined;
 	  this.c.beginPath();
 	  this.c.rect(x, y, width, height);
-	  this.c.fillStyle = fill;
-	  this.c.fill();
+	  if (fill !== undefined) {
+	    this.c.fillStyle = fill;
+	    this.c.fill();
+	  }
 	  this.c.strokeStyle = stroke;
 	  this.c.stroke();
 	};
@@ -553,6 +558,10 @@
 	        edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
 	        difference = edge - robotX;
 	        ghostArrays = this.moveRight(difference, 1);
+	      } else if (this.getLeftButtonEdge(ghostArrays) !== -1) {
+	        robotX = this.getRealRightX(realArrays);
+	        difference = this.getLeftButtonEdge(ghostArrays) - robotX;
+	        ghostArrays = this.moveRight(difference, 1);
 	      }
 	    } else if (37 in this.keysDown) { //left
 	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
@@ -563,14 +572,58 @@
 	        edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
 	        difference = robotX - edge;
 	        ghostArrays = this.moveLeft(difference, 1);
+	      } else if (this.getRightButtonEdge(ghostArrays) !== -1) {
+	        robotX = this.getRealLeftX(realArrays);
+	        difference = robotX - this.getRightButtonEdge(ghostArrays);
+	        ghostArrays = this.moveLeft(difference, 1);
 	      }
 	    }
 	  }
 
 	  this.setGhostToReal(ghostArrays);
-	  // this.updateDebugHTML(realArrays);
+	  this.updateDebugHTML(realArrays);
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
+	  }
+	};
+
+	Game.prototype.getLeftButtonEdge = function (arrays) {
+	  var nextColumnToRight = this.getRightColumn(arrays) + 1
+	  if (
+	    this.currentLevel.foregroundGrid[
+	      this.getTopRow(arrays)
+	    ][nextColumnToRight].toString() === "buttonBlock"
+	  ) {
+	    var robotRightX = this.getRealRightX(arrays);
+	    var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
+	    var buttonEdge = blockRealRightX - this.renderer.BUTTON_PANEL_WIDTH - 1
+	    if (robotRightX > buttonEdge) {
+	      return buttonEdge
+	    } else {
+	      return -1
+	    }
+	  } else {
+	    return -1;
+	  }
+	};
+
+	Game.prototype.getRightButtonEdge = function (arrays) {
+	  var nextColumnToLeft = this.getLeftColumn(arrays) - 1
+	  if (
+	    this.currentLevel.foregroundGrid[
+	      this.getTopRow(arrays)
+	    ][nextColumnToLeft].toString() === "buttonBlock"
+	  ) {
+	    var robotLeftX = this.getRealLeftX(arrays);
+	    var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
+	    var buttonEdge = blockRealLeftX + this.renderer.BUTTON_PANEL_WIDTH
+	    if (robotLeftX < buttonEdge) {
+	      return buttonEdge
+	    } else {
+	      return -1
+	    }
+	  } else {
+	    return -1;
 	  }
 	};
 
@@ -819,6 +872,14 @@
 	Game.prototype.getRealBottomY = function (arrays) {
 	  return arrays[0][1] + (arrays[1][1] + this.BLOCK_LENGTH - 1);
 	}
+
+	Game.prototype.getBlockRealRightX = function (column) {
+	  return (0.5 + (column + 1) * this.BLOCK_LENGTH);
+	};
+
+	Game.prototype.getBlockRealLeftX = function (column) {
+	  return (0.5 + (column) * this.BLOCK_LENGTH);
+	};
 
 	Game.prototype.updateDebugHTML = function (realArrays) {
 	  var leftLi = document.getElementById("left");

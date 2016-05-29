@@ -8,6 +8,8 @@ function Renderer(context, game) {
   this.gradientArray = this.fillGradientArray("rgb(43,216,233)", 50);
   this.gradientIndex = 0;
   this.gradientSign = 1;
+  this.BUTTON_PANEL_WIDTH = 15;
+  this.BUTTON_PANEL_HEIGHT = 30;
 }
 
 Renderer.prototype.renderScreen = function () {
@@ -180,12 +182,13 @@ Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
   grad.addColorStop(0, topColor);
   grad.addColorStop(1, bottomColor);
 
-  this.c.beginPath();
-  this.c.rect(x, y, BLOCK_LENGTH - 1, height)
-  this.c.fillStyle = grad;
-  this.c.fill();
-  this.c.strokeStyle = '#000';
-  this.c.stroke();
+  this.drawRectangle({
+    x: x,
+    y: y,
+    width: BLOCK_LENGTH - 1,
+    height: height,
+    fill: grad
+  });
 };
 
 Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
@@ -222,23 +225,26 @@ Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
 
   this.drawPowerBlock(pos);
 
-  const BUTTON_PANEL_WIDTH = 15;
-  const BUTTON_PANEL_HEIGHT = 30;
   var buttonPanelX;
   if (buttonBlock.side === "left") {
-    buttonPanelX = pos[0] - BUTTON_PANEL_WIDTH
+    buttonPanelX = pos[0] - this.BUTTON_PANEL_WIDTH
   } else {
     buttonPanelX = pos[0] + BLOCK_LENGTH - 1
   }
-  var buttonPanelY = pos[1] + ((BLOCK_LENGTH - BUTTON_PANEL_HEIGHT) / 2) + 0.5
-  var grad = this.c.createLinearGradient(buttonPanelX, buttonPanelY, buttonPanelX, buttonPanelY + BUTTON_PANEL_HEIGHT);
+  var buttonPanelY = pos[1] + ((BLOCK_LENGTH - this.BUTTON_PANEL_HEIGHT) / 2) + 0.5
+  var grad = this.c.createLinearGradient(
+    buttonPanelX,
+    buttonPanelY,
+    buttonPanelX,
+    buttonPanelY + this.BUTTON_PANEL_HEIGHT
+  );
   grad.addColorStop(0, '#858181');
   grad.addColorStop(1, '#434242');
   this.drawRectangle({
     x: buttonPanelX,
     y: buttonPanelY,
-    width: BUTTON_PANEL_WIDTH,
-    height: BUTTON_PANEL_HEIGHT,
+    width: this.BUTTON_PANEL_WIDTH,
+    height: this.BUTTON_PANEL_HEIGHT,
     fill: grad
   });
 
@@ -248,11 +254,11 @@ Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
   if (buttonBlock.side === "left") {
     buttonX = buttonPanelX - BUTTON_WIDTH;
   } else {
-    buttonX = buttonPanelX + BUTTON_PANEL_WIDTH;
+    buttonX = buttonPanelX + this.BUTTON_PANEL_WIDTH;
   }
   this.drawRectangle({
     x: buttonX,
-    y: buttonPanelY + ((BUTTON_PANEL_HEIGHT - BUTTON_HEIGHT) / 2),
+    y: buttonPanelY + ((this.BUTTON_PANEL_HEIGHT - BUTTON_HEIGHT) / 2),
     width: BUTTON_WIDTH,
     height: BUTTON_HEIGHT,
     fill: '#FF0000'
@@ -261,8 +267,12 @@ Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
 
 Renderer.prototype.drawPowerBlock = function (pos) {
   this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
-  this.c.rect(pos[0] + EDGE_TO_INNER, pos[1] + EDGE_TO_INNER, INNER_RECT_LENGTH, INNER_RECT_LENGTH)
-  this.c.stroke()
+  this.drawRectangle({
+    x: pos[0] + EDGE_TO_INNER,
+    y: pos[1] + EDGE_TO_INNER,
+    width: INNER_RECT_LENGTH,
+    height: INNER_RECT_LENGTH
+  });
 };
 
 Renderer.prototype.drawBlock = function (pos) {
@@ -319,21 +329,14 @@ Renderer.prototype.drawBlock = function (pos) {
 }
 
 Renderer.prototype.drawOuterSquare = function (pos, stroke, fill) {
-  var x = pos[0];
-  var y = pos[1];
-  this.c.beginPath();
-  this.c.moveTo(x, y);
-  this.c.lineTo(x + BLOCK_LENGTH - 1, y);
-  this.c.lineTo(x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1);
-  this.c.lineTo(x, y + BLOCK_LENGTH - 1);
-  this.c.closePath();
-  this.c.strokeStyle = stroke;
-  this.c.lineWidth = 1;
-  if(fill != undefined){
-    this.c.fillStyle = fill;
-    this.c.fill();
-  }
-  this.c.stroke();
+  this.drawRectangle({
+    x: pos[0],
+    y: pos[1],
+    width: BLOCK_LENGTH - 1,
+    height: BLOCK_LENGTH - 1,
+    stroke: stroke,
+    fill: fill
+  });
 }
 
 Renderer.prototype.drawLine = function (start, finish) {
@@ -350,11 +353,13 @@ Renderer.prototype.drawRectangle = function (object) {
   var width = object.width;
   var height = object.height;
   var stroke = object.stroke || '#000';
-  var fill = object.fill || '#fff';
+  var fill = object.fill || undefined;
   this.c.beginPath();
   this.c.rect(x, y, width, height);
-  this.c.fillStyle = fill;
-  this.c.fill();
+  if (fill !== undefined) {
+    this.c.fillStyle = fill;
+    this.c.fill();
+  }
   this.c.strokeStyle = stroke;
   this.c.stroke();
 };
