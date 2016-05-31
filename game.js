@@ -82,9 +82,13 @@ Game.prototype.update = function (modifier) {
         difference = edge - robotX;
         ghostArrays = this.moveRight(difference, 1);
       } else if (this.getLeftButtonEdge(ghostArrays) !== -1) {
+        var buttonStuff = this.getLeftButtonEdge(ghostArrays);
+        var edge = buttonStuff[0];
+        var button = buttonStuff[1];
         robotX = this.getRealRightX(realArrays);
-        difference = this.getLeftButtonEdge(ghostArrays) - robotX;
+        difference = edge - robotX;
         ghostArrays = this.moveRight(difference, 1);
+        button.pushFunc();
       }
     } else if (37 in this.keysDown) { //left
       ghostArrays = this.moveLeft(this.robot.speed, modifier);
@@ -96,9 +100,13 @@ Game.prototype.update = function (modifier) {
         difference = robotX - edge;
         ghostArrays = this.moveLeft(difference, 1);
       } else if (this.getRightButtonEdge(ghostArrays) !== -1) {
+        var buttonStuff = this.getRightButtonEdge(ghostArrays);
+        var edge = buttonStuff[0];
+        var button = buttonStuff[1];
         robotX = this.getRealLeftX(realArrays);
-        difference = robotX - this.getRightButtonEdge(ghostArrays);
+        difference = robotX - edge;
         ghostArrays = this.moveLeft(difference, 1);
+        button.pushFunc();
       }
     }
   }
@@ -114,16 +122,16 @@ Game.prototype.getLeftButtonEdge = function (arrays) {
   var nextColumnToRight = this.getRightColumn(arrays) + 1
   if (
     this.currentLevel.foregroundGrid[
-      this.getTopRow(arrays)
-    ][nextColumnToRight].toString() === "buttonBlock"
+      this.getTopRow(arrays)][nextColumnToRight].toString() === "buttonBlock"
   ) {
+    var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight];
     var robotRightX = this.getRealRightX(arrays);
     var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
-    var buttonEdge = blockRealRightX - this.renderer.BUTTON_PANEL_WIDTH - 1
+    var buttonEdge = blockRealRightX - this.renderer.BUTTON_PANEL_WIDTH - 1;
     if (robotRightX > buttonEdge) {
-      return buttonEdge
+      return [buttonEdge, button];
     } else {
-      return -1
+      return -1;
     }
   } else {
     return -1;
@@ -134,16 +142,16 @@ Game.prototype.getRightButtonEdge = function (arrays) {
   var nextColumnToLeft = this.getLeftColumn(arrays) - 1
   if (
     this.currentLevel.foregroundGrid[
-      this.getTopRow(arrays)
-    ][nextColumnToLeft].toString() === "buttonBlock"
+      this.getTopRow(arrays)][nextColumnToLeft].toString() === "buttonBlock"
   ) {
+    var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft]
     var robotLeftX = this.getRealLeftX(arrays);
     var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
     var buttonEdge = blockRealLeftX + this.renderer.BUTTON_PANEL_WIDTH
     if (robotLeftX < buttonEdge) {
-      return buttonEdge
+      return [buttonEdge, button];
     } else {
-      return -1
+      return -1;
     }
   } else {
     return -1;

@@ -11,8 +11,12 @@ var doors = [
   new Door(102, "left")
 ];
 var buttonBlocks = [
-  new ButtonBlock(101, "left"),
-  new ButtonBlock(102, "right")
+  new ButtonBlock(101, "left", function () {
+    console.log("pushed right block");
+  }),
+  new ButtonBlock(102, "right", function () {
+    console.log("pushed left block");
+  })
 ];
 var elevators = [
   new Elevator({
