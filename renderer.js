@@ -15,6 +15,7 @@ function Renderer(context, game) {
 Renderer.prototype.renderScreen = function () {
   var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
   this.incrementGradientIndex();
+  this.incrementDoors();
   this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
@@ -143,35 +144,47 @@ Renderer.prototype.renderRobot = function (robot) {
 }
 
 Renderer.prototype.drawDoor = function (door, pos) {
-  var x = pos[0];
-  var y = pos[1];
-  var width = Math.floor(BLOCK_LENGTH / 3);
+  if (door.status !== "open") {
+    var x = pos[0];
+    var y = pos[1];
+    var width = Math.floor(BLOCK_LENGTH / 3);
 
-  var topLeftCorner;
-  var topRightCorner;
-  var bottomRightCorner;
-  var bottomLeftCorner;
+    var topLeftCorner;
+    var topRightCorner;
+    var bottomRightCorner;
+    var bottomLeftCorner;
 
-  if (door.side === "right") {
-    topLeftCorner = [x + BLOCK_LENGTH - 1 - width, y];
-    topRightCorner = [x + BLOCK_LENGTH - 1, y];
-    bottomRightCorner = [x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1];
-    bottomLeftCorner = [x + BLOCK_LENGTH - 1 - width, y + BLOCK_LENGTH - 1];
-  } else {
-    topLeftCorner = [x, y];
-    topRightCorner = [x + width, y];
-    bottomRightCorner = [x + width, y + BLOCK_LENGTH - 1];
-    bottomLeftCorner = [x, y + BLOCK_LENGTH - 1];
+    if (door.side === "right") {
+      topLeftCorner = [x + BLOCK_LENGTH - 1 - width, y];
+      topRightCorner = [x + BLOCK_LENGTH - 1, y];
+      bottomRightCorner = [x + BLOCK_LENGTH - 1, y + BLOCK_LENGTH - 1];
+      bottomLeftCorner = [x + BLOCK_LENGTH - 1 - width, y + BLOCK_LENGTH - 1];
+    } else {
+      topLeftCorner = [x, y];
+      topRightCorner = [x + width, y];
+      bottomRightCorner = [x + width, y + BLOCK_LENGTH - 1];
+      bottomLeftCorner = [x, y + BLOCK_LENGTH - 1];
+    }
+
+    var openSpace = (BLOCK_LENGTH - 1) * door.percentOpen;
+    var doorHalfHeight = ((BLOCK_LENGTH - 1) - openSpace) / 2;
+
+    this.drawRectangle({
+      x: topLeftCorner[0],
+      y: topLeftCorner[1] - 1,
+      width: width,
+      height: doorHalfHeight + 1,
+      fill: '#FF0000'
+    });
+
+    this.drawRectangle({
+      x: topLeftCorner[0],
+      y: topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight,
+      width: width,
+      height: doorHalfHeight + 1,
+      fill: '#FF0000'
+    });
   }
-
-  this.c.fillStyle = '#fff';
-  this.c.fillRect(topLeftCorner[0], topLeftCorner[1], width, BLOCK_LENGTH - 1);
-
-  this.c.strokeStyle = '#000';
-  this.drawLine(topLeftCorner, topRightCorner);
-  this.drawLine(topRightCorner, bottomRightCorner);
-  this.drawLine(bottomRightCorner, bottomLeftCorner);
-  this.drawLine(bottomLeftCorner, topLeftCorner);
 };
 
 Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
@@ -362,6 +375,17 @@ Renderer.prototype.drawRectangle = function (object) {
   }
   this.c.strokeStyle = stroke;
   this.c.stroke();
+};
+
+Renderer.prototype.incrementDoors = function () {
+  this.game.currentLevel.doors.forEach(function (door) {
+    if (door.status === "opening") {
+      door.percentOpen = door.percentOpen + 0.02;
+      if (door.percentOpen >= 1) {
+        door.status = "open";
+      }
+    }
+  });
 };
 
 Renderer.prototype.incrementGradientIndex = function () {

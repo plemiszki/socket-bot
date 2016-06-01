@@ -2,12 +2,13 @@ var Door = require('./door.js')
 var Elevator = require('./elevator.js')
 var ButtonBlock = require('./buttonBlock.js')
 
-function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators) {
+function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors) {
   this.name = name;
   this.foregroundGrid = foregroundGrid;
   this.backgroundGrid = backgroundGrid;
   this.startingPos = robotPos;
   this.elevators = elevators;
+  this.doors = doors;
 }
 
 function LevelBuilder() {};

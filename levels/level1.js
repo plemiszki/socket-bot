@@ -12,10 +12,10 @@ var doors = [
 ];
 var buttonBlocks = [
   new ButtonBlock(101, "left", function () {
-    console.log("pushed right block");
+    doors[0].open();
   }),
   new ButtonBlock(102, "right", function () {
-    console.log("pushed left block");
+    console.log("pushed right block");
   })
 ];
 var elevators = [
@@ -84,6 +84,6 @@ var backgroundGrid = [
 ];
 
 // level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators);
+level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors);
 
 module.exports = level1;
