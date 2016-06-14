@@ -12,7 +12,9 @@ I've been working on this idea for a while, so I already have some features impl
 * Player can push buttons, which open doors
 * Player can pick up items from "cubbies" and place them in different cubbies
 * Power is delivered to different objects depending on the items placed in the cubbies
+* Players cannot pass through force fields when they have power
 * Player can receive a power-up that allows them to extend the height of their robot, allowing them to reach more cubbies
+* Player can rotate items
 * 3 Levels (or more?) of increasing difficulty
 * In-game instructions that explain how to play
 
@@ -29,12 +31,15 @@ I've been working on this idea for a while, so I already have some features impl
 
 ### Phase 1
 
+- [ ] Finish drawing player
+- [ ] Create force field squares
 - [ ] Player can pick up items from "cubbies" and place them in different cubbies
 - [ ] Power is delivered to different objects depending on the items placed in the cubbies
 
 ### Phase 2
 
 - [ ] Player can receive a power-up that allows them to extend the height of their robot, allowing them to reach more cubbies
+- [ ] Player can place items in a rotator and rotate them
 
 ### Phase 3
 
