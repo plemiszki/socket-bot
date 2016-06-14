@@ -4,6 +4,7 @@ var LevelBuilder = obj.LevelBuilder;
 var Door = obj.Door;
 var Elevator = obj.Elevator;
 var ButtonBlock = obj.ButtonBlock;
+var Cubby = obj.Cubby;
 
 var builder = new LevelBuilder();
 var doors = [
@@ -50,6 +51,12 @@ var elevators = [
     heights: [0, 3, 6, 10]
   })
 ];
+var cubbies = [
+  new Cubby({
+    id: 101,
+    rowCol: [5, 8]
+  })
+];
 
 var foregroundGrid = [
   builder.rowOf(24, "block"),
@@ -84,6 +91,6 @@ var backgroundGrid = [
 ];
 
 // level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors);
+level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies);
 
 module.exports = level1;

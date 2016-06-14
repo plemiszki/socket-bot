@@ -76,6 +76,10 @@
 	const EDGE_TO_INNER = 8;
 	const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
+	const CUBBY_DISTANCE = 15;
+	const CUBBY_THICKNESS = 5;
+	const CUBBY_DEPTH = 8;
+
 	function Renderer(context, game) {
 	  this.c = context;
 	  this.game = game;
@@ -93,6 +97,7 @@
 	  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
+	  this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderRobot(this.game.robot);
 	}
 
@@ -213,9 +218,56 @@
 	  }
 	};
 
+	Renderer.prototype.renderCubbies = function (origin, currentLevel, cornerSquares) {
+	  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	  //iterate through each visible column:
+	  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
+	    //iterate through cubbies to see if there's one in this column:
+	    for (var cubby = 0; cubby < currentLevel.cubbies.length; cubby++) {
+	      if (currentLevel.cubbies[cubby].rowCol[1] === col) {
+	        //if so, find where the top is:
+	        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+	        var y_block = (BLOCK_LENGTH * currentLevel.cubbies[cubby].rowCol[0]) - origin[1] + 0.5;
+	        this.drawCubby([x_block, y_block]);
+	      }
+	    }
+
+	    col_left_x += 75;
+	  }
+	};
+
 	Renderer.prototype.renderRobot = function (robot) {
 	  this.drawOuterSquare(robot.pos, 'red');
-	}
+
+	  x = robot.pos[0] + 11;
+	  y = robot.pos[1] + 11;
+	  this.drawRectangle({
+	    x: x,
+	    y: y,
+	    width: 54,
+	    height: 54,
+	    fill: 'yellow'
+	  });
+
+	  x += 5;
+	  y += 5;
+	  this.c.clearRect(x, y, 44, 44);
+	  this.drawRectangle({
+	    x: x,
+	    y: y,
+	    width: 44,
+	    height: 44,
+	  });
+
+	  x += 4;
+	  y += 4;
+	  this.drawRectangle({
+	    x: x,
+	    y: y,
+	    width: 36,
+	    height: 36,
+	  });
+	};
 
 	Renderer.prototype.drawDoor = function (door, pos) {
 	  if (door.status !== "open") {
@@ -275,6 +327,47 @@
 	    width: BLOCK_LENGTH - 1,
 	    height: height,
 	    fill: grad
+	  });
+	};
+
+	Renderer.prototype.drawCubby = function (pos) {
+	  var x = pos[0] + CUBBY_DISTANCE;
+	  var y = pos[1] + CUBBY_DISTANCE;
+	  var length = Math.floor(BLOCK_LENGTH - (CUBBY_DISTANCE * 2));
+
+	  this.drawRectangle({
+	    x: x,
+	    y: y,
+	    width: length,
+	    height: length,
+	    fill: '#333'
+	  });
+
+	  var x2 = x + CUBBY_THICKNESS;
+	  var y2 = y + CUBBY_THICKNESS;
+	  length2 = length - (CUBBY_THICKNESS * 2);
+
+	  this.drawRectangle({
+	    x: x2,
+	    y: y2,
+	    width: length2,
+	    height: length2,
+	    fill: '#1C1C1C'
+	  });
+
+	  x3 = x2 + CUBBY_DEPTH;
+	  y3 = y2 + CUBBY_DEPTH;
+	  length3 = length2 - (CUBBY_DEPTH * 2);
+
+	  this.drawLine([x2, y2], [x2 + length2, y2 + length2]);
+	  this.drawLine([x2 + length2, y2], [x2, y2 + length2]);
+
+	  this.drawRectangle({
+	    x: x3,
+	    y: y3,
+	    width: length3,
+	    height: length3,
+	    fill: '#1C1C1C'
 	  });
 	};
 
@@ -953,6 +1046,7 @@
 	var Door = obj.Door;
 	var Elevator = obj.Elevator;
 	var ButtonBlock = obj.ButtonBlock;
+	var Cubby = obj.Cubby;
 
 	var builder = new LevelBuilder();
 	var doors = [
@@ -999,6 +1093,12 @@
 	    heights: [0, 3, 6, 10]
 	  })
 	];
+	var cubbies = [
+	  new Cubby({
+	    id: 101,
+	    rowCol: [5, 8]
+	  })
+	];
 
 	var foregroundGrid = [
 	  builder.rowOf(24, "block"),
@@ -1033,7 +1133,7 @@
 	];
 
 	// level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies);
 
 	module.exports = level1;
 
@@ -1045,14 +1145,16 @@
 	var Door = __webpack_require__(6)
 	var Elevator = __webpack_require__(7)
 	var ButtonBlock = __webpack_require__(8)
+	var Cubby = __webpack_require__(10)
 
-	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors) {
+	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies) {
 	  this.name = name;
 	  this.foregroundGrid = foregroundGrid;
 	  this.backgroundGrid = backgroundGrid;
 	  this.startingPos = robotPos;
 	  this.elevators = elevators;
 	  this.doors = doors;
+	  this.cubbies = cubbies;
 	}
 
 	function LevelBuilder() {};
@@ -1070,7 +1172,8 @@
 	  LevelBuilder: LevelBuilder,
 	  Door: Door,
 	  Elevator: Elevator,
-	  ButtonBlock: ButtonBlock
+	  ButtonBlock: ButtonBlock,
+	  Cubby: Cubby
 	};
 
 
@@ -1154,6 +1257,21 @@
 	};
 
 	module.exports = PowerObject;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	function Cubby(options) {
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.item = options.startItem;
+
+	  this.toString = function () { return "cubby" };
+	}
+
+	module.exports = Cubby;
 
 
 /***/ }
