@@ -2,10 +2,6 @@ const BLOCK_LENGTH = 75;
 const EDGE_TO_INNER = 8;
 const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
-const CUBBY_DISTANCE = 15;
-const CUBBY_THICKNESS = 5;
-const CUBBY_DEPTH = 8;
-
 function Renderer(context, game) {
   this.c = context;
   this.game = game;
@@ -21,6 +17,7 @@ Renderer.prototype.renderScreen = function () {
   this.incrementGradientIndex();
   this.incrementDoors();
   this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
+  this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
@@ -60,9 +57,13 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
       } else if (currentLevel.foregroundGrid[row][col] === "platform") {
         this.drawPlatform([x_block, y_block], '#67480E', '#211704');
       } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
-        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block])
+        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block]);
       } else if (currentLevel.foregroundGrid[row][col].toString() === "buttonBlock") {
-        this.drawButtonBlock(currentLevel.foregroundGrid[row][col],[x_block, y_block])
+        this.drawButtonBlock(currentLevel.foregroundGrid[row][col],[x_block, y_block]);
+      } else if (currentLevel.foregroundGrid[row][col].toString() === "powerSource") {
+        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+      } else if (currentLevel.foregroundGrid[row][col] === "powerBlock") {
+        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
       }
 
       col_left_x += 75;
@@ -162,37 +163,135 @@ Renderer.prototype.renderCubbies = function (origin, currentLevel, cornerSquares
   }
 };
 
-Renderer.prototype.renderRobot = function (robot) {
-  this.drawOuterSquare(robot.pos, 'red');
+Renderer.prototype.renderWiring = function (origin, currentLevel, cornerSquares) {
+  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+  //iterate through each visible column:
+  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
+    //iterate through wiring to see if there's one in this column:
+    for (var wire = 0; wire < currentLevel.wiring.length; wire++) {
+      if (currentLevel.wiring[wire].rowCol[1] === col) {
+        //if so, find where the top is:
+        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
+        var y_block = (BLOCK_LENGTH * currentLevel.wiring[wire].rowCol[0]) - origin[1] + 0.5;
+        this.drawWire([x_block, y_block], currentLevel.wiring[wire]);
+      }
+    }
 
-  x = robot.pos[0] + 11;
-  y = robot.pos[1] + 11;
-  this.drawRectangle({
+    col_left_x += 75;
+  }
+};
+
+Renderer.prototype.renderRobot = function (robot) {
+  var x = robot.pos[0] + 10;
+  var y = robot.pos[1] + 10;
+  this.drawFrame({
     x: x,
     y: y,
     width: 54,
     height: 54,
+    thickness: 5,
     fill: 'yellow'
   });
 
-  x += 5;
-  y += 5;
-  this.c.clearRect(x, y, 44, 44);
-  this.drawRectangle({
-    x: x,
-    y: y,
+  var x2 = x + 5;
+  var y2 = y + 5;
+  this.drawFrame({
+    x: x2,
+    y: y2,
     width: 44,
     height: 44,
+    thickness: 5,
+    fill: '#8C8400'
   });
 
-  x += 4;
-  y += 4;
+  this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
+  this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
+  this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
+  this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
+
+  //left wheel:
+  var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
+
+  //left arm:
   this.drawRectangle({
-    x: x,
-    y: y,
-    width: 36,
-    height: 36,
-  });
+    x: robot.pos[0],
+    y: robot.pos[1] + 30,
+    width: 5,
+    height: 15,
+    fill: 'yellow',
+    stroke: '#000'
+  })
+  this.drawRectangle({
+    x: leftWheelCenter[0],
+    y: robot.pos[1] + 37,
+    width: 3,
+    height: 30,
+    fill: 'yellow',
+    stroke: '#000'
+  })
+
+  this.c.beginPath();
+  this.c.arc(
+    leftWheelCenter[0],
+    leftWheelCenter[1],
+    5, 0, 2 * Math.PI, false
+  );
+  this.c.fillStyle = '#000';
+  this.c.fill();
+
+  this.c.beginPath();
+  this.c.arc(
+    leftWheelCenter[0],
+    leftWheelCenter[1],
+    8, 1.5 * Math.PI, 2 * Math.PI, false
+  );
+  this.c.lineTo(leftWheelCenter[0], leftWheelCenter[1])
+  this.c.closePath();
+  this.c.fillStyle = 'yellow';
+  this.c.fill();
+  this.c.stroke();
+
+  //right wheel:
+  var rightWheelCenter = [robot.pos[0] + BLOCK_LENGTH - 6, robot.pos[1] + BLOCK_LENGTH - 5]
+
+  //right arm:
+  this.drawRectangle({
+    x: robot.pos[0] + BLOCK_LENGTH - 6,
+    y: robot.pos[1] + 30,
+    width: 5,
+    height: 15,
+    fill: 'yellow',
+    stroke: '#000'
+  })
+  this.drawRectangle({
+    x: rightWheelCenter[0] - 3,
+    y: robot.pos[1] + 37,
+    width: 3,
+    height: 30,
+    fill: 'yellow',
+    stroke: '#000'
+  })
+
+  this.c.beginPath();
+  this.c.arc(
+    rightWheelCenter[0],
+    rightWheelCenter[1],
+    5, 0, 2 * Math.PI, false
+  );
+  this.c.fillStyle = '#000';
+  this.c.fill();
+
+  this.c.beginPath();
+  this.c.arc(
+    rightWheelCenter[0],
+    rightWheelCenter[1],
+    8, Math.PI, 1.5 * Math.PI, false
+  );
+  this.c.lineTo(rightWheelCenter[0], rightWheelCenter[1])
+  this.c.closePath();
+  this.c.fillStyle = 'yellow';
+  this.c.fill();
+  this.c.stroke();
 };
 
 Renderer.prototype.drawDoor = function (door, pos) {
@@ -256,43 +355,91 @@ Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
   });
 };
 
+Renderer.prototype.drawWire = function (pos, wire) {
+  if (wire.hasPower) {
+    var fill = this.gradientArray[this.gradientIndex]
+  } else {
+    var fill = '#333';
+  }
+
+  if (wire.type === "EW") {
+    this.drawRectangle({
+      x: pos[0] - 0.5,
+      y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
+      width: BLOCK_LENGTH + 0.5,
+      height: 9,
+      fill: fill,
+      stroke: 'none'
+    })
+  } else if (wire.type === "NS") {
+    this.drawRectangle({
+      x: pos[0] + (BLOCK_LENGTH / 2) - 4.5,
+      y: pos[1] - 0.5,
+      width: 9,
+      height: BLOCK_LENGTH + 0.5,
+      fill: fill,
+      stroke: 'none'
+    })
+  } else if (wire.type === "ES") {
+    this.c.beginPath();
+    this.c.moveTo(pos[0] + BLOCK_LENGTH, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + BLOCK_LENGTH);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + BLOCK_LENGTH);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + BLOCK_LENGTH / 2 + 4.5);
+    this.c.lineTo(pos[0] + BLOCK_LENGTH, pos[1] + BLOCK_LENGTH / 2 + 4.5);
+    this.c.closePath();
+    this.c.fillStyle = fill;
+    this.c.fill();
+  } else if (wire.type === "NE") {
+    this.c.beginPath();
+    this.c.moveTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] - 0.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+    this.c.lineTo(pos[0] + BLOCK_LENGTH, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+    this.c.lineTo(pos[0] + BLOCK_LENGTH, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] - 0.5);
+    this.c.fillStyle = fill;
+    this.c.fill();
+  }
+};
+
 Renderer.prototype.drawCubby = function (pos) {
-  var x = pos[0] + CUBBY_DISTANCE;
-  var y = pos[1] + CUBBY_DISTANCE;
-  var length = Math.floor(BLOCK_LENGTH - (CUBBY_DISTANCE * 2));
+  var x = pos[0] + 15;
+  var y = pos[1] + 15;
 
   this.drawRectangle({
     x: x,
     y: y,
-    width: length,
-    height: length,
+    width: 44,
+    height: 44,
     fill: '#333'
   });
 
+  var CUBBY_THICKNESS = 5;
   var x2 = x + CUBBY_THICKNESS;
   var y2 = y + CUBBY_THICKNESS;
-  length2 = length - (CUBBY_THICKNESS * 2);
 
   this.drawRectangle({
     x: x2,
     y: y2,
-    width: length2,
-    height: length2,
+    width: 34,
+    height: 34,
     fill: '#1C1C1C'
   });
 
-  x3 = x2 + CUBBY_DEPTH;
-  y3 = y2 + CUBBY_DEPTH;
-  length3 = length2 - (CUBBY_DEPTH * 2);
+  this.drawLine([x2, y2], [x2 + 34, y2 + 34]);
+  this.drawLine([x2 + 34, y2], [x2, y2 + 34]);
 
-  this.drawLine([x2, y2], [x2 + length2, y2 + length2]);
-  this.drawLine([x2 + length2, y2], [x2, y2 + length2]);
+  var CUBBY_DEPTH = 6;
+  var x3 = x2 + CUBBY_DEPTH;
+  var y3 = y2 + CUBBY_DEPTH;
 
   this.drawRectangle({
     x: x3,
     y: y3,
-    width: length3,
-    height: length3,
+    width: 22,
+    height: 22,
     fill: '#1C1C1C'
   });
 };
@@ -466,6 +613,51 @@ Renderer.prototype.drawRectangle = function (object) {
     this.c.fillStyle = fill;
     this.c.fill();
   }
+  if (stroke !== 'none') {
+    this.c.strokeStyle = stroke;
+    this.c.stroke();
+  }
+};
+
+Renderer.prototype.drawFrame = function (object) {
+  var x = object.x;
+  var y = object.y;
+  var width = object.width;
+  var height = object.height;
+  var thickness = object.thickness;
+  var stroke = object.stroke || '#000';
+  var fill = object.fill || undefined;
+  this.c.beginPath();
+  this.c.rect(x, y, width, thickness);
+  if (fill !== undefined) {
+    this.c.fillStyle = fill;
+    this.c.fill();
+  }
+  this.c.beginPath();
+  this.c.rect(x, y, thickness, height);
+  if (fill !== undefined) {
+    this.c.fillStyle = fill;
+    this.c.fill();
+  }
+  this.c.beginPath();
+  this.c.rect(x + width - thickness, y, thickness, height);
+  if (fill !== undefined) {
+    this.c.fillStyle = fill;
+    this.c.fill();
+  }
+  this.c.beginPath();
+  this.c.rect(x, y + height - thickness, width, thickness);
+  if (fill !== undefined) {
+    this.c.fillStyle = fill;
+    this.c.fill();
+  }
+  this.c.beginPath();
+  this.c.rect(x, y, width, height);
+  this.c.strokeStyle = stroke;
+  this.c.stroke();
+
+  this.c.beginPath();
+  this.c.rect(x + thickness, y + thickness, width - (thickness * 2), height - (thickness * 2));
   this.c.strokeStyle = stroke;
   this.c.stroke();
 };

@@ -1,10 +1,11 @@
 var PowerObject = require('./powerObject');
 
-function ButtonBlock(id, side, func) {
-  this.initializePowerObject();
-  this.id = id;
-  this.side = side;
-  this.pushFunc = func;
+function ButtonBlock(options) {
+  this.initializePowerObject(options);
+  this.id = options.id;
+  this.side = options.side;
+  this.rowCol = options.rowCol;
+  this.pushFunc = options.func;
   this.toString = function () { return "buttonBlock" };
 }
 

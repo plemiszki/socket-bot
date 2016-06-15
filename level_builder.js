@@ -2,8 +2,10 @@ var Door = require('./door.js')
 var Elevator = require('./elevator.js')
 var ButtonBlock = require('./buttonBlock.js')
 var Cubby = require('./cubby.js')
+var Wire = require('./wire.js')
+var PowerSource = require('./powerSource.js')
 
-function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies) {
+function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources) {
   this.name = name;
   this.foregroundGrid = foregroundGrid;
   this.backgroundGrid = backgroundGrid;
@@ -11,6 +13,8 @@ function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors,
   this.elevators = elevators;
   this.doors = doors;
   this.cubbies = cubbies;
+  this.wiring = wiring;
+  this.powerSources = powerSources;
 }
 
 function LevelBuilder() {};
@@ -29,5 +33,7 @@ module.exports = {
   Door: Door,
   Elevator: Elevator,
   ButtonBlock: ButtonBlock,
-  Cubby: Cubby
+  Cubby: Cubby,
+  Wire: Wire,
+  PowerSource: PowerSource
 };

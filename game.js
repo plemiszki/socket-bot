@@ -28,6 +28,7 @@ Game.prototype.startLevel = function (level) {
   this.robot = new Robot([263.5, 187.5]);
 
   this.status = "inControl"
+  this.updatePower();
   this.main(Date.now());
 };
 
@@ -108,6 +109,24 @@ Game.prototype.update = function (modifier) {
         ghostArrays = this.moveLeft(difference, 1);
         button.pushFunc();
       }
+    } else if (32 in this.keysDown) { //space
+      var robotLeft = this.getRealLeftX(realArrays);
+      var leftColumn = this.getLeftColumn(realArrays);
+      var leftEdge = (this.BLOCK_LENGTH * leftColumn) + 0.5;
+      var distanceToLeftEdge = robotLeft - leftEdge;
+      if (distanceToLeftEdge <= 15) {
+        this.moveLeft(distanceToLeftEdge, 1);
+        console.log("nudge left!");
+      } else {
+        var robotRight = this.getRealRightX(realArrays);
+        var rightColumn = this.getRightColumn(realArrays);
+        var rightEdge = this.BLOCK_LENGTH * (rightColumn + 1);
+        var distanceToRightEdge = rightEdge - robotRight;
+        if (distanceToRightEdge <= 15) {
+          this.moveRight(distanceToRightEdge, 1);
+          console.log("nudge right!");
+        }
+      }
     }
   }
 
@@ -115,6 +134,12 @@ Game.prototype.update = function (modifier) {
   this.updateDebugHTML(realArrays);
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
+  }
+};
+
+Game.prototype.updatePower = function () {
+  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
+    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring);
   }
 };
 
@@ -162,6 +187,7 @@ Game.prototype.passThrough = function (object) {
   if ( object === "block" || object === "platform"
       || object.toString() === "door" && object.status === "closed"
       || object.toString() === "buttonBlock"
+      || object.toString() === "powerSource"
   ) {
     return false;
   } else {
