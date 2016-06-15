@@ -10,11 +10,13 @@ function Renderer(context, game) {
   this.gradientSign = 1;
   this.BUTTON_PANEL_WIDTH = 15;
   this.BUTTON_PANEL_HEIGHT = 30;
+  this.seconds = 0;
 }
 
 Renderer.prototype.renderScreen = function () {
   var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
   this.incrementGradientIndex();
+  this.incrementTime();
   this.incrementDoors();
   this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
   this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
@@ -55,7 +57,7 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
       if (currentLevel.foregroundGrid[row][col] === "block") {
         this.drawBlock([x_block, y_block]);
       } else if (currentLevel.foregroundGrid[row][col] === "platform") {
-        this.drawPlatform([x_block, y_block], '#67480E', '#211704');
+        this.drawPlatform([x_block, y_block], '#2c2929', '#161515');
       } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
         this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block]);
       } else if (currentLevel.foregroundGrid[row][col].toString() === "buttonBlock") {
@@ -64,6 +66,10 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
         this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
       } else if (currentLevel.foregroundGrid[row][col] === "powerBlock") {
         this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+      } else if (currentLevel.foregroundGrid[row][col].toString() === "forceFieldBlock") {
+        this.drawForceFieldBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "forceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
+        this.drawForceField([x_block, y_block]);
       }
 
       col_left_x += 75;
@@ -518,8 +524,50 @@ Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
   });
 };
 
-Renderer.prototype.drawPowerBlock = function (pos) {
-  this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
+Renderer.prototype.drawForceFieldBlock = function (pos, FFBlock) {
+  this.drawPowerBlock(pos, FFBlock.hasPower);
+  var shellColor = '#D5D4C9';
+  this.drawForceEmitter([pos[0] + 4, pos[1] + BLOCK_LENGTH - 1], shellColor);
+  this.drawForceEmitter([pos[0] + 27, pos[1] + BLOCK_LENGTH - 1], shellColor);
+  this.drawForceEmitter([pos[0] + 47, pos[1] + BLOCK_LENGTH - 1], shellColor);
+  this.drawForceEmitter([pos[0] + 70, pos[1] + BLOCK_LENGTH - 1], shellColor);
+};
+
+Renderer.prototype.drawForceEmitter = function (pos, fill) {
+  this.c.beginPath();
+  this.c.arc(
+    pos[0],
+    pos[1],
+    4, Math.PI, 2 * Math.PI, false
+  );
+  this.c.closePath();
+  this.c.fillStyle = fill;
+  this.c.fill();
+  this.c.stroke();
+};
+
+Renderer.prototype.drawForceField = function (pos) {
+  this.drawForceLine([pos[0] + 4, pos[1]]);
+  this.drawForceLine([pos[0] + 27, pos[1]]);
+  this.drawForceLine([pos[0] + 47, pos[1]]);
+  this.drawForceLine([pos[0] + 70, pos[1]]);
+};
+
+Renderer.prototype.drawForceLine = function (pos) {
+  var fill = this.seconds % 2 === 0 ? '#fff' : 'blue'
+  this.drawRectangle({
+    x: pos[0] - 2,
+    y: pos[1],
+    width: 4,
+    height: BLOCK_LENGTH,
+    fill: fill,
+    stroke: 'none'
+  })
+};
+
+Renderer.prototype.drawPowerBlock = function (pos, power) {
+  var grad = power ? this.gradientArray[this.gradientIndex] : '#333';
+  this.drawOuterSquare(pos, '#000', grad);
   this.drawRectangle({
     x: pos[0] + EDGE_TO_INNER,
     y: pos[1] + EDGE_TO_INNER,
@@ -681,6 +729,13 @@ Renderer.prototype.incrementGradientIndex = function () {
   } else if (this.gradientIndex === -1) {
     this.gradientSign = 1;
     this.gradientIndex = 1;
+  }
+};
+
+Renderer.prototype.incrementTime = function () {
+  this.seconds += 1;
+  if (this.seconds > 100) {
+    this.seconds = 0;
   }
 };
 

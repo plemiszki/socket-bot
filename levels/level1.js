@@ -7,6 +7,7 @@ var ButtonBlock = obj.ButtonBlock;
 var Cubby = obj.Cubby;
 var Wire = obj.Wire;
 var PowerSource = obj.PowerSource;
+var ForceFieldBlock = obj.ForceFieldBlock;
 
 var builder = new LevelBuilder();
 
@@ -110,13 +111,13 @@ var buttonBlocks = [
       doors[1].open();
     }
   })
+];
 
-  // new ButtonBlock(101, "left", function () {
-  //   doors[0].open();
-  // }),
-  // new ButtonBlock(102, "right", function () {
-  //   doors[1].open();
-  // })
+var forceFieldBlocks = [
+  new ForceFieldBlock({
+    id: "FF101",
+    rowCol: [4, 19]
+  })
 ];
 
 var foregroundGrid = [
@@ -124,8 +125,8 @@ var foregroundGrid = [
   ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
   builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
   ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
-  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(18, "")).concat(["block"]),
+  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
+  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(3, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
   ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
@@ -152,6 +153,6 @@ var backgroundGrid = [
 ];
 
 // level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources);
+level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks);
 
 module.exports = level1;

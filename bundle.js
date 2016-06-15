@@ -84,11 +84,13 @@
 	  this.gradientSign = 1;
 	  this.BUTTON_PANEL_WIDTH = 15;
 	  this.BUTTON_PANEL_HEIGHT = 30;
+	  this.seconds = 0;
 	}
 
 	Renderer.prototype.renderScreen = function () {
 	  var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
 	  this.incrementGradientIndex();
+	  this.incrementTime();
 	  this.incrementDoors();
 	  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
 	  this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
@@ -129,7 +131,7 @@
 	      if (currentLevel.foregroundGrid[row][col] === "block") {
 	        this.drawBlock([x_block, y_block]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "platform") {
-	        this.drawPlatform([x_block, y_block], '#67480E', '#211704');
+	        this.drawPlatform([x_block, y_block], '#2c2929', '#161515');
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
 	        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "buttonBlock") {
@@ -138,6 +140,10 @@
 	        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "powerBlock") {
 	        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "forceFieldBlock") {
+	        this.drawForceFieldBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+	      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "forceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
+	        this.drawForceField([x_block, y_block]);
 	      }
 
 	      col_left_x += 75;
@@ -592,8 +598,50 @@
 	  });
 	};
 
-	Renderer.prototype.drawPowerBlock = function (pos) {
-	  this.drawOuterSquare(pos, '#000', this.gradientArray[this.gradientIndex]);
+	Renderer.prototype.drawForceFieldBlock = function (pos, FFBlock) {
+	  this.drawPowerBlock(pos, FFBlock.hasPower);
+	  var shellColor = '#D5D4C9';
+	  this.drawForceEmitter([pos[0] + 4, pos[1] + BLOCK_LENGTH - 1], shellColor);
+	  this.drawForceEmitter([pos[0] + 27, pos[1] + BLOCK_LENGTH - 1], shellColor);
+	  this.drawForceEmitter([pos[0] + 47, pos[1] + BLOCK_LENGTH - 1], shellColor);
+	  this.drawForceEmitter([pos[0] + 70, pos[1] + BLOCK_LENGTH - 1], shellColor);
+	};
+
+	Renderer.prototype.drawForceEmitter = function (pos, fill) {
+	  this.c.beginPath();
+	  this.c.arc(
+	    pos[0],
+	    pos[1],
+	    4, Math.PI, 2 * Math.PI, false
+	  );
+	  this.c.closePath();
+	  this.c.fillStyle = fill;
+	  this.c.fill();
+	  this.c.stroke();
+	};
+
+	Renderer.prototype.drawForceField = function (pos) {
+	  this.drawForceLine([pos[0] + 4, pos[1]]);
+	  this.drawForceLine([pos[0] + 27, pos[1]]);
+	  this.drawForceLine([pos[0] + 47, pos[1]]);
+	  this.drawForceLine([pos[0] + 70, pos[1]]);
+	};
+
+	Renderer.prototype.drawForceLine = function (pos) {
+	  var fill = this.seconds % 2 === 0 ? '#fff' : 'blue'
+	  this.drawRectangle({
+	    x: pos[0] - 2,
+	    y: pos[1],
+	    width: 4,
+	    height: BLOCK_LENGTH,
+	    fill: fill,
+	    stroke: 'none'
+	  })
+	};
+
+	Renderer.prototype.drawPowerBlock = function (pos, power) {
+	  var grad = power ? this.gradientArray[this.gradientIndex] : '#333';
+	  this.drawOuterSquare(pos, '#000', grad);
 	  this.drawRectangle({
 	    x: pos[0] + EDGE_TO_INNER,
 	    y: pos[1] + EDGE_TO_INNER,
@@ -758,6 +806,13 @@
 	  }
 	};
 
+	Renderer.prototype.incrementTime = function () {
+	  this.seconds += 1;
+	  if (this.seconds > 100) {
+	    this.seconds = 0;
+	  }
+	};
+
 	Renderer.prototype.fillGradientArray = function (rgbColor, arrayLength) {
 	  returnArray = [rgbColor];
 	  for (var i = 0; i < arrayLength; i++) {
@@ -862,8 +917,8 @@
 	    if (39 in this.keysDown) { //right
 	      ghostArrays = this.moveRight(this.robot.speed, modifier);
 	      ghostCol = this.getRightColumn(ghostArrays)
-	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol], this.currentLevel.foregroundGrid[topRow - 1][ghostCol]) === false ||
+	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol], this.currentLevel.foregroundGrid[bottomRow - 1][ghostCol]) === false) {
 	        robotX = this.getRealRightX(realArrays);
 	        edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
 	        difference = edge - robotX;
@@ -880,8 +935,8 @@
 	    } else if (37 in this.keysDown) { //left
 	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
 	      ghostCol = this.getLeftColumn(ghostArrays)
-	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol], this.currentLevel.foregroundGrid[topRow - 1][ghostCol]) === false ||
+	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol], this.currentLevel.foregroundGrid[bottomRow - 1][ghostCol]) === false) {
 	        robotX = this.getRealLeftX(realArrays);
 	        edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
 	        difference = robotX - edge;
@@ -925,7 +980,7 @@
 
 	Game.prototype.updatePower = function () {
 	  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
-	    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring);
+	    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
 	  }
 	};
 
@@ -969,11 +1024,12 @@
 	  }
 	};
 
-	Game.prototype.passThrough = function (object) {
+	Game.prototype.passThrough = function (object, aboveObject) {
 	  if ( object === "block" || object === "platform"
 	      || object.toString() === "door" && object.status === "closed"
 	      || object.toString() === "buttonBlock"
 	      || object.toString() === "powerSource"
+	      || object === "forceField" && aboveObject.hasPower
 	  ) {
 	    return false;
 	  } else {
@@ -1267,6 +1323,7 @@
 	var Cubby = obj.Cubby;
 	var Wire = obj.Wire;
 	var PowerSource = obj.PowerSource;
+	var ForceFieldBlock = obj.ForceFieldBlock;
 
 	var builder = new LevelBuilder();
 
@@ -1370,13 +1427,13 @@
 	      doors[1].open();
 	    }
 	  })
+	];
 
-	  // new ButtonBlock(101, "left", function () {
-	  //   doors[0].open();
-	  // }),
-	  // new ButtonBlock(102, "right", function () {
-	  //   doors[1].open();
-	  // })
+	var forceFieldBlocks = [
+	  new ForceFieldBlock({
+	    id: "FF101",
+	    rowCol: [4, 19]
+	  })
 	];
 
 	var foregroundGrid = [
@@ -1384,8 +1441,8 @@
 	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
 	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(18, "")).concat(["block"]),
+	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(3, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
@@ -1412,7 +1469,7 @@
 	];
 
 	// level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks);
 
 	module.exports = level1;
 
@@ -1427,8 +1484,9 @@
 	var Cubby = __webpack_require__(10)
 	var Wire = __webpack_require__(11)
 	var PowerSource = __webpack_require__(12)
+	var ForceFieldBlock = __webpack_require__(13)
 
-	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources) {
+	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks) {
 	  this.name = name;
 	  this.foregroundGrid = foregroundGrid;
 	  this.backgroundGrid = backgroundGrid;
@@ -1438,6 +1496,7 @@
 	  this.cubbies = cubbies;
 	  this.wiring = wiring;
 	  this.powerSources = powerSources;
+	  this.forceFieldBlocks = forceFieldBlocks;
 	}
 
 	function LevelBuilder() {};
@@ -1458,7 +1517,8 @@
 	  ButtonBlock: ButtonBlock,
 	  Cubby: Cubby,
 	  Wire: Wire,
-	  PowerSource: PowerSource
+	  PowerSource: PowerSource,
+	  ForceFieldBlock: ForceFieldBlock
 	};
 
 
@@ -1583,7 +1643,8 @@
 	Wire.prototype = new Surrogate();
 	Wire.prototype.constructor = Wire;
 
-	Wire.prototype.sendPower = function (wiring, flowing) {
+	Wire.prototype.sendPower = function (wiring, buttonBlocks, forceFieldBlocks, flowing) {
+
 	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
 	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
 	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
@@ -1593,19 +1654,35 @@
 	  for (var i = 0; i < wiring.length; i++) {
 	    if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
 	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, "leftward");
+	      wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "leftward");
 	    }
 	    if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
 	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, "upward");
+	      wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "upward");
 	    }
 	    if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
 	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, "rightward");
+	      wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "rightward");
 	    }
 	    if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
 	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, "downward");
+	      wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "downward");
+	    }
+	  }
+
+	  //look through force field blocks:
+	  for (var i = 0; i < forceFieldBlocks.length; i++) {
+	    if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
 	    }
 	  }
 	}
@@ -1631,7 +1708,7 @@
 	PowerSource.prototype.constructor = PowerSource;
 
 
-	PowerSource.prototype.sendPower = function (wiring) {
+	PowerSource.prototype.sendPower = function (wiring, buttonBlocks, forcefieldBlocks) {
 	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
 	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
 	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
@@ -1641,12 +1718,33 @@
 	  for (var i = 0; i < wiring.length; i++) {
 	    if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1]) {
 	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, "left");
+	      wiring[i].sendPower(wiring, buttonBlocks, forcefieldBlocks, "left");
 	    }
 	  }
 	}
 
 	module.exports = PowerSource;
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var PowerObject = __webpack_require__(9);
+
+	function ForceFieldBlock(options) {
+	  this.initializePowerObject(options);
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.toString = function () { return "forceFieldBlock" };
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = PowerObject.prototype;
+	ForceFieldBlock.prototype = new Surrogate();
+	ForceFieldBlock.prototype.constructor = ForceFieldBlock;
+
+	module.exports = ForceFieldBlock;
 
 
 /***/ }

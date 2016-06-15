@@ -76,8 +76,8 @@ Game.prototype.update = function (modifier) {
     if (39 in this.keysDown) { //right
       ghostArrays = this.moveRight(this.robot.speed, modifier);
       ghostCol = this.getRightColumn(ghostArrays)
-      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol], this.currentLevel.foregroundGrid[topRow - 1][ghostCol]) === false ||
+      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol], this.currentLevel.foregroundGrid[bottomRow - 1][ghostCol]) === false) {
         robotX = this.getRealRightX(realArrays);
         edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
         difference = edge - robotX;
@@ -94,8 +94,8 @@ Game.prototype.update = function (modifier) {
     } else if (37 in this.keysDown) { //left
       ghostArrays = this.moveLeft(this.robot.speed, modifier);
       ghostCol = this.getLeftColumn(ghostArrays)
-      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol]) === false ||
-      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol]) === false) {
+      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol], this.currentLevel.foregroundGrid[topRow - 1][ghostCol]) === false ||
+      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol], this.currentLevel.foregroundGrid[bottomRow - 1][ghostCol]) === false) {
         robotX = this.getRealLeftX(realArrays);
         edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
         difference = robotX - edge;
@@ -139,7 +139,7 @@ Game.prototype.update = function (modifier) {
 
 Game.prototype.updatePower = function () {
   for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
-    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring);
+    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
   }
 };
 
@@ -183,11 +183,12 @@ Game.prototype.getRightButtonEdge = function (arrays) {
   }
 };
 
-Game.prototype.passThrough = function (object) {
+Game.prototype.passThrough = function (object, aboveObject) {
   if ( object === "block" || object === "platform"
       || object.toString() === "door" && object.status === "closed"
       || object.toString() === "buttonBlock"
       || object.toString() === "powerSource"
+      || object === "forceField" && aboveObject.hasPower
   ) {
     return false;
   } else {
