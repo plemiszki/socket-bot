@@ -55,12 +55,17 @@ var cubbies = [
   new Cubby({
     id: "C101",
     rowCol: [1, 2],
-    startItem: new Panel([])
+    startItem: new Panel(["N", "S"])
   }),
   new Cubby({
     id: "C102",
     rowCol: [11, 15],
     startItem: new Panel(["E", "W"])
+  }),
+  new Cubby({
+    id: "C103",
+    rowCol: [4, 13],
+    startItem: new Panel(["N", "S"])
   }),
 ];
 
@@ -93,18 +98,30 @@ var wiring = [
   new Wire({ rowCol: [4, 17], type: "EW" }),
   new Wire({ rowCol: [4, 18], type: "EW" }),
 
+  //Branch to top button
   new Wire({ rowCol: [1, 13], type: "ES" }),
   new Wire({ rowCol: [2, 13], type: "NS" }),
   new Wire({ rowCol: [3, 13], type: "NS" }),
-  new Wire({ rowCol: [4, 13], type: "NS" }),
+  new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }),
   new Wire({ rowCol: [5, 13], type: "NE" }),
+
+  //Branch to left button
+  new Wire({ rowCol: [3, 5], type: "EW" }),
+  new Wire({ rowCol: [3, 6], type: "EW" }),
+  new Wire({ rowCol: [3, 7], type: "WS" }),
+  new Wire({ rowCol: [4, 7], type: "NE" }),
+  new Wire({ rowCol: [4, 8], type: "EW" }),
+  new Wire({ rowCol: [4, 9], type: "EW" }),
+  new Wire({ rowCol: [4, 10], type: "EW" }),
+  new Wire({ rowCol: [4, 11], type: "EW" }),
+  new Wire({ rowCol: [4, 12], type: "EW" }),
 ]
 
 var buttonBlocks = [
   new ButtonBlock({
     id: "BB101",
     side: "left",
-    rowCol: [0, 0],
+    rowCol: [3, 4],
     func: function () {
       doors[0].open();
     }
@@ -112,7 +129,7 @@ var buttonBlocks = [
   new ButtonBlock({
     id: "BB102",
     side: "right",
-    rowCol: [0, 0],
+    rowCol: [1, 14],
     func: function () {
       doors[1].open();
     }
@@ -159,6 +176,6 @@ var backgroundGrid = [
 ];
 
 // level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks);
+level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
 
 module.exports = level1;

@@ -451,6 +451,17 @@ Renderer.prototype.drawWire = function (pos, wire) {
     this.c.closePath();
     this.c.fillStyle = fill;
     this.c.fill();
+  } else if (wire.type === "WS") {
+    this.c.beginPath();
+    this.c.moveTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + BLOCK_LENGTH);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + BLOCK_LENGTH);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + BLOCK_LENGTH / 2 + 4.5);
+    this.c.lineTo(pos[0] - 0.5, pos[1] + BLOCK_LENGTH / 2 + 4.5);
+    this.c.closePath();
+    this.c.fillStyle = fill;
+    this.c.fill();
   } else if (wire.type === "NE") {
     this.c.beginPath();
     this.c.moveTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] - 0.5);
@@ -472,8 +483,8 @@ Renderer.prototype.drawWire = function (pos, wire) {
     })
     this.c.beginPath();
     this.c.moveTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
-    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
-    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2), pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2), pos[1] + (BLOCK_LENGTH / 2) + 4.5);
     this.c.lineTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
     this.c.closePath();
     this.c.fillStyle = fill;
@@ -557,7 +568,7 @@ Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
 
 Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
 
-  this.drawPowerBlock(pos);
+  this.drawPowerBlock(pos, buttonBlock.hasPower);
 
   var buttonPanelX;
   if (buttonBlock.side === "left") {

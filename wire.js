@@ -62,6 +62,22 @@ Wire.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBl
       forceFieldBlocks[i].hasPower = true;
     }
   }
+
+  //look through button blocks:
+  for (var i = 0; i < buttonBlocks.length; i++) {
+    if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
+      buttonBlocks[i].hasPower = true;
+    }
+    if (buttonBlocks[i].rowCol[0] === topRowCol[0] && buttonBlocks[i].rowCol[1] === topRowCol[1]) {
+      buttonBlocks[i].hasPower = true;
+    }
+    if (buttonBlocks[i].rowCol[0] === rightRowCol[0] && buttonBlocks[i].rowCol[1] === rightRowCol[1]) {
+      buttonBlocks[i].hasPower = true;
+    }
+    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
+      buttonBlocks[i].hasPower = true;
+    }
+  }
 }
 
 module.exports = Wire;

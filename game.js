@@ -93,7 +93,7 @@ Game.prototype.update = function (modifier) {
         robotX = this.getRealRightX(realArrays);
         difference = edge - robotX;
         ghostArrays = this.moveRight(difference, 1);
-        button.pushFunc();
+        if (button.hasPower) { button.pushFunc() };
       }
     } else if (37 in this.keysDown) { //left
       ghostArrays = this.moveLeft(this.robot.speed, modifier);
@@ -111,7 +111,7 @@ Game.prototype.update = function (modifier) {
         robotX = this.getRealLeftX(realArrays);
         difference = robotX - edge;
         ghostArrays = this.moveLeft(difference, 1);
-        button.pushFunc();
+        if (button.hasPower) { button.pushFunc() };
       }
     } else if (32 in this.keysDown && this.spaceTime === 0) { //space
       this.spaceTime = 20;
@@ -167,6 +167,7 @@ Game.prototype.swapCubbyItem = function (cubby) {
 };
 
 Game.prototype.updatePower = function () {
+  console.log(this.currentLevel.buttonBlocks);
   this.clearPower();
   for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
     this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
@@ -185,6 +186,9 @@ Game.prototype.clearPower = function () {
   }
   for (var i = 0; i < this.currentLevel.forceFieldBlocks.length; i++) {
     this.currentLevel.forceFieldBlocks[i].hasPower = false;
+  }
+  for (var i = 0; i < this.currentLevel.buttonBlocks.length; i++) {
+    this.currentLevel.buttonBlocks[i].hasPower = false;
   }
 };
 

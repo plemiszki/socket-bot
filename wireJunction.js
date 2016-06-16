@@ -34,6 +34,8 @@ WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forc
     this.segments['W'].hasPower = true;
     this.giveItemPower(cubby.item, 'W');
   } else if (flowing === "upward" && this.segments['S']) {
+    // console.log("upward");
+    // debugger
     this.giveItemPower(cubby.item, 'S');
     this.segments['S'].hasPower = true;
   } else if (flowing === "downward" && this.segments['N']) {
@@ -44,7 +46,9 @@ WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forc
   if (cubby.item) {
     if (cubby.item.hasPower) {
       for (var i = 0; i < cubby.item.segments.length; i++) {
-        this.segments[cubby.item.segments[i]].hasPower = true;
+        if (this.segments[cubby.item.segments[i]]) {
+          this.segments[cubby.item.segments[i]].hasPower = true;
+        }
       }
       this.sendPowerFromItem(cubby.item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing);
     }
@@ -66,19 +70,19 @@ WireJunction.prototype.sendPowerFromItem = function (item, wiring, cubbies, butt
 
   //look through wires:
   for (var i = 0; i < wiring.length; i++) {
-    if (item.segments.indexOf["W"] !== -1 && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
       wiring[i].hasPower = true;
       wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
     }
-    if (item.segments.indexOf["N"] !== -1 && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
       wiring[i].hasPower = true;
       wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
     }
-    if (item.segments.indexOf["E"] !== -1 && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
       wiring[i].hasPower = true;
       wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
     }
-    if (item.segments.indexOf["S"] !== -1 && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
       wiring[i].hasPower = true;
       wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
     }

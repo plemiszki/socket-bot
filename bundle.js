@@ -525,6 +525,17 @@
 	    this.c.closePath();
 	    this.c.fillStyle = fill;
 	    this.c.fill();
+	  } else if (wire.type === "WS") {
+	    this.c.beginPath();
+	    this.c.moveTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + BLOCK_LENGTH);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + BLOCK_LENGTH);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + BLOCK_LENGTH / 2 + 4.5);
+	    this.c.lineTo(pos[0] - 0.5, pos[1] + BLOCK_LENGTH / 2 + 4.5);
+	    this.c.closePath();
+	    this.c.fillStyle = fill;
+	    this.c.fill();
 	  } else if (wire.type === "NE") {
 	    this.c.beginPath();
 	    this.c.moveTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] - 0.5);
@@ -546,8 +557,8 @@
 	    })
 	    this.c.beginPath();
 	    this.c.moveTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
-	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
-	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2), pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2), pos[1] + (BLOCK_LENGTH / 2) + 4.5);
 	    this.c.lineTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
 	    this.c.closePath();
 	    this.c.fillStyle = fill;
@@ -631,7 +642,7 @@
 
 	Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
 
-	  this.drawPowerBlock(pos);
+	  this.drawPowerBlock(pos, buttonBlock.hasPower);
 
 	  var buttonPanelX;
 	  if (buttonBlock.side === "left") {
@@ -1009,7 +1020,7 @@
 	        robotX = this.getRealRightX(realArrays);
 	        difference = edge - robotX;
 	        ghostArrays = this.moveRight(difference, 1);
-	        button.pushFunc();
+	        if (button.hasPower) { button.pushFunc() };
 	      }
 	    } else if (37 in this.keysDown) { //left
 	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
@@ -1027,7 +1038,7 @@
 	        robotX = this.getRealLeftX(realArrays);
 	        difference = robotX - edge;
 	        ghostArrays = this.moveLeft(difference, 1);
-	        button.pushFunc();
+	        if (button.hasPower) { button.pushFunc() };
 	      }
 	    } else if (32 in this.keysDown && this.spaceTime === 0) { //space
 	      this.spaceTime = 20;
@@ -1083,6 +1094,7 @@
 	};
 
 	Game.prototype.updatePower = function () {
+	  console.log(this.currentLevel.buttonBlocks);
 	  this.clearPower();
 	  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
 	    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
@@ -1101,6 +1113,9 @@
 	  }
 	  for (var i = 0; i < this.currentLevel.forceFieldBlocks.length; i++) {
 	    this.currentLevel.forceFieldBlocks[i].hasPower = false;
+	  }
+	  for (var i = 0; i < this.currentLevel.buttonBlocks.length; i++) {
+	    this.currentLevel.buttonBlocks[i].hasPower = false;
 	  }
 	};
 
@@ -1491,12 +1506,17 @@
 	  new Cubby({
 	    id: "C101",
 	    rowCol: [1, 2],
-	    startItem: new Panel([])
+	    startItem: new Panel(["N", "S"])
 	  }),
 	  new Cubby({
 	    id: "C102",
 	    rowCol: [11, 15],
 	    startItem: new Panel(["E", "W"])
+	  }),
+	  new Cubby({
+	    id: "C103",
+	    rowCol: [4, 13],
+	    startItem: new Panel(["N", "S"])
 	  }),
 	];
 
@@ -1529,18 +1549,30 @@
 	  new Wire({ rowCol: [4, 17], type: "EW" }),
 	  new Wire({ rowCol: [4, 18], type: "EW" }),
 
+	  //Branch to top button
 	  new Wire({ rowCol: [1, 13], type: "ES" }),
 	  new Wire({ rowCol: [2, 13], type: "NS" }),
 	  new Wire({ rowCol: [3, 13], type: "NS" }),
-	  new Wire({ rowCol: [4, 13], type: "NS" }),
+	  new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }),
 	  new Wire({ rowCol: [5, 13], type: "NE" }),
+
+	  //Branch to left button
+	  new Wire({ rowCol: [3, 5], type: "EW" }),
+	  new Wire({ rowCol: [3, 6], type: "EW" }),
+	  new Wire({ rowCol: [3, 7], type: "WS" }),
+	  new Wire({ rowCol: [4, 7], type: "NE" }),
+	  new Wire({ rowCol: [4, 8], type: "EW" }),
+	  new Wire({ rowCol: [4, 9], type: "EW" }),
+	  new Wire({ rowCol: [4, 10], type: "EW" }),
+	  new Wire({ rowCol: [4, 11], type: "EW" }),
+	  new Wire({ rowCol: [4, 12], type: "EW" }),
 	]
 
 	var buttonBlocks = [
 	  new ButtonBlock({
 	    id: "BB101",
 	    side: "left",
-	    rowCol: [0, 0],
+	    rowCol: [3, 4],
 	    func: function () {
 	      doors[0].open();
 	    }
@@ -1548,7 +1580,7 @@
 	  new ButtonBlock({
 	    id: "BB102",
 	    side: "right",
-	    rowCol: [0, 0],
+	    rowCol: [1, 14],
 	    func: function () {
 	      doors[1].open();
 	    }
@@ -1595,7 +1627,7 @@
 	];
 
 	// level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
-	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
 
 	module.exports = level1;
 
@@ -1614,7 +1646,7 @@
 	var ForceFieldBlock = __webpack_require__(13);
 	var Panel = __webpack_require__(14);
 
-	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks) {
+	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
 	  this.name = name;
 	  this.foregroundGrid = foregroundGrid;
 	  this.backgroundGrid = backgroundGrid;
@@ -1625,6 +1657,7 @@
 	  this.wiring = wiring;
 	  this.powerSources = powerSources;
 	  this.forceFieldBlocks = forceFieldBlocks;
+	  this.buttonBlocks = buttonBlocks;
 	}
 
 	function LevelBuilder() {};
@@ -1823,6 +1856,22 @@
 	      forceFieldBlocks[i].hasPower = true;
 	    }
 	  }
+
+	  //look through button blocks:
+	  for (var i = 0; i < buttonBlocks.length; i++) {
+	    if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	    if (buttonBlocks[i].rowCol[0] === topRowCol[0] && buttonBlocks[i].rowCol[1] === topRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	    if (buttonBlocks[i].rowCol[0] === rightRowCol[0] && buttonBlocks[i].rowCol[1] === rightRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	  }
 	}
 
 	module.exports = Wire;
@@ -1969,6 +2018,8 @@
 	    this.segments['W'].hasPower = true;
 	    this.giveItemPower(cubby.item, 'W');
 	  } else if (flowing === "upward" && this.segments['S']) {
+	    // console.log("upward");
+	    // debugger
 	    this.giveItemPower(cubby.item, 'S');
 	    this.segments['S'].hasPower = true;
 	  } else if (flowing === "downward" && this.segments['N']) {
@@ -1979,7 +2030,9 @@
 	  if (cubby.item) {
 	    if (cubby.item.hasPower) {
 	      for (var i = 0; i < cubby.item.segments.length; i++) {
-	        this.segments[cubby.item.segments[i]].hasPower = true;
+	        if (this.segments[cubby.item.segments[i]]) {
+	          this.segments[cubby.item.segments[i]].hasPower = true;
+	        }
 	      }
 	      this.sendPowerFromItem(cubby.item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing);
 	    }
@@ -2001,19 +2054,19 @@
 
 	  //look through wires:
 	  for (var i = 0; i < wiring.length; i++) {
-	    if (item.segments.indexOf["W"] !== -1 && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
 	      wiring[i].hasPower = true;
 	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
 	    }
-	    if (item.segments.indexOf["N"] !== -1 && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
 	      wiring[i].hasPower = true;
 	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
 	    }
-	    if (item.segments.indexOf["E"] !== -1 && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
 	      wiring[i].hasPower = true;
 	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
 	    }
-	    if (item.segments.indexOf["S"] !== -1 && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
 	      wiring[i].hasPower = true;
 	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
 	    }

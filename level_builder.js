@@ -8,7 +8,7 @@ var PowerSource = require('./powerSource.js');
 var ForceFieldBlock = require('./forceFieldBlock.js');
 var Panel = require('./panel.js');
 
-function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks) {
+function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
   this.name = name;
   this.foregroundGrid = foregroundGrid;
   this.backgroundGrid = backgroundGrid;
@@ -19,6 +19,7 @@ function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors,
   this.wiring = wiring;
   this.powerSources = powerSources;
   this.forceFieldBlocks = forceFieldBlocks;
+  this.buttonBlocks = buttonBlocks;
 }
 
 function LevelBuilder() {};
