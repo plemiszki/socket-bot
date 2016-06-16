@@ -8,6 +8,7 @@ var Cubby = obj.Cubby;
 var Wire = obj.Wire;
 var PowerSource = obj.PowerSource;
 var ForceFieldBlock = obj.ForceFieldBlock;
+var Panel = obj.Panel;
 
 var builder = new LevelBuilder();
 
@@ -52,11 +53,13 @@ var elevators = [
 var cubbies = [
   new Cubby({
     id: "C101",
-    rowCol: [1, 2]
+    rowCol: [1, 2],
+    startItem: new Panel()
   }),
   new Cubby({
     id: "C102",
-    rowCol: [5, 8]
+    rowCol: [11, 15],
+    startItem: new Panel()
   }),
 ];
 

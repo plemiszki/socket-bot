@@ -161,7 +161,7 @@ Renderer.prototype.renderCubbies = function (origin, currentLevel, cornerSquares
         //if so, find where the top is:
         var x_block = (-1 * origin[0]) + col_left_x + 0.5;
         var y_block = (BLOCK_LENGTH * currentLevel.cubbies[cubby].rowCol[0]) - origin[1] + 0.5;
-        this.drawCubby([x_block, y_block]);
+        this.drawCubby([x_block, y_block], currentLevel.cubbies[cubby]);
       }
     }
 
@@ -201,19 +201,23 @@ Renderer.prototype.renderRobot = function (robot) {
 
   var x2 = x + 5;
   var y2 = y + 5;
-  this.drawFrame({
-    x: x2,
-    y: y2,
-    width: 44,
-    height: 44,
-    thickness: 5,
-    fill: '#8C8400'
-  });
 
-  this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
-  this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
-  this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
-  this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
+  if (this.game.robot.item) {
+    robot.item.render(this.c, [x2, y2], 44, false);
+  } else {
+    this.drawFrame({
+      x: x2,
+      y: y2,
+      width: 44,
+      height: 44,
+      thickness: 5,
+      fill: '#8C8400'
+    });
+    this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
+    this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
+    this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
+    this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
+  }
 
   //left wheel:
   var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
@@ -410,7 +414,7 @@ Renderer.prototype.drawWire = function (pos, wire) {
   }
 };
 
-Renderer.prototype.drawCubby = function (pos) {
+Renderer.prototype.drawCubby = function (pos, cubby) {
   var x = pos[0] + 15;
   var y = pos[1] + 15;
 
@@ -434,20 +438,24 @@ Renderer.prototype.drawCubby = function (pos) {
     fill: '#1C1C1C'
   });
 
-  this.drawLine([x2, y2], [x2 + 34, y2 + 34]);
-  this.drawLine([x2 + 34, y2], [x2, y2 + 34]);
+  if (cubby.item) {
+    cubby.item.render(this.c, [x2, y2], 34, false);
+  } else {
+    this.drawLine([x2, y2], [x2 + 34, y2 + 34]);
+    this.drawLine([x2 + 34, y2], [x2, y2 + 34]);
 
-  var CUBBY_DEPTH = 6;
-  var x3 = x2 + CUBBY_DEPTH;
-  var y3 = y2 + CUBBY_DEPTH;
+    var CUBBY_DEPTH = 6;
+    var x3 = x2 + CUBBY_DEPTH;
+    var y3 = y2 + CUBBY_DEPTH;
 
-  this.drawRectangle({
-    x: x3,
-    y: y3,
-    width: 22,
-    height: 22,
-    fill: '#1C1C1C'
-  });
+    this.drawRectangle({
+      x: x3,
+      y: y3,
+      width: 22,
+      height: 22,
+      fill: '#1C1C1C'
+    });
+  }
 };
 
 Renderer.prototype.drawBrick = function (pos, color, leftEdges) {

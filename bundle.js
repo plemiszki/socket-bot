@@ -235,7 +235,7 @@
 	        //if so, find where the top is:
 	        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
 	        var y_block = (BLOCK_LENGTH * currentLevel.cubbies[cubby].rowCol[0]) - origin[1] + 0.5;
-	        this.drawCubby([x_block, y_block]);
+	        this.drawCubby([x_block, y_block], currentLevel.cubbies[cubby]);
 	      }
 	    }
 
@@ -275,19 +275,23 @@
 
 	  var x2 = x + 5;
 	  var y2 = y + 5;
-	  this.drawFrame({
-	    x: x2,
-	    y: y2,
-	    width: 44,
-	    height: 44,
-	    thickness: 5,
-	    fill: '#8C8400'
-	  });
 
-	  this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
-	  this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
-	  this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
-	  this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
+	  if (this.game.robot.item) {
+	    robot.item.render(this.c, [x2, y2], 44, false);
+	  } else {
+	    this.drawFrame({
+	      x: x2,
+	      y: y2,
+	      width: 44,
+	      height: 44,
+	      thickness: 5,
+	      fill: '#8C8400'
+	    });
+	    this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
+	    this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
+	    this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
+	    this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
+	  }
 
 	  //left wheel:
 	  var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
@@ -484,7 +488,7 @@
 	  }
 	};
 
-	Renderer.prototype.drawCubby = function (pos) {
+	Renderer.prototype.drawCubby = function (pos, cubby) {
 	  var x = pos[0] + 15;
 	  var y = pos[1] + 15;
 
@@ -508,20 +512,24 @@
 	    fill: '#1C1C1C'
 	  });
 
-	  this.drawLine([x2, y2], [x2 + 34, y2 + 34]);
-	  this.drawLine([x2 + 34, y2], [x2, y2 + 34]);
+	  if (cubby.item) {
+	    cubby.item.render(this.c, [x2, y2], 34, false);
+	  } else {
+	    this.drawLine([x2, y2], [x2 + 34, y2 + 34]);
+	    this.drawLine([x2 + 34, y2], [x2, y2 + 34]);
 
-	  var CUBBY_DEPTH = 6;
-	  var x3 = x2 + CUBBY_DEPTH;
-	  var y3 = y2 + CUBBY_DEPTH;
+	    var CUBBY_DEPTH = 6;
+	    var x3 = x2 + CUBBY_DEPTH;
+	    var y3 = y2 + CUBBY_DEPTH;
 
-	  this.drawRectangle({
-	    x: x3,
-	    y: y3,
-	    width: 22,
-	    height: 22,
-	    fill: '#1C1C1C'
-	  });
+	    this.drawRectangle({
+	      x: x3,
+	      y: y3,
+	      width: 22,
+	      height: 22,
+	      fill: '#1C1C1C'
+	    });
+	  }
 	};
 
 	Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
@@ -850,7 +858,7 @@
 	  this.levelSequence = [level1];
 	  this.origin = [0,0]
 	  this.keysDown = {};
-	  this.renderCount = 0;
+	  this.spaceTime = 0;
 	}
 
 	Game.prototype.startLevel = function (level) {
@@ -885,6 +893,9 @@
 	};
 
 	Game.prototype.update = function (modifier) {
+	  if (this.spaceTime > 0) {
+	    this.spaceTime -= 1
+	  }
 	  var realArrays = [this.origin, this.robot.pos]
 	  var topRow = this.getTopRow(realArrays);
 	  var bottomRow = this.getBottomRow(realArrays);
@@ -950,22 +961,29 @@
 	        ghostArrays = this.moveLeft(difference, 1);
 	        button.pushFunc();
 	      }
-	    } else if (32 in this.keysDown) { //space
+	    } else if (32 in this.keysDown && this.spaceTime === 0) { //space
+	      this.spaceTime = 20;
 	      var robotLeft = this.getRealLeftX(realArrays);
 	      var leftColumn = this.getLeftColumn(realArrays);
 	      var leftEdge = (this.BLOCK_LENGTH * leftColumn) + 0.5;
 	      var distanceToLeftEdge = robotLeft - leftEdge;
 	      if (distanceToLeftEdge <= 15) {
-	        this.moveLeft(distanceToLeftEdge, 1);
-	        console.log("nudge left!");
+	        var cubby = this.cubbyAt([bottomRow, leftColumn])
+	        if (cubby) {
+	          this.moveLeft(distanceToLeftEdge, 1);
+	          this.swapCubbyItem(cubby);
+	        }
 	      } else {
 	        var robotRight = this.getRealRightX(realArrays);
 	        var rightColumn = this.getRightColumn(realArrays);
 	        var rightEdge = this.BLOCK_LENGTH * (rightColumn + 1);
 	        var distanceToRightEdge = rightEdge - robotRight;
 	        if (distanceToRightEdge <= 15) {
-	          this.moveRight(distanceToRightEdge, 1);
-	          console.log("nudge right!");
+	          var cubby = this.cubbyAt([bottomRow, rightColumn])
+	          if (cubby) {
+	            this.moveRight(distanceToRightEdge, 1);
+	            this.swapCubbyItem(cubby);
+	          }
 	        }
 	      }
 	    }
@@ -976,6 +994,20 @@
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
 	  }
+	};
+
+	Game.prototype.cubbyAt = function (rowCol) {
+	  for (var i = 0; i < this.currentLevel.cubbies.length; i++) {
+	    if (this.currentLevel.cubbies[i].rowCol[0] === rowCol[0] && this.currentLevel.cubbies[i].rowCol[1] === rowCol[1]) {
+	      return this.currentLevel.cubbies[i];
+	    }
+	  }
+	};
+
+	Game.prototype.swapCubbyItem = function (cubby) {
+	  var itemFromCubby = cubby.item;
+	  cubby.item = this.robot.item;
+	  this.robot.item = itemFromCubby;
 	};
 
 	Game.prototype.updatePower = function () {
@@ -1324,6 +1356,7 @@
 	var Wire = obj.Wire;
 	var PowerSource = obj.PowerSource;
 	var ForceFieldBlock = obj.ForceFieldBlock;
+	var Panel = obj.Panel;
 
 	var builder = new LevelBuilder();
 
@@ -1368,11 +1401,13 @@
 	var cubbies = [
 	  new Cubby({
 	    id: "C101",
-	    rowCol: [1, 2]
+	    rowCol: [1, 2],
+	    startItem: new Panel()
 	  }),
 	  new Cubby({
 	    id: "C102",
-	    rowCol: [5, 8]
+	    rowCol: [11, 15],
+	    startItem: new Panel()
 	  }),
 	];
 
@@ -1478,13 +1513,14 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Door = __webpack_require__(6)
-	var Elevator = __webpack_require__(7)
-	var ButtonBlock = __webpack_require__(8)
-	var Cubby = __webpack_require__(10)
-	var Wire = __webpack_require__(11)
-	var PowerSource = __webpack_require__(12)
-	var ForceFieldBlock = __webpack_require__(13)
+	var Door = __webpack_require__(6);
+	var Elevator = __webpack_require__(7);
+	var ButtonBlock = __webpack_require__(8);
+	var Cubby = __webpack_require__(10);
+	var Wire = __webpack_require__(11);
+	var PowerSource = __webpack_require__(12);
+	var ForceFieldBlock = __webpack_require__(13);
+	var Panel = __webpack_require__(14);
 
 	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks) {
 	  this.name = name;
@@ -1518,7 +1554,8 @@
 	  Cubby: Cubby,
 	  Wire: Wire,
 	  PowerSource: PowerSource,
-	  ForceFieldBlock: ForceFieldBlock
+	  ForceFieldBlock: ForceFieldBlock,
+	  Panel: Panel
 	};
 
 
@@ -1745,6 +1782,30 @@
 	ForceFieldBlock.prototype.constructor = ForceFieldBlock;
 
 	module.exports = ForceFieldBlock;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Renderer = __webpack_require__(1)
+
+	function Panel(type) {
+	  this.type = type;
+	}
+
+	Panel.prototype.render = function (context, pos, length, power) {
+	  var x = pos[0];
+	  var y = pos[1];
+	  context.beginPath();
+	  context.rect(x, y, length, length);
+	  context.fillStyle = '#333';
+	  context.fill();
+	  context.strokeStyle = '#000';
+	  context.stroke();
+	};
+
+	module.exports = Panel;
 
 
 /***/ }

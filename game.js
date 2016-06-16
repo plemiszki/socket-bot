@@ -9,7 +9,7 @@ function Game(renderer) {
   this.levelSequence = [level1];
   this.origin = [0,0]
   this.keysDown = {};
-  this.renderCount = 0;
+  this.spaceTime = 0;
 }
 
 Game.prototype.startLevel = function (level) {
@@ -44,6 +44,9 @@ Game.prototype.main = function (passedThen) {
 };
 
 Game.prototype.update = function (modifier) {
+  if (this.spaceTime > 0) {
+    this.spaceTime -= 1
+  }
   var realArrays = [this.origin, this.robot.pos]
   var topRow = this.getTopRow(realArrays);
   var bottomRow = this.getBottomRow(realArrays);
@@ -109,22 +112,29 @@ Game.prototype.update = function (modifier) {
         ghostArrays = this.moveLeft(difference, 1);
         button.pushFunc();
       }
-    } else if (32 in this.keysDown) { //space
+    } else if (32 in this.keysDown && this.spaceTime === 0) { //space
+      this.spaceTime = 20;
       var robotLeft = this.getRealLeftX(realArrays);
       var leftColumn = this.getLeftColumn(realArrays);
       var leftEdge = (this.BLOCK_LENGTH * leftColumn) + 0.5;
       var distanceToLeftEdge = robotLeft - leftEdge;
       if (distanceToLeftEdge <= 15) {
-        this.moveLeft(distanceToLeftEdge, 1);
-        console.log("nudge left!");
+        var cubby = this.cubbyAt([bottomRow, leftColumn])
+        if (cubby) {
+          this.moveLeft(distanceToLeftEdge, 1);
+          this.swapCubbyItem(cubby);
+        }
       } else {
         var robotRight = this.getRealRightX(realArrays);
         var rightColumn = this.getRightColumn(realArrays);
         var rightEdge = this.BLOCK_LENGTH * (rightColumn + 1);
         var distanceToRightEdge = rightEdge - robotRight;
         if (distanceToRightEdge <= 15) {
-          this.moveRight(distanceToRightEdge, 1);
-          console.log("nudge right!");
+          var cubby = this.cubbyAt([bottomRow, rightColumn])
+          if (cubby) {
+            this.moveRight(distanceToRightEdge, 1);
+            this.swapCubbyItem(cubby);
+          }
         }
       }
     }
@@ -135,6 +145,20 @@ Game.prototype.update = function (modifier) {
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
   }
+};
+
+Game.prototype.cubbyAt = function (rowCol) {
+  for (var i = 0; i < this.currentLevel.cubbies.length; i++) {
+    if (this.currentLevel.cubbies[i].rowCol[0] === rowCol[0] && this.currentLevel.cubbies[i].rowCol[1] === rowCol[1]) {
+      return this.currentLevel.cubbies[i];
+    }
+  }
+};
+
+Game.prototype.swapCubbyItem = function (cubby) {
+  var itemFromCubby = cubby.item;
+  cubby.item = this.robot.item;
+  this.robot.item = itemFromCubby;
 };
 
 Game.prototype.updatePower = function () {
