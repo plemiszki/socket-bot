@@ -379,7 +379,7 @@ Renderer.prototype.drawWireJunction = function (pos, wireJunction) {
       y: pos[1] - 0.5,
       width: 9,
       height: (BLOCK_LENGTH / 2) - 4.5,
-      fill: '#333',
+      fill: wireJunction.segments["N"].hasPower ? this.gradientArray[this.gradientIndex] : '#333',
       stroke: 'none'
     })
   }
@@ -389,7 +389,7 @@ Renderer.prototype.drawWireJunction = function (pos, wireJunction) {
       y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
       width: (BLOCK_LENGTH / 2) - 4.5,
       height: 9,
-      fill: '#333',
+      fill: wireJunction.segments["E"].hasPower ? this.gradientArray[this.gradientIndex] : '#333',
       stroke: 'none'
     })
   }
@@ -399,7 +399,7 @@ Renderer.prototype.drawWireJunction = function (pos, wireJunction) {
       y: pos[1] + (BLOCK_LENGTH / 2) + 4.5,
       width: 9,
       height: (BLOCK_LENGTH / 2) - 4.5,
-      fill: '#333',
+      fill: wireJunction.segments["S"].hasPower ? this.gradientArray[this.gradientIndex] : '#333',
       stroke: 'none'
     })
   }
@@ -409,7 +409,7 @@ Renderer.prototype.drawWireJunction = function (pos, wireJunction) {
       y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
       width: (BLOCK_LENGTH / 2) - 4.5,
       height: 9,
-      fill: '#333',
+      fill: wireJunction.segments["W"].hasPower ? this.gradientArray[this.gradientIndex] : '#333',
       stroke: 'none'
     })
   }
@@ -459,6 +459,23 @@ Renderer.prototype.drawWire = function (pos, wire) {
     this.c.lineTo(pos[0] + BLOCK_LENGTH, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
     this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
     this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] - 0.5);
+    this.c.fillStyle = fill;
+    this.c.fill();
+  } else if (wire.type === "NSW") {
+    this.drawRectangle({
+      x: pos[0] + (BLOCK_LENGTH / 2) - 4.5,
+      y: pos[1] - 0.5,
+      width: 9,
+      height: BLOCK_LENGTH + 0.5,
+      fill: fill,
+      stroke: 'none'
+    })
+    this.c.beginPath();
+    this.c.moveTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+    this.c.lineTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+    this.c.closePath();
     this.c.fillStyle = fill;
     this.c.fill();
   }

@@ -1,5 +1,6 @@
-var Robot = require('./robot.js')
-var Renderer = require('./renderer.js')
+var Robot = require('./robot.js');
+var Renderer = require('./renderer.js');
+var Wire = require('./wire.js');
 const BLOCK_LENGTH = 75;
 
 function Game(renderer) {
@@ -159,11 +160,31 @@ Game.prototype.swapCubbyItem = function (cubby) {
   var itemFromCubby = cubby.item;
   cubby.item = this.robot.item;
   this.robot.item = itemFromCubby;
+  if (this.robot.item) {
+    this.robot.item.hasPower = false;
+  }
+  this.updatePower();
 };
 
 Game.prototype.updatePower = function () {
+  this.clearPower();
   for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
-    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
+    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
+  }
+};
+
+Game.prototype.clearPower = function () {
+  for (var i = 0; i < this.currentLevel.wiring.length; i++) {
+    if (this.currentLevel.wiring[i] instanceof Wire) {
+      this.currentLevel.wiring[i].hasPower = false;
+    } else {
+      Object.keys(this.currentLevel.wiring[i].segments).forEach(function (key) {
+        this.currentLevel.wiring[i].segments[key].hasPower = false;
+      }.bind(this))
+    }
+  }
+  for (var i = 0; i < this.currentLevel.forceFieldBlocks.length; i++) {
+    this.currentLevel.forceFieldBlocks[i].hasPower = false;
   }
 };
 

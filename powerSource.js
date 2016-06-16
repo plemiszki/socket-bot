@@ -12,7 +12,7 @@ PowerSource.prototype = new Surrogate();
 PowerSource.prototype.constructor = PowerSource;
 
 
-PowerSource.prototype.sendPower = function (wiring, buttonBlocks, forcefieldBlocks) {
+PowerSource.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forcefieldBlocks) {
   var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
   var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
   var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
@@ -22,7 +22,7 @@ PowerSource.prototype.sendPower = function (wiring, buttonBlocks, forcefieldBloc
   for (var i = 0; i < wiring.length; i++) {
     if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1]) {
       wiring[i].hasPower = true;
-      wiring[i].sendPower(wiring, buttonBlocks, forcefieldBlocks, "left");
+      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "left");
     }
   }
 }

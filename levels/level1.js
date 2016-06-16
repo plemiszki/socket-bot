@@ -55,12 +55,12 @@ var cubbies = [
   new Cubby({
     id: "C101",
     rowCol: [1, 2],
-    startItem: new Panel()
+    startItem: new Panel([])
   }),
   new Cubby({
     id: "C102",
     rowCol: [11, 15],
-    startItem: new Panel()
+    startItem: new Panel(["E", "W"])
   }),
 ];
 
@@ -72,31 +72,32 @@ var powerSources = [
 ]
 
 var wiring = [
-  new Wire({ id: 101, rowCol: [3, 5] }),
-  new Wire({ id: 102, rowCol: [3, 6] }),
-  new Wire({ id: 103, rowCol: [3, 7] }),
-  new Wire({ id: 104, rowCol: [4, 7] }),
+  //Force Field Block
+  new Wire({ rowCol: [11, 21], type: "EW" }),
+  new Wire({ rowCol: [11, 20], type: "EW" }),
+  new Wire({ rowCol: [11, 19], type: "EW" }),
+  new Wire({ rowCol: [11, 18], type: "EW" }),
+  new Wire({ rowCol: [11, 17], type: "EW" }),
+  new Wire({ rowCol: [11, 16], type: "EW" }),
+  new WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }),
+  new Wire({ rowCol: [11, 14], type: "NE" }),
+  new Wire({ rowCol: [10, 14], type: "NS" }),
+  new Wire({ rowCol: [9, 14], type: "NS" }),
+  new Wire({ rowCol: [8, 14], type: "NS" }),
+  new Wire({ rowCol: [7, 14], type: "NS" }),
+  new Wire({ rowCol: [6, 14], type: "NS" }),
+  new Wire({ rowCol: [5, 14], type: "NSW" }),
+  new Wire({ rowCol: [4, 14], type: "ES" }),
+  new Wire({ rowCol: [4, 15], type: "EW" }),
+  new Wire({ rowCol: [4, 16], type: "EW" }),
+  new Wire({ rowCol: [4, 17], type: "EW" }),
+  new Wire({ rowCol: [4, 18], type: "EW" }),
 
-  new Wire({ id: 104, rowCol: [11, 21], type: "EW" }),
-  new Wire({ id: 104, rowCol: [11, 20], type: "EW" }),
-  new Wire({ id: 104, rowCol: [11, 19], type: "EW" }),
-  new Wire({ id: 104, rowCol: [11, 18], type: "EW" }),
-  new Wire({ id: 104, rowCol: [11, 17], type: "EW" }),
-  new Wire({ id: 104, rowCol: [11, 16], type: "EW" }),
-  // new Wire({ id: 104, rowCol: [11, 15], type: "EW" }),
-  new WireJunction({ id: 104, rowCol: [11, 15], segmentStrings: ["E", "W"] }),
-  new Wire({ id: 104, rowCol: [11, 14], type: "NE" }),
-  new Wire({ id: 104, rowCol: [10, 14], type: "NS" }),
-  new Wire({ id: 104, rowCol: [9, 14], type: "NS" }),
-  new Wire({ id: 104, rowCol: [8, 14], type: "NS" }),
-  new Wire({ id: 104, rowCol: [7, 14], type: "NS" }),
-  new Wire({ id: 104, rowCol: [6, 14], type: "NS" }),
-  new Wire({ id: 104, rowCol: [5, 14], type: "NS" }),
-  new Wire({ id: 104, rowCol: [4, 14], type: "ES" }),
-  new Wire({ id: 104, rowCol: [4, 15], type: "EW" }),
-  new Wire({ id: 104, rowCol: [4, 16], type: "EW" }),
-  new Wire({ id: 104, rowCol: [4, 17], type: "EW" }),
-  new Wire({ id: 104, rowCol: [4, 18], type: "EW" })
+  new Wire({ rowCol: [1, 13], type: "ES" }),
+  new Wire({ rowCol: [2, 13], type: "NS" }),
+  new Wire({ rowCol: [3, 13], type: "NS" }),
+  new Wire({ rowCol: [4, 13], type: "NS" }),
+  new Wire({ rowCol: [5, 13], type: "NE" }),
 ]
 
 var buttonBlocks = [
