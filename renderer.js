@@ -2,6 +2,9 @@ const BLOCK_LENGTH = 75;
 const EDGE_TO_INNER = 8;
 const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
+var Wire = require('./wire.js');
+var WireJunction = require('./wireJunction.js');
+
 function Renderer(context, game) {
   this.c = context;
   this.game = game;
@@ -179,7 +182,11 @@ Renderer.prototype.renderWiring = function (origin, currentLevel, cornerSquares)
         //if so, find where the top is:
         var x_block = (-1 * origin[0]) + col_left_x + 0.5;
         var y_block = (BLOCK_LENGTH * currentLevel.wiring[wire].rowCol[0]) - origin[1] + 0.5;
-        this.drawWire([x_block, y_block], currentLevel.wiring[wire]);
+        if (currentLevel.wiring[wire] instanceof Wire) {
+          this.drawWire([x_block, y_block], currentLevel.wiring[wire]);
+        } else {
+          this.drawWireJunction([x_block, y_block], currentLevel.wiring[wire]);
+        }
       }
     }
 
@@ -363,6 +370,49 @@ Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
     height: height,
     fill: grad
   });
+};
+
+Renderer.prototype.drawWireJunction = function (pos, wireJunction) {
+  if (wireJunction.segments["N"]) {
+    this.drawRectangle({ // N
+      x: pos[0] + (BLOCK_LENGTH / 2) - 4.5,
+      y: pos[1] - 0.5,
+      width: 9,
+      height: (BLOCK_LENGTH / 2) - 4.5,
+      fill: '#333',
+      stroke: 'none'
+    })
+  }
+  if (wireJunction.segments["E"]) {
+    this.drawRectangle({ // E
+      x: pos[0] + (BLOCK_LENGTH / 2) + 4.5,
+      y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
+      width: (BLOCK_LENGTH / 2) - 4.5,
+      height: 9,
+      fill: '#333',
+      stroke: 'none'
+    })
+  }
+  if (wireJunction.segments["S"]) {
+    this.drawRectangle({ // S
+      x: pos[0] + (BLOCK_LENGTH / 2) - 4.5,
+      y: pos[1] + (BLOCK_LENGTH / 2) + 4.5,
+      width: 9,
+      height: (BLOCK_LENGTH / 2) - 4.5,
+      fill: '#333',
+      stroke: 'none'
+    })
+  }
+  if (wireJunction.segments["W"]) {
+    this.drawRectangle({ // W
+      x: pos[0] - 0.5,
+      y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
+      width: (BLOCK_LENGTH / 2) - 4.5,
+      height: 9,
+      fill: '#333',
+      stroke: 'none'
+    })
+  }
 };
 
 Renderer.prototype.drawWire = function (pos, wire) {

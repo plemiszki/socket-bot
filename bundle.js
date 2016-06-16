@@ -70,11 +70,14 @@
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	const BLOCK_LENGTH = 75;
 	const EDGE_TO_INNER = 8;
 	const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
+
+	var Wire = __webpack_require__(11);
+	var WireJunction = __webpack_require__(16);
 
 	function Renderer(context, game) {
 	  this.c = context;
@@ -253,7 +256,11 @@
 	        //if so, find where the top is:
 	        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
 	        var y_block = (BLOCK_LENGTH * currentLevel.wiring[wire].rowCol[0]) - origin[1] + 0.5;
-	        this.drawWire([x_block, y_block], currentLevel.wiring[wire]);
+	        if (currentLevel.wiring[wire] instanceof Wire) {
+	          this.drawWire([x_block, y_block], currentLevel.wiring[wire]);
+	        } else {
+	          this.drawWireJunction([x_block, y_block], currentLevel.wiring[wire]);
+	        }
 	      }
 	    }
 
@@ -437,6 +444,49 @@
 	    height: height,
 	    fill: grad
 	  });
+	};
+
+	Renderer.prototype.drawWireJunction = function (pos, wireJunction) {
+	  if (wireJunction.segments["N"]) {
+	    this.drawRectangle({ // N
+	      x: pos[0] + (BLOCK_LENGTH / 2) - 4.5,
+	      y: pos[1] - 0.5,
+	      width: 9,
+	      height: (BLOCK_LENGTH / 2) - 4.5,
+	      fill: '#333',
+	      stroke: 'none'
+	    })
+	  }
+	  if (wireJunction.segments["E"]) {
+	    this.drawRectangle({ // E
+	      x: pos[0] + (BLOCK_LENGTH / 2) + 4.5,
+	      y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
+	      width: (BLOCK_LENGTH / 2) - 4.5,
+	      height: 9,
+	      fill: '#333',
+	      stroke: 'none'
+	    })
+	  }
+	  if (wireJunction.segments["S"]) {
+	    this.drawRectangle({ // S
+	      x: pos[0] + (BLOCK_LENGTH / 2) - 4.5,
+	      y: pos[1] + (BLOCK_LENGTH / 2) + 4.5,
+	      width: 9,
+	      height: (BLOCK_LENGTH / 2) - 4.5,
+	      fill: '#333',
+	      stroke: 'none'
+	    })
+	  }
+	  if (wireJunction.segments["W"]) {
+	    this.drawRectangle({ // W
+	      x: pos[0] - 0.5,
+	      y: pos[1] + (BLOCK_LENGTH / 2) - 4.5,
+	      width: (BLOCK_LENGTH / 2) - 4.5,
+	      height: 9,
+	      fill: '#333',
+	      stroke: 'none'
+	    })
+	  }
 	};
 
 	Renderer.prototype.drawWire = function (pos, wire) {
@@ -882,6 +932,9 @@
 	};
 
 	Game.prototype.main = function (passedThen) {
+	  if (this.spaceTime > 0) {
+	    this.spaceTime -= 1
+	  }
 	  var now = Date.now();
 	  var delta = now - passedThen;
 	  this.update(delta / 1000);
@@ -893,9 +946,6 @@
 	};
 
 	Game.prototype.update = function (modifier) {
-	  if (this.spaceTime > 0) {
-	    this.spaceTime -= 1
-	  }
 	  var realArrays = [this.origin, this.robot.pos]
 	  var topRow = this.getTopRow(realArrays);
 	  var bottomRow = this.getBottomRow(realArrays);
@@ -1354,6 +1404,7 @@
 	var ButtonBlock = obj.ButtonBlock;
 	var Cubby = obj.Cubby;
 	var Wire = obj.Wire;
+	var WireJunction = obj.WireJunction;
 	var PowerSource = obj.PowerSource;
 	var ForceFieldBlock = obj.ForceFieldBlock;
 	var Panel = obj.Panel;
@@ -1430,7 +1481,8 @@
 	  new Wire({ id: 104, rowCol: [11, 18], type: "EW" }),
 	  new Wire({ id: 104, rowCol: [11, 17], type: "EW" }),
 	  new Wire({ id: 104, rowCol: [11, 16], type: "EW" }),
-	  new Wire({ id: 104, rowCol: [11, 15], type: "EW" }),
+	  // new Wire({ id: 104, rowCol: [11, 15], type: "EW" }),
+	  new WireJunction({ id: 104, rowCol: [11, 15], segmentStrings: ["E", "W"] }),
 	  new Wire({ id: 104, rowCol: [11, 14], type: "NE" }),
 	  new Wire({ id: 104, rowCol: [10, 14], type: "NS" }),
 	  new Wire({ id: 104, rowCol: [9, 14], type: "NS" }),
@@ -1518,6 +1570,7 @@
 	var ButtonBlock = __webpack_require__(8);
 	var Cubby = __webpack_require__(10);
 	var Wire = __webpack_require__(11);
+	var WireJunction = __webpack_require__(15);
 	var PowerSource = __webpack_require__(12);
 	var ForceFieldBlock = __webpack_require__(13);
 	var Panel = __webpack_require__(14);
@@ -1553,6 +1606,7 @@
 	  ButtonBlock: ButtonBlock,
 	  Cubby: Cubby,
 	  Wire: Wire,
+	  WireJunction: WireJunction,
 	  PowerSource: PowerSource,
 	  ForceFieldBlock: ForceFieldBlock,
 	  Panel: Panel
@@ -1806,6 +1860,162 @@
 	};
 
 	module.exports = Panel;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var WireSegment = __webpack_require__(17);
+
+	function WireJunction(options) {
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.segmentStrings = options.segmentStrings;
+	  this.segments = {};
+	  for (var i = 0; i < this.segmentStrings.length; i++) {
+	    if (this.segmentStrings[i] === "N") {
+	      this.segments['N'] = new WireSegment({ id: "N" });
+	    } else if (this.segmentStrings[i] === "E") {
+	      this.segments['E'] = new WireSegment({ id: "E" });
+	    } else if (this.segmentStrings[i] === "S") {
+	      this.segments['S'] = new WireSegment({ id: "S" });
+	    } else if (this.segmentStrings[i] === "W") {
+	      this.segments['W'] = new WireSegment({ id: "W" });
+	    }
+	  }
+	}
+
+	WireJunction.prototype.sendPower = function (wiring, buttonBlocks, forceFieldBlocks, flowing) {
+
+	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+
+	  // //look through wires:
+	  // for (var i = 0; i < wiring.length; i++) {
+	  //   if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "leftward");
+	  //   }
+	  //   if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "upward");
+	  //   }
+	  //   if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "rightward");
+	  //   }
+	  //   if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "downward");
+	  //   }
+	  // }
+	  //
+	  // //look through force field blocks:
+	  // for (var i = 0; i < forceFieldBlocks.length; i++) {
+	  //   if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  // }
+	}
+
+
+	module.exports = WireJunction;
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var WireSegment = __webpack_require__(17);
+
+	function WireJunction(options) {
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.segmentStrings = options.segmentStrings;
+	  this.segments = {};
+	  for (var i = 0; i < this.segmentStrings.length; i++) {
+	    if (this.segmentStrings[i] === "N") {
+	      this.segments['N'] = new WireSegment({ id: "N" });
+	    } else if (this.segmentStrings[i] === "E") {
+	      this.segments['E'] = new WireSegment({ id: "E" });
+	    } else if (this.segmentStrings[i] === "S") {
+	      this.segments['S'] = new WireSegment({ id: "S" });
+	    } else if (this.segmentStrings[i] === "W") {
+	      this.segments['W'] = new WireSegment({ id: "W" });
+	    }
+	  }
+	}
+
+	WireJunction.prototype.sendPower = function (wiring, buttonBlocks, forceFieldBlocks, flowing) {
+
+	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+
+	  // //look through wires:
+	  // for (var i = 0; i < wiring.length; i++) {
+	  //   if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "leftward");
+	  //   }
+	  //   if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "upward");
+	  //   }
+	  //   if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "rightward");
+	  //   }
+	  //   if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	  //     wiring[i].hasPower = true;
+	  //     wiring[i].sendPower(wiring, buttonBlocks, forceFieldBlocks, "downward");
+	  //   }
+	  // }
+	  //
+	  // //look through force field blocks:
+	  // for (var i = 0; i < forceFieldBlocks.length; i++) {
+	  //   if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  // }
+	}
+
+
+	module.exports = WireJunction;
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	function WireSegment(options) {
+	  this.id = options.id;
+	  this.hasPower = false;
+	}
+
+	module.exports = WireSegment;
 
 
 /***/ }

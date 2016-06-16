@@ -33,6 +33,9 @@ Game.prototype.startLevel = function (level) {
 };
 
 Game.prototype.main = function (passedThen) {
+  if (this.spaceTime > 0) {
+    this.spaceTime -= 1
+  }
   var now = Date.now();
   var delta = now - passedThen;
   this.update(delta / 1000);
@@ -44,9 +47,6 @@ Game.prototype.main = function (passedThen) {
 };
 
 Game.prototype.update = function (modifier) {
-  if (this.spaceTime > 0) {
-    this.spaceTime -= 1
-  }
   var realArrays = [this.origin, this.robot.pos]
   var topRow = this.getTopRow(realArrays);
   var bottomRow = this.getBottomRow(realArrays);

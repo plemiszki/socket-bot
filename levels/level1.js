@@ -6,6 +6,7 @@ var Elevator = obj.Elevator;
 var ButtonBlock = obj.ButtonBlock;
 var Cubby = obj.Cubby;
 var Wire = obj.Wire;
+var WireJunction = obj.WireJunction;
 var PowerSource = obj.PowerSource;
 var ForceFieldBlock = obj.ForceFieldBlock;
 var Panel = obj.Panel;
@@ -82,7 +83,8 @@ var wiring = [
   new Wire({ id: 104, rowCol: [11, 18], type: "EW" }),
   new Wire({ id: 104, rowCol: [11, 17], type: "EW" }),
   new Wire({ id: 104, rowCol: [11, 16], type: "EW" }),
-  new Wire({ id: 104, rowCol: [11, 15], type: "EW" }),
+  // new Wire({ id: 104, rowCol: [11, 15], type: "EW" }),
+  new WireJunction({ id: 104, rowCol: [11, 15], segmentStrings: ["E", "W"] }),
   new Wire({ id: 104, rowCol: [11, 14], type: "NE" }),
   new Wire({ id: 104, rowCol: [10, 14], type: "NS" }),
   new Wire({ id: 104, rowCol: [9, 14], type: "NS" }),

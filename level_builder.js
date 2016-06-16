@@ -3,6 +3,7 @@ var Elevator = require('./elevator.js');
 var ButtonBlock = require('./buttonBlock.js');
 var Cubby = require('./cubby.js');
 var Wire = require('./wire.js');
+var WireJunction = require('./WireJunction.js');
 var PowerSource = require('./powerSource.js');
 var ForceFieldBlock = require('./forceFieldBlock.js');
 var Panel = require('./panel.js');
@@ -38,6 +39,7 @@ module.exports = {
   ButtonBlock: ButtonBlock,
   Cubby: Cubby,
   Wire: Wire,
+  WireJunction: WireJunction,
   PowerSource: PowerSource,
   ForceFieldBlock: ForceFieldBlock,
   Panel: Panel
