@@ -10,12 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.addEventListener("keydown", function (e) {
     gameInstance.keysDown[e.keyCode] = true;
-    // console.log(keysDown);
   }, false);
 
   window.addEventListener("keyup", function (e) {
     delete gameInstance.keysDown[e.keyCode];
-    // console.log(keysDown);
   }, false);
 
   gameInstance.startLevel(gameInstance.levelSequence[0]);

@@ -55,6 +55,8 @@ Game.prototype.update = function (modifier) {
   var rightCol = this.getRightColumn(realArrays);
   var ghostArrays = [this.origin, this.robot.pos];
 
+  this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+
   if (this.status === "rising") {
 
     ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
@@ -141,10 +143,24 @@ Game.prototype.update = function (modifier) {
     }
   }
 
-  this.setGhostToReal(ghostArrays);
-  this.updateDebugHTML(realArrays);
+  var ghostHeight = (this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined);
+  this.setGhostToReal(ghostArrays, ghostHeight);
+  // this.updateDebugHTML(realArrays);
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
+  }
+};
+
+Game.prototype.checkSpringHeight = function (ghostArrays) {
+  var topRow = this.getTopRow(ghostArrays);
+  var leftCol = this.getLeftColumn(ghostArrays);
+  var rightCol = this.getRightColumn(ghostArrays);
+
+  if (this.passThrough(this.currentLevel.foregroundGrid[topRow][leftCol]) === false
+  || this.passThrough(this.currentLevel.foregroundGrid[topRow][rightCol]) === false) {
+    var realTopY = this.getRealTopY(ghostArrays)
+    var diff = this.getBlockRealBottomY(topRow) - this.getRealTopY(ghostArrays);
+    return this.robot.height - diff;
   }
 };
 
@@ -170,8 +186,27 @@ Game.prototype.swapCubbyItem = function (cubby) {
   this.updatePower();
 };
 
+Game.prototype.checkForSpring = function (topRow, bottomRow, leftCol, rightCol) {
+  if (this.currentLevel.foregroundGrid[topRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][leftCol].pickedUp === false) {
+    this.getSpring(this.currentLevel.foregroundGrid[topRow][leftCol]);
+  }
+  if (this.currentLevel.foregroundGrid[topRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][rightCol].pickedUp === false) {
+    this.getSpring(this.currentLevel.foregroundGrid[topRow][rightCol]);
+  }
+  if (this.currentLevel.foregroundGrid[bottomRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][leftCol].pickedUp === false) {
+    this.getSpring(this.currentLevel.foregroundGrid[bottomRow][leftCol]);
+  }
+  if (this.currentLevel.foregroundGrid[bottomRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][rightCol].pickedUp === false) {
+    this.getSpring(this.currentLevel.foregroundGrid[bottomRow][rightCol]);
+  }
+};
+
+Game.prototype.getSpring = function (spring) {
+  spring.pickedUp = true;
+  this.robot.maxHeight += 75;
+};
+
 Game.prototype.updatePower = function () {
-  console.log(this.currentLevel.buttonBlocks);
   this.clearPower();
   for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
     this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
@@ -303,7 +338,9 @@ Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomR
 
 Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRow, key) {
   var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol]
+  var leftUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][leftCol]
   var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol]
+  var rightUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][rightCol]
   if (key === 'up') {
     if (this.robot.height < this.robot.maxHeight) {
 
@@ -325,11 +362,8 @@ Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRo
 
       //hit next row?
       var ghostDistNextRow = distNextRow - addHeight;
-      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock))) {
+      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock, leftUpperUpperBlock) && this.passThrough(rightUpperBlock, rightUpperUpperBlock))) {
         this.robot.height += addHeight;
-      } else {
-        console.log("hit block");
-        debugger
       }
     }
   } else if (key === 'down') {
@@ -504,9 +538,12 @@ Game.prototype.moveDown = function (pixels, modifier) {
   return [returnOrigin, returnPos];
 };
 
-Game.prototype.setGhostToReal = function (ghostArrays) {
+Game.prototype.setGhostToReal = function (ghostArrays, ghostHeight) {
   this.origin = ghostArrays[0];
   this.robot.pos = ghostArrays[1];
+  if (ghostHeight) {
+    this.robot.height = ghostHeight;
+  }
 }
 
 Game.prototype.getLeftColumn = function (arrays) {
@@ -555,6 +592,10 @@ Game.prototype.getBlockRealRightX = function (column) {
 
 Game.prototype.getBlockRealLeftX = function (column) {
   return (0.5 + (column) * this.BLOCK_LENGTH);
+};
+
+Game.prototype.getBlockRealBottomY = function (row) {
+  return (0.5 + (row + 1) * this.BLOCK_LENGTH);
 };
 
 Game.prototype.updateDebugHTML = function (realArrays) {

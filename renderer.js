@@ -73,6 +73,8 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
         this.drawForceFieldBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
       } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "forceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
         this.drawForceField([x_block, y_block]);
+      } else if (currentLevel.foregroundGrid[row][col].toString() === "spring" && currentLevel.foregroundGrid[row][col].pickedUp === false) {
+        this.drawSpring([x_block, y_block]);
       }
 
       col_left_x += 75;
@@ -615,6 +617,18 @@ Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
     height: BUTTON_HEIGHT,
     fill: '#FF0000'
   });
+};
+
+Renderer.prototype.drawSpring = function (pos) {
+  this.c.beginPath();
+  this.c.arc(
+    pos[0] + (BLOCK_LENGTH / 2),
+    pos[1] + (BLOCK_LENGTH / 2),
+    10, 0, 2 * Math.PI, false
+  );
+  this.c.closePath();
+  this.c.fillStyle = 'purple';
+  this.c.fill();
 };
 
 Renderer.prototype.drawForceFieldBlock = function (pos, FFBlock) {

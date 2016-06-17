@@ -34,8 +34,6 @@ WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forc
     this.segments['W'].hasPower = true;
     this.giveItemPower(cubby.item, 'W');
   } else if (flowing === "upward" && this.segments['S']) {
-    // console.log("upward");
-    // debugger
     this.giveItemPower(cubby.item, 'S');
     this.segments['S'].hasPower = true;
   } else if (flowing === "downward" && this.segments['N']) {

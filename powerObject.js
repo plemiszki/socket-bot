@@ -5,8 +5,6 @@ PowerObject.prototype.initializePowerObject = function (options) {
   this.hasPower = false;
   if (options) {
     this.rowCol = options.rowCol;
-  } else {
-    debugger
   }
 };
 

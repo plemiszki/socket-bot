@@ -7,6 +7,7 @@ var WireJunction = require('./wireJunction.js');
 var PowerSource = require('./powerSource.js');
 var ForceFieldBlock = require('./forceFieldBlock.js');
 var Panel = require('./panel.js');
+var Spring = require('./spring.js');
 
 function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
   this.name = name;
@@ -43,5 +44,6 @@ module.exports = {
   WireJunction: WireJunction,
   PowerSource: PowerSource,
   ForceFieldBlock: ForceFieldBlock,
-  Panel: Panel
+  Panel: Panel,
+  Spring: Spring
 };

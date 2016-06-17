@@ -56,12 +56,10 @@
 
 	  window.addEventListener("keydown", function (e) {
 	    gameInstance.keysDown[e.keyCode] = true;
-	    // console.log(keysDown);
 	  }, false);
 
 	  window.addEventListener("keyup", function (e) {
 	    delete gameInstance.keysDown[e.keyCode];
-	    // console.log(keysDown);
 	  }, false);
 
 	  gameInstance.startLevel(gameInstance.levelSequence[0]);
@@ -147,6 +145,8 @@
 	        this.drawForceFieldBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
 	      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "forceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
 	        this.drawForceField([x_block, y_block]);
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "spring" && currentLevel.foregroundGrid[row][col].pickedUp === false) {
+	        this.drawSpring([x_block, y_block]);
 	      }
 
 	      col_left_x += 75;
@@ -691,6 +691,18 @@
 	  });
 	};
 
+	Renderer.prototype.drawSpring = function (pos) {
+	  this.c.beginPath();
+	  this.c.arc(
+	    pos[0] + (BLOCK_LENGTH / 2),
+	    pos[1] + (BLOCK_LENGTH / 2),
+	    10, 0, 2 * Math.PI, false
+	  );
+	  this.c.closePath();
+	  this.c.fillStyle = 'purple';
+	  this.c.fill();
+	};
+
 	Renderer.prototype.drawForceFieldBlock = function (pos, FFBlock) {
 	  this.drawPowerBlock(pos, FFBlock.hasPower);
 	  var shellColor = '#D5D4C9';
@@ -989,6 +1001,8 @@
 	  var rightCol = this.getRightColumn(realArrays);
 	  var ghostArrays = [this.origin, this.robot.pos];
 
+	  this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+
 	  if (this.status === "rising") {
 
 	    ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
@@ -1075,10 +1089,24 @@
 	    }
 	  }
 
-	  this.setGhostToReal(ghostArrays);
-	  this.updateDebugHTML(realArrays);
+	  var ghostHeight = (this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined);
+	  this.setGhostToReal(ghostArrays, ghostHeight);
+	  // this.updateDebugHTML(realArrays);
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
+	  }
+	};
+
+	Game.prototype.checkSpringHeight = function (ghostArrays) {
+	  var topRow = this.getTopRow(ghostArrays);
+	  var leftCol = this.getLeftColumn(ghostArrays);
+	  var rightCol = this.getRightColumn(ghostArrays);
+
+	  if (this.passThrough(this.currentLevel.foregroundGrid[topRow][leftCol]) === false
+	  || this.passThrough(this.currentLevel.foregroundGrid[topRow][rightCol]) === false) {
+	    var realTopY = this.getRealTopY(ghostArrays)
+	    var diff = this.getBlockRealBottomY(topRow) - this.getRealTopY(ghostArrays);
+	    return this.robot.height - diff;
 	  }
 	};
 
@@ -1104,8 +1132,27 @@
 	  this.updatePower();
 	};
 
+	Game.prototype.checkForSpring = function (topRow, bottomRow, leftCol, rightCol) {
+	  if (this.currentLevel.foregroundGrid[topRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][leftCol].pickedUp === false) {
+	    this.getSpring(this.currentLevel.foregroundGrid[topRow][leftCol]);
+	  }
+	  if (this.currentLevel.foregroundGrid[topRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][rightCol].pickedUp === false) {
+	    this.getSpring(this.currentLevel.foregroundGrid[topRow][rightCol]);
+	  }
+	  if (this.currentLevel.foregroundGrid[bottomRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][leftCol].pickedUp === false) {
+	    this.getSpring(this.currentLevel.foregroundGrid[bottomRow][leftCol]);
+	  }
+	  if (this.currentLevel.foregroundGrid[bottomRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][rightCol].pickedUp === false) {
+	    this.getSpring(this.currentLevel.foregroundGrid[bottomRow][rightCol]);
+	  }
+	};
+
+	Game.prototype.getSpring = function (spring) {
+	  spring.pickedUp = true;
+	  this.robot.maxHeight += 75;
+	};
+
 	Game.prototype.updatePower = function () {
-	  console.log(this.currentLevel.buttonBlocks);
 	  this.clearPower();
 	  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
 	    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
@@ -1237,7 +1284,9 @@
 
 	Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRow, key) {
 	  var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol]
+	  var leftUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][leftCol]
 	  var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol]
+	  var rightUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][rightCol]
 	  if (key === 'up') {
 	    if (this.robot.height < this.robot.maxHeight) {
 
@@ -1259,11 +1308,8 @@
 
 	      //hit next row?
 	      var ghostDistNextRow = distNextRow - addHeight;
-	      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock))) {
+	      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock, leftUpperUpperBlock) && this.passThrough(rightUpperBlock, rightUpperUpperBlock))) {
 	        this.robot.height += addHeight;
-	      } else {
-	        console.log("hit block");
-	        debugger
 	      }
 	    }
 	  } else if (key === 'down') {
@@ -1438,9 +1484,12 @@
 	  return [returnOrigin, returnPos];
 	};
 
-	Game.prototype.setGhostToReal = function (ghostArrays) {
+	Game.prototype.setGhostToReal = function (ghostArrays, ghostHeight) {
 	  this.origin = ghostArrays[0];
 	  this.robot.pos = ghostArrays[1];
+	  if (ghostHeight) {
+	    this.robot.height = ghostHeight;
+	  }
 	}
 
 	Game.prototype.getLeftColumn = function (arrays) {
@@ -1491,6 +1540,10 @@
 	  return (0.5 + (column) * this.BLOCK_LENGTH);
 	};
 
+	Game.prototype.getBlockRealBottomY = function (row) {
+	  return (0.5 + (row + 1) * this.BLOCK_LENGTH);
+	};
+
 	Game.prototype.updateDebugHTML = function (realArrays) {
 	  var leftLi = document.getElementById("left");
 	  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
@@ -1517,7 +1570,7 @@
 	  this.pos = startingPos;
 	  this.speed = 256;
 	  this.height = 0;
-	  this.maxHeight = 75;
+	  this.maxHeight = 0;
 	};
 
 	module.exports = Robot;
@@ -1539,6 +1592,7 @@
 	var PowerSource = obj.PowerSource;
 	var ForceFieldBlock = obj.ForceFieldBlock;
 	var Panel = obj.Panel;
+	var Spring = obj.Spring;
 
 	var builder = new LevelBuilder();
 
@@ -1683,7 +1737,7 @@
 	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(3, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
@@ -1728,6 +1782,7 @@
 	var PowerSource = __webpack_require__(12);
 	var ForceFieldBlock = __webpack_require__(13);
 	var Panel = __webpack_require__(14);
+	var Spring = __webpack_require__(19);
 
 	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
 	  this.name = name;
@@ -1764,7 +1819,8 @@
 	  WireJunction: WireJunction,
 	  PowerSource: PowerSource,
 	  ForceFieldBlock: ForceFieldBlock,
-	  Panel: Panel
+	  Panel: Panel,
+	  Spring: Spring
 	};
 
 
@@ -1844,8 +1900,6 @@
 	  this.hasPower = false;
 	  if (options) {
 	    this.rowCol = options.rowCol;
-	  } else {
-	    debugger
 	  }
 	};
 
@@ -2112,8 +2166,6 @@
 	    this.segments['W'].hasPower = true;
 	    this.giveItemPower(cubby.item, 'W');
 	  } else if (flowing === "upward" && this.segments['S']) {
-	    // console.log("upward");
-	    // debugger
 	    this.giveItemPower(cubby.item, 'S');
 	    this.segments['S'].hasPower = true;
 	  } else if (flowing === "downward" && this.segments['N']) {
@@ -2197,6 +2249,19 @@
 	}
 
 	module.exports = WireSegment;
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	
+	function Spring(options) {
+	  this.pickedUp = false;
+	  this.toString = function () { return "spring" };
+	}
+
+	module.exports = Spring;
 
 
 /***/ }
