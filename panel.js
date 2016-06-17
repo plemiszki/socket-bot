@@ -27,6 +27,17 @@ Panel.prototype.render = function (context, pos, length, power) {
       context.beginPath();
       context.rect(x, y, thickness, length);
       break;
+    case "SW":
+      y += (length / 2) - (thickness / 2) + 0.5;
+      context.beginPath();
+      context.moveTo(x, y);
+      context.lineTo(x += (length / 2) + (thickness / 2) + 0.5, y);
+      context.lineTo(x, y += (thickness / 2) + (length / 2) - 0.5);
+      context.lineTo(x -= thickness, y);
+      context.lineTo(x, y -= (length / 2) - (thickness / 2) - 0.5);
+      context.lineTo(x -= ((length / 2) - (thickness / 2) + 0.5), y);
+      context.closePath();
+      break;
   }
   context.fillStyle = '#484848';
   context.fill();

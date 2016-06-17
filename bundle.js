@@ -1516,8 +1516,13 @@
 	  new Cubby({
 	    id: "C103",
 	    rowCol: [4, 13],
-	    startItem: new Panel(["N", "S"])
+	    startItem: null
 	  }),
+	  new Cubby({
+	    id: "C104",
+	    rowCol: [8, 21],
+	    startItem: new Panel(["S", "W"])
+	  })
 	];
 
 	var powerSources = [
@@ -1966,6 +1971,17 @@
 	      x += (length / 2) - (thickness / 2) + 0.5;
 	      context.beginPath();
 	      context.rect(x, y, thickness, length);
+	      break;
+	    case "SW":
+	      y += (length / 2) - (thickness / 2) + 0.5;
+	      context.beginPath();
+	      context.moveTo(x, y);
+	      context.lineTo(x += (length / 2) + (thickness / 2) + 0.5, y);
+	      context.lineTo(x, y += (thickness / 2) + (length / 2) - 0.5);
+	      context.lineTo(x -= thickness, y);
+	      context.lineTo(x, y -= (length / 2) - (thickness / 2) - 0.5);
+	      context.lineTo(x -= ((length / 2) - (thickness / 2) + 0.5), y);
+	      context.closePath();
 	      break;
 	  }
 	  context.fillStyle = '#484848';
