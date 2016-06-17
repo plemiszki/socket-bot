@@ -195,36 +195,8 @@ Renderer.prototype.renderWiring = function (origin, currentLevel, cornerSquares)
 };
 
 Renderer.prototype.renderRobot = function (robot) {
-  var x = robot.pos[0] + 10;
-  var y = robot.pos[1] + 10;
-  this.drawFrame({
-    x: x,
-    y: y,
-    width: 54,
-    height: 54,
-    thickness: 5,
-    fill: 'yellow'
-  });
 
-  var x2 = x + 5;
-  var y2 = y + 5;
-
-  if (this.game.robot.item) {
-    robot.item.render(this.c, [x2, y2], 44, false);
-  } else {
-    this.drawFrame({
-      x: x2,
-      y: y2,
-      width: 44,
-      height: 44,
-      thickness: 5,
-      fill: '#8C8400'
-    });
-    this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
-    this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
-    this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
-    this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
-  }
+  this.drawHead(robot)
 
   //left wheel:
   var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
@@ -309,6 +281,41 @@ Renderer.prototype.renderRobot = function (robot) {
   this.c.fillStyle = 'yellow';
   this.c.fill();
   this.c.stroke();
+};
+
+Renderer.prototype.drawHead = function (robot) {
+
+  var x = robot.pos[0] + 10;
+  var y = robot.pos[1] + 10 - robot.height;
+
+  this.drawFrame({
+    x: x,
+    y: y,
+    width: 54,
+    height: 54,
+    thickness: 5,
+    fill: 'yellow'
+  });
+
+  var x2 = x + 5;
+  var y2 = y + 5;
+
+  if (this.game.robot.item) {
+    robot.item.render(this.c, [x2, y2], 44, false);
+  } else {
+    this.drawFrame({
+      x: x2,
+      y: y2,
+      width: 44,
+      height: 44,
+      thickness: 5,
+      fill: '#8C8400'
+    });
+    this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
+    this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
+    this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
+    this.drawLine([x2 + 44, y2 + 44], [x2 + 39, y2 + 39]);
+  }
 };
 
 Renderer.prototype.drawDoor = function (door, pos) {
