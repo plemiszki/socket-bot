@@ -338,9 +338,7 @@ Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomR
 
 Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRow, key) {
   var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol]
-  var leftUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][leftCol]
   var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol]
-  var rightUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][rightCol]
   if (key === 'up') {
     if (this.robot.height < this.robot.maxHeight) {
 
@@ -362,7 +360,7 @@ Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRo
 
       //hit next row?
       var ghostDistNextRow = distNextRow - addHeight;
-      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock, leftUpperUpperBlock) && this.passThrough(rightUpperBlock, rightUpperUpperBlock))) {
+      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock))) {
         this.robot.height += addHeight;
       }
     }

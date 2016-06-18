@@ -146,7 +146,7 @@
 	      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "forceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
 	        this.drawForceField([x_block, y_block]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "spring" && currentLevel.foregroundGrid[row][col].pickedUp === false) {
-	        this.drawSpring([x_block, y_block]);
+	        this.drawSpringPowerUp([x_block, y_block]);
 	      }
 
 	      col_left_x += 75;
@@ -268,12 +268,59 @@
 	  }
 	};
 
+	Renderer.prototype.drawFullCircle = function (options) {
+	  this.c.beginPath();
+	  this.c.arc(
+	    options.pos[0],
+	    options.pos[1],
+	    options.radius, 0, 2 * Math.PI, false
+	  );
+	  this.c.fillStyle = options.fill;
+	  this.c.fill();
+	};
+
 	Renderer.prototype.renderRobot = function (robot) {
+	  var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
+	  var rightWheelCenter = [robot.pos[0] + BLOCK_LENGTH - 6, robot.pos[1] + BLOCK_LENGTH - 5]
+	  var bottomBarTop = leftWheelCenter[1] - 6;
+	  var headBottom = robot.pos[1] + 10 - robot.height + 54;
+
+	  this.drawFullCircle({
+	    pos: [robot.pos[0] + (BLOCK_LENGTH / 2), bottomBarTop - ((bottomBarTop - headBottom) / 4)],
+	    radius: 2,
+	    fill: '#000'
+	  })
+	  this.drawFullCircle({
+	    pos: [robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)],
+	    radius: 2,
+	    fill: '#000'
+	  })
+	  this.drawFullCircle({
+	    pos: [robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)],
+	    radius: 2,
+	    fill: '#000'
+	  })
+	  this.drawFullCircle({
+	    pos: [robot.pos[0] + (BLOCK_LENGTH / 2), bottomBarTop - ((bottomBarTop - headBottom) / 4 * 3)],
+	    radius: 2,
+	    fill: '#000'
+	  })
+	  this.drawLine([robot.pos[0] + 15, bottomBarTop], [robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)])
+	  this.drawLine([robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop], [robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)])
+	  this.drawLine([robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)], [robot.pos[0] + BLOCK_LENGTH - 15, headBottom])
+	  this.drawLine([robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)], [robot.pos[0] + 15, headBottom])
 
 	  this.drawHead(robot)
 
-	  //left wheel:
-	  var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
+	  //bottom bar:
+	  this.drawRectangle({
+	    x: leftWheelCenter[0],
+	    y: bottomBarTop,
+	    width: 60,
+	    height: 5,
+	    fill: 'yellow',
+	    stroke: '#000'
+	  })
 
 	  //left arm:
 	  this.drawRectangle({
@@ -293,14 +340,11 @@
 	    stroke: '#000'
 	  })
 
-	  this.c.beginPath();
-	  this.c.arc(
-	    leftWheelCenter[0],
-	    leftWheelCenter[1],
-	    5, 0, 2 * Math.PI, false
-	  );
-	  this.c.fillStyle = '#000';
-	  this.c.fill();
+	  this.drawFullCircle({ //left wheel
+	    pos: [leftWheelCenter[0], leftWheelCenter[1]],
+	    radius: 5,
+	    fill: '#000'
+	  })
 
 	  this.c.beginPath();
 	  this.c.arc(
@@ -313,9 +357,6 @@
 	  this.c.fillStyle = 'yellow';
 	  this.c.fill();
 	  this.c.stroke();
-
-	  //right wheel:
-	  var rightWheelCenter = [robot.pos[0] + BLOCK_LENGTH - 6, robot.pos[1] + BLOCK_LENGTH - 5]
 
 	  //right arm:
 	  this.drawRectangle({
@@ -335,14 +376,11 @@
 	    stroke: '#000'
 	  })
 
-	  this.c.beginPath();
-	  this.c.arc(
-	    rightWheelCenter[0],
-	    rightWheelCenter[1],
-	    5, 0, 2 * Math.PI, false
-	  );
-	  this.c.fillStyle = '#000';
-	  this.c.fill();
+	  this.drawFullCircle({ //right wheel
+	    pos: [rightWheelCenter[0], rightWheelCenter[1]],
+	    radius: 5,
+	    fill: '#000'
+	  })
 
 	  this.c.beginPath();
 	  this.c.arc(
@@ -691,16 +729,39 @@
 	  });
 	};
 
-	Renderer.prototype.drawSpring = function (pos) {
-	  this.c.beginPath();
-	  this.c.arc(
-	    pos[0] + (BLOCK_LENGTH / 2),
-	    pos[1] + (BLOCK_LENGTH / 2),
-	    10, 0, 2 * Math.PI, false
-	  );
-	  this.c.closePath();
-	  this.c.fillStyle = 'purple';
-	  this.c.fill();
+	Renderer.prototype.drawSpringPowerUp = function (pos) {
+	  this.drawRectangle({
+	    x: pos[0] + 25,
+	    y: pos[1] + 15,
+	    fill: 'yellow',
+	    width: 25,
+	    height: 5
+	  })
+	  this.drawRectangle({
+	    x: pos[0] + 25,
+	    y: pos[1] + 15 + 40,
+	    fill: 'yellow',
+	    width: 25,
+	    height: 5
+	  })
+	  var rightMiddleDotPos = [pos[0] + 25 + 12.5 + 8, pos[1] + 15 + 5 + 17.5];
+	  var leftMiddleDotPos = [pos[0] + 25 + 4.5, pos[1] + 15 + 5 + 17.5];
+	  this.drawDot([pos[0] + 25 + 12.5, pos[1] + 15 + 5 + 8.75]);
+	  this.drawDot(leftMiddleDotPos);
+	  this.drawDot(rightMiddleDotPos);
+	  this.drawDot([pos[0] + 25 + 12.5, pos[1] + 15 + 5 + 26.25]);
+	  this.drawLine([pos[0] + 25 + 4.5, pos[1] + 15 + 5], rightMiddleDotPos);
+	  this.drawLine([pos[0] + 25 + 12.5 + 8, pos[1] + 15 + 5], leftMiddleDotPos);
+	  this.drawLine(rightMiddleDotPos, [leftMiddleDotPos[0], pos[1] + 15 + 5 + 35]);
+	  this.drawLine(leftMiddleDotPos, [rightMiddleDotPos[0], pos[1] + 15 + 5 + 35]);
+	};
+
+	Renderer.prototype.drawDot = function (pos) {
+	  this.drawFullCircle({
+	    pos: pos,
+	    fill: 'black',
+	    radius: 2
+	  })
 	};
 
 	Renderer.prototype.drawForceFieldBlock = function (pos, FFBlock) {
@@ -1284,9 +1345,7 @@
 
 	Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRow, key) {
 	  var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol]
-	  var leftUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][leftCol]
 	  var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol]
-	  var rightUpperUpperBlock = this.currentLevel.foregroundGrid[topRow - 2][rightCol]
 	  if (key === 'up') {
 	    if (this.robot.height < this.robot.maxHeight) {
 
@@ -1308,7 +1367,7 @@
 
 	      //hit next row?
 	      var ghostDistNextRow = distNextRow - addHeight;
-	      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock, leftUpperUpperBlock) && this.passThrough(rightUpperBlock, rightUpperUpperBlock))) {
+	      if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock))) {
 	        this.robot.height += addHeight;
 	      }
 	    }
