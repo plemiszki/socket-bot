@@ -196,48 +196,19 @@ Renderer.prototype.renderWiring = function (origin, currentLevel, cornerSquares)
   }
 };
 
-Renderer.prototype.drawFullCircle = function (options) {
-  this.c.beginPath();
-  this.c.arc(
-    options.pos[0],
-    options.pos[1],
-    options.radius, 0, 2 * Math.PI, false
-  );
-  this.c.fillStyle = options.fill;
-  this.c.fill();
-};
-
 Renderer.prototype.renderRobot = function (robot) {
   var leftWheelCenter = [robot.pos[0] + 5, robot.pos[1] + BLOCK_LENGTH - 5]
   var rightWheelCenter = [robot.pos[0] + BLOCK_LENGTH - 6, robot.pos[1] + BLOCK_LENGTH - 5]
   var bottomBarTop = leftWheelCenter[1] - 6;
   var headBottom = robot.pos[1] + 10 - robot.height + 54;
-
-  this.drawFullCircle({
-    pos: [robot.pos[0] + (BLOCK_LENGTH / 2), bottomBarTop - ((bottomBarTop - headBottom) / 4)],
-    radius: 2,
-    fill: '#000'
-  })
-  this.drawFullCircle({
-    pos: [robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)],
-    radius: 2,
-    fill: '#000'
-  })
-  this.drawFullCircle({
-    pos: [robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)],
-    radius: 2,
-    fill: '#000'
-  })
-  this.drawFullCircle({
-    pos: [robot.pos[0] + (BLOCK_LENGTH / 2), bottomBarTop - ((bottomBarTop - headBottom) / 4 * 3)],
-    radius: 2,
-    fill: '#000'
-  })
+  this.drawDot([robot.pos[0] + (BLOCK_LENGTH / 2), bottomBarTop - ((bottomBarTop - headBottom) / 4)])
+  this.drawDot([robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)])
+  this.drawDot([robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)])
+  this.drawDot([robot.pos[0] + (BLOCK_LENGTH / 2), bottomBarTop - ((bottomBarTop - headBottom) / 4 * 3)])
   this.drawLine([robot.pos[0] + 15, bottomBarTop], [robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)])
   this.drawLine([robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop], [robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)])
   this.drawLine([robot.pos[0] + 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)], [robot.pos[0] + BLOCK_LENGTH - 15, headBottom])
   this.drawLine([robot.pos[0] + BLOCK_LENGTH - 15, bottomBarTop - ((bottomBarTop - headBottom) / 2)], [robot.pos[0] + 15, headBottom])
-
   this.drawHead(robot)
 
   //bottom bar:
@@ -324,33 +295,15 @@ Renderer.prototype.renderRobot = function (robot) {
 };
 
 Renderer.prototype.drawHead = function (robot) {
-
   var x = robot.pos[0] + 10;
   var y = robot.pos[1] + 10 - robot.height;
-
-  this.drawFrame({
-    x: x,
-    y: y,
-    width: 54,
-    height: 54,
-    thickness: 5,
-    fill: 'yellow'
-  });
-
+  this.drawFrame({ x: x, y: y, width: 54, height: 54, thickness: 5, fill: 'yellow' });
   var x2 = x + 5;
   var y2 = y + 5;
-
   if (this.game.robot.item) {
     robot.item.render(this.c, [x2, y2], 44, false);
   } else {
-    this.drawFrame({
-      x: x2,
-      y: y2,
-      width: 44,
-      height: 44,
-      thickness: 5,
-      fill: '#8C8400'
-    });
+    this.drawFrame({ x: x2, y: y2, width: 44, height: 44, thickness: 5, fill: '#8C8400' });
     this.drawLine([x2, y2], [x2 + 5, y2 + 5]);
     this.drawLine([x2, y2 + 44], [x2 + 5, y2 + 39]);
     this.drawLine([x2 + 44, y2], [x2 + 39, y2 + 5]);
@@ -359,16 +312,15 @@ Renderer.prototype.drawHead = function (robot) {
 };
 
 Renderer.prototype.drawDoor = function (door, pos) {
+  var TOOTH_HEIGHT = 8;
   if (door.status !== "open") {
     var x = pos[0];
     var y = pos[1];
     var width = Math.floor(BLOCK_LENGTH / 3);
-
     var topLeftCorner;
     var topRightCorner;
     var bottomRightCorner;
     var bottomLeftCorner;
-
     if (door.side === "right") {
       topLeftCorner = [x + BLOCK_LENGTH - 1 - width, y];
       topRightCorner = [x + BLOCK_LENGTH - 1, y];
@@ -380,25 +332,46 @@ Renderer.prototype.drawDoor = function (door, pos) {
       bottomRightCorner = [x + width, y + BLOCK_LENGTH - 1];
       bottomLeftCorner = [x, y + BLOCK_LENGTH - 1];
     }
-
     var openSpace = (BLOCK_LENGTH - 1) * door.percentOpen;
     var doorHalfHeight = ((BLOCK_LENGTH - 1) - openSpace) / 2;
+    if (doorHalfHeight < -1) { doorHalfHeight = -1 };
+    var negPercent = (door.percentOpen - 1);
+    var negToothHeight = 0;
+    if (negPercent >= 0) {
+      negToothHeight = (BLOCK_LENGTH - 1) * negPercent / 2;
+    };
 
-    this.drawRectangle({
-      x: topLeftCorner[0],
-      y: topLeftCorner[1] - 1,
-      width: width,
-      height: doorHalfHeight + 1,
-      fill: '#FF0000'
-    });
+    this.c.beginPath();
+    this.c.moveTo(topLeftCorner[0], topLeftCorner[1] - 1);
+    this.c.lineTo(topLeftCorner[0] + width, topLeftCorner[1] - 1);
+    this.c.lineTo(topLeftCorner[0] + width, topLeftCorner[1] + doorHalfHeight);
+    this.c.lineTo(topLeftCorner[0] + ((4 / 5) * width), topLeftCorner[1] + doorHalfHeight);
+    var topHeight = topLeftCorner[1] + doorHalfHeight + TOOTH_HEIGHT - negToothHeight;
+    if (topHeight < topLeftCorner[1] - 1) { topHeight = topLeftCorner[1] - 1};
+    this.c.lineTo(topLeftCorner[0] + ((4 / 5) * width), topHeight);
+    this.c.lineTo(topLeftCorner[0] + ((1 / 5) * width), topHeight);
+    this.c.lineTo(topLeftCorner[0] + ((1 / 5) * width), topLeftCorner[1] + doorHalfHeight);
+    this.c.lineTo(topLeftCorner[0], topLeftCorner[1] + doorHalfHeight);
+    this.c.closePath();
+    this.c.fillStyle = 'red';
+    this.c.fill();
+    this.c.strokeStyle = 'black';
+    this.c.stroke();
 
-    this.drawRectangle({
-      x: topLeftCorner[0],
-      y: topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight,
-      width: width,
-      height: doorHalfHeight + 1,
-      fill: '#FF0000'
-    });
+    this.c.beginPath();
+    this.c.moveTo(topLeftCorner[0], topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight);
+    this.c.lineTo(topLeftCorner[0] + ((1 / 5) * width), topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight);
+    this.c.lineTo(topLeftCorner[0] + ((1 / 5) * width), topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight + TOOTH_HEIGHT);
+    this.c.lineTo(topLeftCorner[0] + ((4 / 5) * width), topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight + TOOTH_HEIGHT);
+    this.c.lineTo(topLeftCorner[0] + ((4 / 5) * width), topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight);
+    this.c.lineTo(topLeftCorner[0] + width, topLeftCorner[1] + BLOCK_LENGTH - 1 - doorHalfHeight);
+    this.c.lineTo(topLeftCorner[0] + width, topLeftCorner[1] + BLOCK_LENGTH);
+    this.c.lineTo(topLeftCorner[0], topLeftCorner[1] + BLOCK_LENGTH);
+    this.c.closePath();
+    this.c.fillStyle = 'red';
+    this.c.fill();
+    this.c.strokeStyle = 'black';
+    this.c.stroke();
   }
 };
 
@@ -409,7 +382,6 @@ Renderer.prototype.drawPlatform = function (pos, topColor, bottomColor) {
   var grad = this.c.createLinearGradient(x, y, x, y + height);
   grad.addColorStop(0, topColor);
   grad.addColorStop(1, bottomColor);
-
   this.drawRectangle({
     x: x,
     y: y,
@@ -468,7 +440,6 @@ Renderer.prototype.drawWire = function (pos, wire) {
   } else {
     var fill = '#333';
   }
-
   if (wire.type === "EW") {
     this.drawRectangle({
       x: pos[0] - 0.5,
@@ -542,7 +513,6 @@ Renderer.prototype.drawWire = function (pos, wire) {
 Renderer.prototype.drawCubby = function (pos, cubby) {
   var x = pos[0] + 15;
   var y = pos[1] + 15;
-
   this.drawRectangle({
     x: x,
     y: y,
@@ -550,11 +520,9 @@ Renderer.prototype.drawCubby = function (pos, cubby) {
     height: 44,
     fill: '#333'
   });
-
   var CUBBY_THICKNESS = 5;
   var x2 = x + CUBBY_THICKNESS;
   var y2 = y + CUBBY_THICKNESS;
-
   this.drawRectangle({
     x: x2,
     y: y2,
@@ -562,17 +530,14 @@ Renderer.prototype.drawCubby = function (pos, cubby) {
     height: 34,
     fill: '#1C1C1C'
   });
-
   if (cubby.item) {
     cubby.item.render(this.c, [x2, y2], 34, false);
   } else {
     this.drawLine([x2, y2], [x2 + 34, y2 + 34]);
     this.drawLine([x2 + 34, y2], [x2, y2 + 34]);
-
     var CUBBY_DEPTH = 6;
     var x3 = x2 + CUBBY_DEPTH;
     var y3 = y2 + CUBBY_DEPTH;
-
     this.drawRectangle({
       x: x3,
       y: y3,
@@ -614,9 +579,7 @@ Renderer.prototype.drawBrick = function (pos, color, leftEdges) {
 }
 
 Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
-
   this.drawPowerBlock(pos, buttonBlock.hasPower);
-
   var buttonPanelX;
   if (buttonBlock.side === "left") {
     buttonPanelX = pos[0] - this.BUTTON_PANEL_WIDTH
@@ -639,7 +602,6 @@ Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
     height: this.BUTTON_PANEL_HEIGHT,
     fill: grad
   });
-
   const BUTTON_WIDTH = 5;
   const BUTTON_HEIGHT = 8;
   var buttonX;
@@ -682,14 +644,6 @@ Renderer.prototype.drawSpringPowerUp = function (pos) {
   this.drawLine([pos[0] + 25 + 12.5 + 8, pos[1] + 15 + 5], leftMiddleDotPos);
   this.drawLine(rightMiddleDotPos, [leftMiddleDotPos[0], pos[1] + 15 + 5 + 35]);
   this.drawLine(leftMiddleDotPos, [rightMiddleDotPos[0], pos[1] + 15 + 5 + 35]);
-};
-
-Renderer.prototype.drawDot = function (pos) {
-  this.drawFullCircle({
-    pos: pos,
-    fill: 'black',
-    radius: 2
-  })
 };
 
 Renderer.prototype.drawForceFieldBlock = function (pos, FFBlock) {
@@ -753,12 +707,9 @@ Renderer.prototype.drawBlock = function (pos) {
   var backGrad = this.c.createLinearGradient(x, y, x, y + 75);
   backGrad.addColorStop(0, '#292626');
   backGrad.addColorStop(1, '#000000');
-
   this.drawOuterSquare(pos, '#000', frontGrad);
-
   const TRI_LENGTH = 40;
   const START_TRIANGLE = EDGE_TO_INNER + ((INNER_RECT_LENGTH - TRI_LENGTH) / 2);
-
   //left triangle
   this.c.fillStyle = backGrad;
   this.c.beginPath();
@@ -768,7 +719,6 @@ Renderer.prototype.drawBlock = function (pos) {
   this.c.closePath();
   this.c.fill();
   this.c.stroke();
-
   //top triangle
   this.c.beginPath();
   this.c.moveTo(x + START_TRIANGLE, y + EDGE_TO_INNER);
@@ -777,7 +727,6 @@ Renderer.prototype.drawBlock = function (pos) {
   this.c.closePath();
   this.c.fill();
   this.c.stroke();
-
   //right triangle
   this.c.beginPath();
   this.c.moveTo(x + BLOCK_LENGTH - EDGE_TO_INNER, y + START_TRIANGLE);
@@ -786,7 +735,6 @@ Renderer.prototype.drawBlock = function (pos) {
   this.c.closePath();
   this.c.fill();
   this.c.stroke();
-
   //bottom triangle
   this.c.beginPath();
   this.c.moveTo(x + START_TRIANGLE, y + BLOCK_LENGTH - EDGE_TO_INNER);
@@ -807,6 +755,25 @@ Renderer.prototype.drawOuterSquare = function (pos, stroke, fill) {
     fill: fill
   });
 }
+
+Renderer.prototype.drawDot = function (pos) {
+  this.drawFullCircle({
+    pos: pos,
+    fill: 'black',
+    radius: 2
+  })
+};
+
+Renderer.prototype.drawFullCircle = function (options) {
+  this.c.beginPath();
+  this.c.arc(
+    options.pos[0],
+    options.pos[1],
+    options.radius, 0, 2 * Math.PI, false
+  );
+  this.c.fillStyle = options.fill;
+  this.c.fill();
+};
 
 Renderer.prototype.drawLine = function (start, finish) {
   this.c.beginPath();
@@ -882,7 +849,7 @@ Renderer.prototype.incrementDoors = function () {
   this.game.currentLevel.doors.forEach(function (door) {
     if (door.status === "opening") {
       door.percentOpen = door.percentOpen + 0.02;
-      if (door.percentOpen >= 1) {
+      if (door.percentOpen >= 1.5) {
         door.status = "open";
       }
     }
