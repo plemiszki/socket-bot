@@ -57,7 +57,8 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
       var x_block = (-1 * origin[0]) + col_left_x + 0.5;
       var y_block = (-1 * origin[1]) + row_top_y + 0.5;
 
-      if (currentLevel.foregroundGrid[row][col] === "block") {
+      if (currentLevel.foregroundGrid[row][col] === "") {
+      } else if (currentLevel.foregroundGrid[row][col] === "block") {
         this.drawBlock([x_block, y_block]);
       } else if (currentLevel.foregroundGrid[row][col] === "platform") {
         this.drawPlatform([x_block, y_block], '#2c2929', '#161515');

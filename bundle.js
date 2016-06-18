@@ -129,7 +129,8 @@
 	      var x_block = (-1 * origin[0]) + col_left_x + 0.5;
 	      var y_block = (-1 * origin[1]) + row_top_y + 0.5;
 
-	      if (currentLevel.foregroundGrid[row][col] === "block") {
+	      if (currentLevel.foregroundGrid[row][col] === "") {
+	      } else if (currentLevel.foregroundGrid[row][col] === "block") {
 	        this.drawBlock([x_block, y_block]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "platform") {
 	        this.drawPlatform([x_block, y_block], '#2c2929', '#161515');
@@ -1266,7 +1267,7 @@
 	    var foundElevator = false;
 	    var elevatorsToLaunch = [];
 	    for (var el = 0; el < elevators.length; el++) {
-	      if (elevators[el].col === leftCol) {
+	      if (elevators[el].col === leftCol && (elevators[el].baseRow - elevators[el].blocksHigh === bottomRow + 1)) {
 	        foundElevator = true;
 	        elevatorsToLaunch.push(elevators[el])
 	        for (var j = 0; j < elevators.length; j++) {
@@ -1285,7 +1286,7 @@
 	  } else {
 	    var foundElevator = false;
 	    for (var el = 0; el < elevators.length; el++) {
-	      if (elevators[el].col === leftCol) {
+	      if (elevators[el].col === leftCol && (elevators[el].baseRow - elevators[el].blocksHigh === bottomRow + 1)) {
 	        foundElevator = true;
 	        for (var el2 = 0; el2 < elevators.length; el2++) {
 	          var foundSecondElevator = false;
@@ -1657,6 +1658,18 @@
 	    baseRowCol: [12, 18],
 	    startingHeight: 6,
 	    heights: [0, 3, 6, 10]
+	  }),
+	  new Elevator({
+	    id: 104,
+	    baseRowCol: [2, 21],
+	    startingHeight: 0,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new Elevator({
+	    id: 104,
+	    baseRowCol: [2, 22],
+	    startingHeight: 0,
+	    heights: [0]
 	  })
 	];
 
@@ -1674,7 +1687,7 @@
 	  new Cubby({
 	    id: "C103",
 	    rowCol: [4, 13],
-	    startItem: new Panel(["S", "W"])
+	    startItem: new Panel(["N", "S"])
 	  }),
 	  new Cubby({
 	    id: "C104",
@@ -1758,9 +1771,9 @@
 	];
 
 	var foregroundGrid = [
-	  builder.rowOf(24, "block"),
+	  builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
-	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
 	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
 	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]),

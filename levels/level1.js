@@ -49,6 +49,18 @@ var elevators = [
     baseRowCol: [12, 18],
     startingHeight: 6,
     heights: [0, 3, 6, 10]
+  }),
+  new Elevator({
+    id: 104,
+    baseRowCol: [2, 21],
+    startingHeight: 0,
+    heights: [0, 3, 6, 10]
+  }),
+  new Elevator({
+    id: 104,
+    baseRowCol: [2, 22],
+    startingHeight: 0,
+    heights: [0]
   })
 ];
 
@@ -66,7 +78,7 @@ var cubbies = [
   new Cubby({
     id: "C103",
     rowCol: [4, 13],
-    startItem: new Panel(["S", "W"])
+    startItem: new Panel(["N", "S"])
   }),
   new Cubby({
     id: "C104",
@@ -150,9 +162,9 @@ var forceFieldBlocks = [
 ];
 
 var foregroundGrid = [
-  builder.rowOf(24, "block"),
+  builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
-  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
   ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
   ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]),

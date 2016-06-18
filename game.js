@@ -292,7 +292,7 @@ Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomR
     var foundElevator = false;
     var elevatorsToLaunch = [];
     for (var el = 0; el < elevators.length; el++) {
-      if (elevators[el].col === leftCol) {
+      if (elevators[el].col === leftCol && (elevators[el].baseRow - elevators[el].blocksHigh === bottomRow + 1)) {
         foundElevator = true;
         elevatorsToLaunch.push(elevators[el])
         for (var j = 0; j < elevators.length; j++) {
@@ -311,7 +311,7 @@ Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomR
   } else {
     var foundElevator = false;
     for (var el = 0; el < elevators.length; el++) {
-      if (elevators[el].col === leftCol) {
+      if (elevators[el].col === leftCol && (elevators[el].baseRow - elevators[el].blocksHigh === bottomRow + 1)) {
         foundElevator = true;
         for (var el2 = 0; el2 < elevators.length; el2++) {
           var foundSecondElevator = false;
