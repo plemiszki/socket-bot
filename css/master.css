@@ -21,6 +21,7 @@ html {
 
 h1 {
   font-family: 'Inconsolata', sans-serif;
+  visibility: hidden;
 }
 
 content {

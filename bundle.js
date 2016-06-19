@@ -200,12 +200,11 @@
 	};
 
 	Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSquares) {
-	  var el = document.getElementById("coord-window");
-	  el.innerHTML = "LEFT: " + cornerSquares[1] + "<br>"
-	                + "TOP: " + cornerSquares[0] + "<br>"
-	                + "RIGHT: " + cornerSquares[3] + "<br>"
-	                + "BOTTOM: " + cornerSquares[2];
-
+	  // var el = document.getElementById("coord-window");
+	  // el.innerHTML = "LEFT: " + cornerSquares[1] + "<br>"
+	  //               + "TOP: " + cornerSquares[0] + "<br>"
+	  //               + "RIGHT: " + cornerSquares[3] + "<br>"
+	  //               + "BOTTOM: " + cornerSquares[2];
 	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
 	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
 	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
@@ -1815,7 +1814,7 @@
 	  new Cubby({
 	    id: "C103",
 	    rowCol: [4, 13],
-	    startItem: new Panel(["N", "S"])
+	    startItem: null
 	  }),
 	  new Cubby({
 	    id: "C104",

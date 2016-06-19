@@ -79,7 +79,7 @@ var cubbies = [
   new Cubby({
     id: "C103",
     rowCol: [4, 13],
-    startItem: new Panel(["N", "S"])
+    startItem: null
   }),
   new Cubby({
     id: "C104",
