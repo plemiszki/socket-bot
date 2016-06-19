@@ -51,18 +51,26 @@
 	  var canvas = document.getElementById('canvas');
 	  var context = canvas.getContext("2d");
 	  var renderer = new Renderer(context);
-	  gameInstance = new Game(renderer);
+	  var levelSequence = [
+	    __webpack_require__(4),
+	    __webpack_require__(22)
+	  ];
+
+	  gameInstance = new Game(renderer, levelSequence);
 	  renderer.game = gameInstance;
 
 	  window.addEventListener("keydown", function (e) {
 	    gameInstance.keysDown[e.keyCode] = true;
+	    if (e.keyCode === 32 && gameInstance.status === "menu") {
+	      gameInstance.startLevel();
+	    }
 	  }, false);
 
 	  window.addEventListener("keyup", function (e) {
 	    delete gameInstance.keysDown[e.keyCode];
 	  }, false);
 
-	  gameInstance.startLevel(gameInstance.levelSequence[0]);
+	  gameInstance.startGame();
 	});
 
 
@@ -76,6 +84,7 @@
 
 	var Wire = __webpack_require__(11);
 	var WireJunction = __webpack_require__(16);
+	var Robot = __webpack_require__(3);
 
 	function Renderer(context, game) {
 	  this.c = context;
@@ -89,17 +98,71 @@
 	}
 
 	Renderer.prototype.renderScreen = function () {
-	  var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
-	  this.incrementGradientIndex();
-	  this.incrementTime();
-	  this.incrementDoors();
-	  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
-	  this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
-	  this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
-	  this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
-	  this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
-	  this.renderRobot(this.game.robot);
+	  if (this.game.status === "end screen") {
+	    this.displayEndScreen();
+	  } else {
+	    var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
+	    this.incrementGradientIndex();
+	    this.incrementTime();
+	    this.incrementDoors();
+	    this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
+	    this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
+	    this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
+	    this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
+	    this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
+	    this.renderRobot(this.game.robot);
+	  }
 	}
+
+	Renderer.prototype.blackBackground = function () {
+	  this.drawRectangle({
+	    x: 0,
+	    y: 0,
+	    width: 600,
+	    height: 450,
+	    fill: 'black'
+	  })
+	};
+
+	Renderer.prototype.displayLoadScreen = function () {
+	  this.blackBackground();
+	  var loadGame = window.setInterval(function () {
+	    clearInterval(loadGame)
+	    this.game.showMainMenu()
+	  }.bind(this), 300);
+	};
+
+	Renderer.prototype.displayMenu = function () {
+	  this.blackBackground();
+	  this.c.fillStyle = 'white';
+	  this.c.font = "bold italic 90px 'Inconsolata'";
+	  this.c.fillText("Socket", 40, 110);
+	  this.c.fillText("Bot", 100, 190);
+	  this.drawFullCircle({
+	    pos: [450, 125],
+	    radius: 100,
+	    fill: '#58D3F7'
+	  })
+	  var menuRobot = new Robot([413.5, 120.5]);
+	  menuRobot.height = 70;
+	  this.renderRobot(menuRobot)
+	  this.c.fillStyle = 'white';
+	  this.c.font = "bold 30px 'Inconsolata'";
+	  this.c.fillText("A 2D Puzzle Game by Peter Lemiszki", 40, 280);
+	  this.c.fillStyle = 'yellow';
+	  this.c.font = "bold 30px 'Inconsolata'";
+	  this.c.fillText("Push SPACEBAR to Start", 136, 370);
+	};
+
+	Renderer.prototype.displayEndScreen = function () {
+	  this.drawRectangle({
+	    x: 0,
+	    y: 0,
+	    width: 800,
+	    height: 600,
+	    fill: 'purple'
+	  })
+	};
 
 	Renderer.prototype.getVisibleSquares = function (origin, currentLevel) {
 	  var topRow = Math.floor(origin[1] / BLOCK_LENGTH);
@@ -221,7 +284,11 @@
 	        this.c.strokeStyle = '#000';
 	        this.c.stroke();
 
-	        this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
+	        if (currentLevel.elevators[elv].exit === true) {
+	          this.drawPlatform([x_block, adjustedPlatformTop], 'red', '#440000');
+	        } else {
+	          this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
+	        }
 	      }
 	    }
 
@@ -373,7 +440,7 @@
 	  this.drawFrame({ x: x, y: y, width: 54, height: 54, thickness: 5, fill: 'yellow' });
 	  var x2 = x + 5;
 	  var y2 = y + 5;
-	  if (this.game.robot.item) {
+	  if (robot.item) {
 	    robot.item.render(this.c, [x2, y2], 44, false);
 	  } else {
 	    this.drawFrame({ x: x2, y: y2, width: 44, height: 44, thickness: 5, fill: '#8C8400' });
@@ -978,18 +1045,28 @@
 	var Wire = __webpack_require__(11);
 	const BLOCK_LENGTH = 75;
 
-	function Game(renderer) {
+	function Game(renderer, levelSequence) {
 	  this.renderer = renderer;
 	  this.BLOCK_LENGTH = 75;
-	  var level1 = __webpack_require__(4);
-	  this.levelSequence = [level1];
-	  this.origin = [0,0]
+	  this.levelSequence = levelSequence;
+	  this.origin = [0, 0]
 	  this.keysDown = {};
 	  this.spaceTime = 0;
+	  this.mainLoopRunning = false;
 	}
 
-	Game.prototype.startLevel = function (level) {
-	  this.currentLevel = level;
+	Game.prototype.startGame = function () {
+	  this.status = "loading";
+	  this.renderer.displayLoadScreen();
+	};
+
+	Game.prototype.showMainMenu = function () {
+	  this.status = "menu";
+	  this.renderer.displayMenu();
+	};
+
+	Game.prototype.startLevel = function () {
+	  this.currentLevel = this.levelSequence[0];
 	  this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
 	  this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
 
@@ -1005,7 +1082,10 @@
 
 	  this.status = "inControl"
 	  this.updatePower();
-	  this.main(Date.now());
+	  if (this.mainLoopRunning === false) {
+	    this.mainLoopRunning = true;
+	    this.main(Date.now());
+	  }
 	};
 
 	Game.prototype.main = function (passedThen) {
@@ -1030,9 +1110,11 @@
 	  var rightCol = this.getRightColumn(realArrays);
 	  var ghostArrays = [this.origin, this.robot.pos];
 
-	  this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+	  if (this.status !== "finished") {
+	    this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+	  }
 
-	  if (this.status === "rising") {
+	  if (this.status === "rising" || this.status === "finished") {
 
 	    ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
 	    this.elevatorArray.forEach(function (elevator) {
@@ -1123,6 +1205,18 @@
 	  // this.updateDebugHTML(realArrays);
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
+	  }
+	  if (this.status === "finished" && this.robot.pos[1] < -200) {
+	    this.advanceLevel();
+	  }
+	};
+
+	Game.prototype.advanceLevel = function () {
+	  this.levelSequence.shift();
+	  if (this.levelSequence.length === 0) {
+	    this.status = "end screen";
+	  } else {
+	    this.startLevel();
 	  }
 	};
 
@@ -1356,15 +1450,19 @@
 	  var destinationRow, stopAt
 
 	  if (dir === "up") {
-	    if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
-	      this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex + 1];
-	      destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex + 1]
-	      stopAt = 0 + (BLOCK_LENGTH * destinationRow) - 0.5;
-	      this.status = "rising";
-	      this.stopAt = stopAt;
-	      return true;
+	    if (elevatorArray[0].exit === true) {
+	      this.status = "finished";
 	    } else {
-	      return false;
+	      if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
+	        this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex + 1];
+	        destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex + 1]
+	        stopAt = 0 + (BLOCK_LENGTH * destinationRow) - 0.5;
+	        this.status = "rising";
+	        this.stopAt = stopAt;
+	        return true;
+	      } else {
+	        return false;
+	      }
 	    }
 	  } else if (dir == "down") {
 	    if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
@@ -1612,6 +1710,7 @@
 	var LevelBuilder = obj.LevelBuilder;
 	var Door = obj.Door;
 	var Elevator = obj.Elevator;
+	var ExitElevator = obj.ExitElevator;
 	var ButtonBlock = obj.ButtonBlock;
 	var Cubby = obj.Cubby;
 	var Wire = obj.Wire;
@@ -1659,13 +1758,13 @@
 	    startingHeight: 6,
 	    heights: [0, 3, 6, 10]
 	  }),
-	  new Elevator({
+	  new ExitElevator({
 	    id: 104,
 	    baseRowCol: [2, 21],
 	    startingHeight: 0,
 	    heights: [0, 3, 6, 10]
 	  }),
-	  new Elevator({
+	  new ExitElevator({
 	    id: 104,
 	    baseRowCol: [2, 22],
 	    startingHeight: 0,
@@ -1802,7 +1901,6 @@
 	  builder.rowOf(24, "brick")
 	];
 
-	// level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [938, 375.5], elevators);
 	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
 
 	module.exports = level1;
@@ -1814,6 +1912,7 @@
 
 	var Door = __webpack_require__(6);
 	var Elevator = __webpack_require__(7);
+	var ExitElevator = __webpack_require__(20);
 	var ButtonBlock = __webpack_require__(8);
 	var Cubby = __webpack_require__(10);
 	var Wire = __webpack_require__(11);
@@ -1852,6 +1951,7 @@
 	  LevelBuilder: LevelBuilder,
 	  Door: Door,
 	  Elevator: Elevator,
+	  ExitElevator: ExitElevator,
 	  ButtonBlock: ButtonBlock,
 	  Cubby: Cubby,
 	  Wire: Wire,
@@ -2301,6 +2401,239 @@
 	}
 
 	module.exports = Spring;
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Elevator = __webpack_require__(7);
+
+	function ExitElevator(options) {
+	  this.id = options.id;
+	  this.col = options.baseRowCol[1];
+	  this.baseRow = options.baseRowCol[0];
+	  this.blocksHigh = options.startingHeight || 0;
+	  this.speed = options.speed || 400;
+	  this.heights = options.heights;
+
+	  this.topRow = this.baseRow - this.blocksHigh;
+	  this.additionalPixels = 0;
+	  this.exit = true;
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = Elevator.prototype;
+	ExitElevator.prototype = new Surrogate();
+	ExitElevator.prototype.constructor = ExitElevator;
+
+	module.exports = ExitElevator;
+
+
+/***/ },
+/* 21 */,
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var obj = __webpack_require__(5);
+	var Level = obj.Level;
+	var LevelBuilder = obj.LevelBuilder;
+	var Door = obj.Door;
+	var Elevator = obj.Elevator;
+	var ExitElevator = obj.ExitElevator;
+	var ButtonBlock = obj.ButtonBlock;
+	var Cubby = obj.Cubby;
+	var Wire = obj.Wire;
+	var WireJunction = obj.WireJunction;
+	var PowerSource = obj.PowerSource;
+	var ForceFieldBlock = obj.ForceFieldBlock;
+	var Panel = obj.Panel;
+	var Spring = obj.Spring;
+
+	var builder = new LevelBuilder();
+
+	var doors = [
+	  new Door(101, "right"),
+	  new Door(102, "left")
+	];
+
+	var elevators = [
+	  new Elevator({
+	    id: 101,
+	    baseRowCol: [10, 5],
+	    startingHeight: 4,
+	    heights: [0, 4, 8]
+	  }),
+	  new Elevator({
+	    id: 101,
+	    baseRowCol: [10, 6],
+	    startingHeight: 4,
+	    heights: [0, 4, 8]
+	  }),
+	  new Elevator({
+	    id: 102,
+	    baseRowCol: [10, 1],
+	    startingHeight: 0,
+	    heights: [0, 6]
+	  }),
+	  new Elevator({
+	    id: 103,
+	    baseRowCol: [12, 17],
+	    startingHeight: 6,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new Elevator({
+	    id: 103,
+	    baseRowCol: [12, 18],
+	    startingHeight: 6,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new ExitElevator({
+	    id: 104,
+	    baseRowCol: [2, 21],
+	    startingHeight: 0,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new ExitElevator({
+	    id: 104,
+	    baseRowCol: [2, 22],
+	    startingHeight: 0,
+	    heights: [0]
+	  })
+	];
+
+	var cubbies = [
+	  new Cubby({
+	    id: "C101",
+	    rowCol: [1, 2],
+	    startItem: new Panel(["N", "S"])
+	  }),
+	  new Cubby({
+	    id: "C102",
+	    rowCol: [11, 15],
+	    startItem: new Panel(["E", "W"])
+	  }),
+	  new Cubby({
+	    id: "C103",
+	    rowCol: [4, 13],
+	    startItem: new Panel(["N", "S"])
+	  }),
+	  new Cubby({
+	    id: "C104",
+	    rowCol: [8, 21],
+	    startItem: new Panel(["S", "W"])
+	  })
+	];
+
+	var powerSources = [
+	  new PowerSource({
+	    id: "PS101",
+	    rowCol: [11, 22]
+	  })
+	]
+
+	var wiring = [
+	  //Force Field Block
+	  new Wire({ rowCol: [11, 21], type: "EW" }),
+	  new Wire({ rowCol: [11, 20], type: "EW" }),
+	  new Wire({ rowCol: [11, 19], type: "EW" }),
+	  new Wire({ rowCol: [11, 18], type: "EW" }),
+	  new Wire({ rowCol: [11, 17], type: "EW" }),
+	  new Wire({ rowCol: [11, 16], type: "EW" }),
+	  new WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }),
+	  new Wire({ rowCol: [11, 14], type: "NE" }),
+	  new Wire({ rowCol: [10, 14], type: "NS" }),
+	  new Wire({ rowCol: [9, 14], type: "NS" }),
+	  new Wire({ rowCol: [8, 14], type: "NS" }),
+	  new Wire({ rowCol: [7, 14], type: "NS" }),
+	  new Wire({ rowCol: [6, 14], type: "NS" }),
+	  new Wire({ rowCol: [5, 14], type: "NSW" }),
+	  new Wire({ rowCol: [4, 14], type: "ES" }),
+	  new Wire({ rowCol: [4, 15], type: "EW" }),
+	  new Wire({ rowCol: [4, 16], type: "EW" }),
+	  new Wire({ rowCol: [4, 17], type: "EW" }),
+	  new Wire({ rowCol: [4, 18], type: "EW" }),
+
+	  //Branch to top button
+	  new Wire({ rowCol: [1, 13], type: "ES" }),
+	  new Wire({ rowCol: [2, 13], type: "NS" }),
+	  new Wire({ rowCol: [3, 13], type: "NS" }),
+	  new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }),
+	  new Wire({ rowCol: [5, 13], type: "NE" }),
+
+	  //Branch to left button
+	  new Wire({ rowCol: [3, 5], type: "EW" }),
+	  new Wire({ rowCol: [3, 6], type: "EW" }),
+	  new Wire({ rowCol: [3, 7], type: "WS" }),
+	  new Wire({ rowCol: [4, 7], type: "NE" }),
+	  new Wire({ rowCol: [4, 8], type: "EW" }),
+	  new Wire({ rowCol: [4, 9], type: "EW" }),
+	  new Wire({ rowCol: [4, 10], type: "EW" }),
+	  new Wire({ rowCol: [4, 11], type: "EW" }),
+	  new Wire({ rowCol: [4, 12], type: "EW" }),
+	]
+
+	var buttonBlocks = [
+	  new ButtonBlock({
+	    id: "BB101",
+	    side: "left",
+	    rowCol: [3, 4],
+	    func: function () {
+	      doors[0].open();
+	    }
+	  }),
+	  new ButtonBlock({
+	    id: "BB102",
+	    side: "right",
+	    rowCol: [1, 14],
+	    func: function () {
+	      doors[1].open();
+	    }
+	  })
+	];
+
+	var forceFieldBlocks = [
+	  new ForceFieldBlock({
+	    id: "FF101",
+	    rowCol: [4, 19]
+	  })
+	];
+
+	var foregroundGrid = [
+	  builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
+	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(7, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "powerBlock")),
+	  builder.rowOf(14, "block").concat(builder.rowOf(8, "")).concat([powerSources[0]]).concat(["powerBlock"]),
+	  builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))
+	];
+
+	var backgroundGrid = [
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick")
+	];
+
+	level1 = new Level("Level 2", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
+
+	module.exports = level1;
 
 
 /***/ }

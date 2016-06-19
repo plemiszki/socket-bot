@@ -4,6 +4,7 @@ const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
 var Wire = require('./wire.js');
 var WireJunction = require('./wireJunction.js');
+var Robot = require('./robot.js');
 
 function Renderer(context, game) {
   this.c = context;
@@ -17,17 +18,71 @@ function Renderer(context, game) {
 }
 
 Renderer.prototype.renderScreen = function () {
-  var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
-  this.incrementGradientIndex();
-  this.incrementTime();
-  this.incrementDoors();
-  this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
-  this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
-  this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
-  this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
-  this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
-  this.renderRobot(this.game.robot);
+  if (this.game.status === "end screen") {
+    this.displayEndScreen();
+  } else {
+    var cornerSquares = this.getVisibleSquares(this.game.origin, this.game.currentLevel);
+    this.incrementGradientIndex();
+    this.incrementTime();
+    this.incrementDoors();
+    this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
+    this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
+    this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
+    this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
+    this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
+    this.renderRobot(this.game.robot);
+  }
 }
+
+Renderer.prototype.blackBackground = function () {
+  this.drawRectangle({
+    x: 0,
+    y: 0,
+    width: 600,
+    height: 450,
+    fill: 'black'
+  })
+};
+
+Renderer.prototype.displayLoadScreen = function () {
+  this.blackBackground();
+  var loadGame = window.setInterval(function () {
+    clearInterval(loadGame)
+    this.game.showMainMenu()
+  }.bind(this), 300);
+};
+
+Renderer.prototype.displayMenu = function () {
+  this.blackBackground();
+  this.c.fillStyle = 'white';
+  this.c.font = "bold italic 90px 'Inconsolata'";
+  this.c.fillText("Socket", 40, 110);
+  this.c.fillText("Bot", 100, 190);
+  this.drawFullCircle({
+    pos: [450, 125],
+    radius: 100,
+    fill: '#58D3F7'
+  })
+  var menuRobot = new Robot([413.5, 120.5]);
+  menuRobot.height = 70;
+  this.renderRobot(menuRobot)
+  this.c.fillStyle = 'white';
+  this.c.font = "bold 30px 'Inconsolata'";
+  this.c.fillText("A 2D Puzzle Game by Peter Lemiszki", 40, 280);
+  this.c.fillStyle = 'yellow';
+  this.c.font = "bold 30px 'Inconsolata'";
+  this.c.fillText("Push SPACEBAR to Start", 136, 370);
+};
+
+Renderer.prototype.displayEndScreen = function () {
+  this.drawRectangle({
+    x: 0,
+    y: 0,
+    width: 800,
+    height: 600,
+    fill: 'purple'
+  })
+};
 
 Renderer.prototype.getVisibleSquares = function (origin, currentLevel) {
   var topRow = Math.floor(origin[1] / BLOCK_LENGTH);
@@ -149,7 +204,11 @@ Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquar
         this.c.strokeStyle = '#000';
         this.c.stroke();
 
-        this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
+        if (currentLevel.elevators[elv].exit === true) {
+          this.drawPlatform([x_block, adjustedPlatformTop], 'red', '#440000');
+        } else {
+          this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
+        }
       }
     }
 
@@ -301,7 +360,7 @@ Renderer.prototype.drawHead = function (robot) {
   this.drawFrame({ x: x, y: y, width: 54, height: 54, thickness: 5, fill: 'yellow' });
   var x2 = x + 5;
   var y2 = y + 5;
-  if (this.game.robot.item) {
+  if (robot.item) {
     robot.item.render(this.c, [x2, y2], 44, false);
   } else {
     this.drawFrame({ x: x2, y: y2, width: 44, height: 44, thickness: 5, fill: '#8C8400' });

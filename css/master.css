@@ -19,6 +19,10 @@ html {
   color: #fff;
 }
 
+h1 {
+  font-family: 'Inconsolata', sans-serif;
+}
+
 content {
   display: block;
   width: 600px;

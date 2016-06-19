@@ -3,18 +3,28 @@ var Renderer = require('./renderer.js');
 var Wire = require('./wire.js');
 const BLOCK_LENGTH = 75;
 
-function Game(renderer) {
+function Game(renderer, levelSequence) {
   this.renderer = renderer;
   this.BLOCK_LENGTH = 75;
-  var level1 = require('./levels/level1.js');
-  this.levelSequence = [level1];
-  this.origin = [0,0]
+  this.levelSequence = levelSequence;
+  this.origin = [0, 0]
   this.keysDown = {};
   this.spaceTime = 0;
+  this.mainLoopRunning = false;
 }
 
-Game.prototype.startLevel = function (level) {
-  this.currentLevel = level;
+Game.prototype.startGame = function () {
+  this.status = "loading";
+  this.renderer.displayLoadScreen();
+};
+
+Game.prototype.showMainMenu = function () {
+  this.status = "menu";
+  this.renderer.displayMenu();
+};
+
+Game.prototype.startLevel = function () {
+  this.currentLevel = this.levelSequence[0];
   this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
   this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
 
@@ -30,7 +40,10 @@ Game.prototype.startLevel = function (level) {
 
   this.status = "inControl"
   this.updatePower();
-  this.main(Date.now());
+  if (this.mainLoopRunning === false) {
+    this.mainLoopRunning = true;
+    this.main(Date.now());
+  }
 };
 
 Game.prototype.main = function (passedThen) {
@@ -55,9 +68,11 @@ Game.prototype.update = function (modifier) {
   var rightCol = this.getRightColumn(realArrays);
   var ghostArrays = [this.origin, this.robot.pos];
 
-  this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+  if (this.status !== "finished") {
+    this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+  }
 
-  if (this.status === "rising") {
+  if (this.status === "rising" || this.status === "finished") {
 
     ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
     this.elevatorArray.forEach(function (elevator) {
@@ -148,6 +163,18 @@ Game.prototype.update = function (modifier) {
   // this.updateDebugHTML(realArrays);
   if (this.status === "rising" || this.status === "descending") {
     this.checkElevator();
+  }
+  if (this.status === "finished" && this.robot.pos[1] < -200) {
+    this.advanceLevel();
+  }
+};
+
+Game.prototype.advanceLevel = function () {
+  this.levelSequence.shift();
+  if (this.levelSequence.length === 0) {
+    this.status = "end screen";
+  } else {
+    this.startLevel();
   }
 };
 
@@ -381,15 +408,19 @@ Game.prototype.launchElevatorMaybe = function (elevatorArray, dir) {
   var destinationRow, stopAt
 
   if (dir === "up") {
-    if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
-      this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex + 1];
-      destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex + 1]
-      stopAt = 0 + (BLOCK_LENGTH * destinationRow) - 0.5;
-      this.status = "rising";
-      this.stopAt = stopAt;
-      return true;
+    if (elevatorArray[0].exit === true) {
+      this.status = "finished";
     } else {
-      return false;
+      if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
+        this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex + 1];
+        destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex + 1]
+        stopAt = 0 + (BLOCK_LENGTH * destinationRow) - 0.5;
+        this.status = "rising";
+        this.stopAt = stopAt;
+        return true;
+      } else {
+        return false;
+      }
     }
   } else if (dir == "down") {
     if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {

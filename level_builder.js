@@ -1,5 +1,6 @@
 var Door = require('./door.js');
 var Elevator = require('./elevator.js');
+var ExitElevator = require('./exitElevator.js');
 var ButtonBlock = require('./buttonBlock.js');
 var Cubby = require('./cubby.js');
 var Wire = require('./wire.js');
@@ -38,6 +39,7 @@ module.exports = {
   LevelBuilder: LevelBuilder,
   Door: Door,
   Elevator: Elevator,
+  ExitElevator: ExitElevator,
   ButtonBlock: ButtonBlock,
   Cubby: Cubby,
   Wire: Wire,
