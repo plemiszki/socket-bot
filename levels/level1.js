@@ -194,6 +194,6 @@ var backgroundGrid = [
   builder.rowOf(24, "brick")
 ];
 
-level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
+level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [750.5, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
 
 module.exports = level1;

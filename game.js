@@ -24,25 +24,38 @@ Game.prototype.showMainMenu = function () {
 };
 
 Game.prototype.startLevel = function () {
+  this.renderer.showLevelName = true;
+  var flashN = 5;
+  var levelFlash = window.setInterval(function () {
+    flashN = this.renderer.toggleLevelName(flashN);
+    if (flashN === 0) {
+      clearInterval(levelFlash);
+    }
+  }.bind(this), 600);
   this.currentLevel = this.levelSequence[0];
   this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
   this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
-
   if (this.currentLevel.backgroundGrid.length !== this.currentLevel.foregroundGrid.length ||
     this.currentLevel.backgroundGrid[0].length !== this.currentLevel.foregroundGrid[0].length) {
       throw "foregroundGrid and backgroundGrid dimensions don't match!"
   }
-
-  //fix this later - a starting robot might not be positioned in the middle of the screen
-  this.origin[0] = this.currentLevel.startingPos[0] - 263.5;
+  this.origin[0] = this.currentLevel.startingPos[0] - 263.5; //fix this later - a starting robot might not be positioned in the middle of the screen
   this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
   this.robot = new Robot([263.5, 187.5]);
-
   this.status = "inControl"
   this.updatePower();
   if (this.mainLoopRunning === false) {
     this.mainLoopRunning = true;
     this.main(Date.now());
+  }
+};
+
+Game.prototype.advanceLevel = function () {
+  this.levelSequence.shift();
+  if (this.levelSequence.length === 0) {
+    this.status = "end screen";
+  } else {
+    this.startLevel();
   }
 };
 
@@ -169,20 +182,10 @@ Game.prototype.update = function (modifier) {
   }
 };
 
-Game.prototype.advanceLevel = function () {
-  this.levelSequence.shift();
-  if (this.levelSequence.length === 0) {
-    this.status = "end screen";
-  } else {
-    this.startLevel();
-  }
-};
-
 Game.prototype.checkSpringHeight = function (ghostArrays) {
   var topRow = this.getTopRow(ghostArrays);
   var leftCol = this.getLeftColumn(ghostArrays);
   var rightCol = this.getRightColumn(ghostArrays);
-
   if (this.passThrough(this.currentLevel.foregroundGrid[topRow][leftCol]) === false
   || this.passThrough(this.currentLevel.foregroundGrid[topRow][rightCol]) === false) {
     var realTopY = this.getRealTopY(ghostArrays)

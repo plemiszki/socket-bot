@@ -15,6 +15,7 @@ function Renderer(context, game) {
   this.BUTTON_PANEL_WIDTH = 15;
   this.BUTTON_PANEL_HEIGHT = 30;
   this.seconds = 0;
+  this.showLevelName = true;
 }
 
 Renderer.prototype.renderScreen = function () {
@@ -31,8 +32,28 @@ Renderer.prototype.renderScreen = function () {
     this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
     this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
     this.renderRobot(this.game.robot);
+    if (this.showLevelName) { this.renderLevelName() };
   }
 }
+
+Renderer.prototype.toggleLevelName = function (n) {
+  this.showLevelName = !this.showLevelName
+  return n - 1;
+};
+
+Renderer.prototype.renderLevelName = function () {
+  this.drawRectangle({
+    x: 100.5,
+    y: 50.5,
+    width: 400,
+    height: 100,
+    fill: 'black',
+    alpha: 0.8
+  })
+  this.c.fillStyle = 'white';
+  this.c.font = "bold 60px 'Inconsolata'";
+  this.c.fillText(this.game.currentLevel.name, 200.5, 120.5);
+};
 
 Renderer.prototype.blackBackground = function () {
   this.drawRectangle({
@@ -850,6 +871,7 @@ Renderer.prototype.drawRectangle = function (object) {
   var height = object.height;
   var stroke = object.stroke || '#000';
   var fill = object.fill || undefined;
+  this.c.globalAlpha = object.alpha || 1;
   this.c.beginPath();
   this.c.rect(x, y, width, height);
   if (fill !== undefined) {
@@ -931,6 +953,9 @@ Renderer.prototype.incrementTime = function () {
   this.seconds += 1;
   if (this.seconds > 100) {
     this.seconds = 0;
+  }
+  if (this.game.levelFlashSeconds > 0) {
+    this.game.levelFlashSeconds -= 1
   }
 };
 

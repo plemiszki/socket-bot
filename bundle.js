@@ -95,6 +95,7 @@
 	  this.BUTTON_PANEL_WIDTH = 15;
 	  this.BUTTON_PANEL_HEIGHT = 30;
 	  this.seconds = 0;
+	  this.showLevelName = true;
 	}
 
 	Renderer.prototype.renderScreen = function () {
@@ -111,8 +112,28 @@
 	    this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
 	    this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
 	    this.renderRobot(this.game.robot);
+	    if (this.showLevelName) { this.renderLevelName() };
 	  }
 	}
+
+	Renderer.prototype.toggleLevelName = function (n) {
+	  this.showLevelName = !this.showLevelName
+	  return n - 1;
+	};
+
+	Renderer.prototype.renderLevelName = function () {
+	  this.drawRectangle({
+	    x: 100.5,
+	    y: 50.5,
+	    width: 400,
+	    height: 100,
+	    fill: 'black',
+	    alpha: 0.8
+	  })
+	  this.c.fillStyle = 'white';
+	  this.c.font = "bold 60px 'Inconsolata'";
+	  this.c.fillText(this.game.currentLevel.name, 200.5, 120.5);
+	};
 
 	Renderer.prototype.blackBackground = function () {
 	  this.drawRectangle({
@@ -930,6 +951,7 @@
 	  var height = object.height;
 	  var stroke = object.stroke || '#000';
 	  var fill = object.fill || undefined;
+	  this.c.globalAlpha = object.alpha || 1;
 	  this.c.beginPath();
 	  this.c.rect(x, y, width, height);
 	  if (fill !== undefined) {
@@ -1012,6 +1034,9 @@
 	  if (this.seconds > 100) {
 	    this.seconds = 0;
 	  }
+	  if (this.game.levelFlashSeconds > 0) {
+	    this.game.levelFlashSeconds -= 1
+	  }
 	};
 
 	Renderer.prototype.fillGradientArray = function (rgbColor, arrayLength) {
@@ -1066,25 +1091,38 @@
 	};
 
 	Game.prototype.startLevel = function () {
+	  this.renderer.showLevelName = true;
+	  var flashN = 5;
+	  var levelFlash = window.setInterval(function () {
+	    flashN = this.renderer.toggleLevelName(flashN);
+	    if (flashN === 0) {
+	      clearInterval(levelFlash);
+	    }
+	  }.bind(this), 600);
 	  this.currentLevel = this.levelSequence[0];
 	  this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
 	  this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
-
 	  if (this.currentLevel.backgroundGrid.length !== this.currentLevel.foregroundGrid.length ||
 	    this.currentLevel.backgroundGrid[0].length !== this.currentLevel.foregroundGrid[0].length) {
 	      throw "foregroundGrid and backgroundGrid dimensions don't match!"
 	  }
-
-	  //fix this later - a starting robot might not be positioned in the middle of the screen
-	  this.origin[0] = this.currentLevel.startingPos[0] - 263.5;
+	  this.origin[0] = this.currentLevel.startingPos[0] - 263.5; //fix this later - a starting robot might not be positioned in the middle of the screen
 	  this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
 	  this.robot = new Robot([263.5, 187.5]);
-
 	  this.status = "inControl"
 	  this.updatePower();
 	  if (this.mainLoopRunning === false) {
 	    this.mainLoopRunning = true;
 	    this.main(Date.now());
+	  }
+	};
+
+	Game.prototype.advanceLevel = function () {
+	  this.levelSequence.shift();
+	  if (this.levelSequence.length === 0) {
+	    this.status = "end screen";
+	  } else {
+	    this.startLevel();
 	  }
 	};
 
@@ -1211,20 +1249,10 @@
 	  }
 	};
 
-	Game.prototype.advanceLevel = function () {
-	  this.levelSequence.shift();
-	  if (this.levelSequence.length === 0) {
-	    this.status = "end screen";
-	  } else {
-	    this.startLevel();
-	  }
-	};
-
 	Game.prototype.checkSpringHeight = function (ghostArrays) {
 	  var topRow = this.getTopRow(ghostArrays);
 	  var leftCol = this.getLeftColumn(ghostArrays);
 	  var rightCol = this.getRightColumn(ghostArrays);
-
 	  if (this.passThrough(this.currentLevel.foregroundGrid[topRow][leftCol]) === false
 	  || this.passThrough(this.currentLevel.foregroundGrid[topRow][rightCol]) === false) {
 	    var realTopY = this.getRealTopY(ghostArrays)
@@ -1901,7 +1929,7 @@
 	  builder.rowOf(24, "brick")
 	];
 
-	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [750.5, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
 
 	module.exports = level1;
 
