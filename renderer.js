@@ -70,7 +70,7 @@ Renderer.prototype.displayLoadScreen = function () {
   var loadGame = window.setInterval(function () {
     clearInterval(loadGame)
     this.game.showMainMenu()
-  }.bind(this), 300);
+  }.bind(this), 1000);
 };
 
 Renderer.prototype.displayMenu = function () {
@@ -96,13 +96,14 @@ Renderer.prototype.displayMenu = function () {
 };
 
 Renderer.prototype.displayEndScreen = function () {
-  this.drawRectangle({
-    x: 0,
-    y: 0,
-    width: 800,
-    height: 600,
-    fill: 'purple'
-  })
+  this.blackBackground();
+  this.c.fillStyle = 'white';
+  this.c.font = "bold 60px 'Inconsolata'";
+  this.c.fillText("Congratulations!", 65, 120);
+  this.c.font = "bold 30px 'Inconsolata'";
+  this.c.fillText("You've completed all the levels.", 65, 180);
+  this.c.font = "bold 24px 'Inconsolata'";
+  this.c.fillText("How's it feel?", 216, 300);
 };
 
 Renderer.prototype.getVisibleSquares = function (origin, currentLevel) {
