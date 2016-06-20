@@ -11,7 +11,13 @@ function Game(renderer, levelSequence) {
   this.keysDown = {};
   this.spaceTime = 0;
   this.mainLoopRunning = false;
+  this.tutorialPage = 0;
 }
+
+Game.prototype.nextTutorialPage = function () {
+  this.tutorialPage += 1;
+  this.renderer.displayInstructions(this.tutorialPage);
+};
 
 Game.prototype.startGame = function () {
   this.status = "loading";
@@ -351,7 +357,7 @@ Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomR
             if (elevatorResult) {
               return;
             } else { //elevator didn't move (top or bottom floor)
-              this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+              foundSecondElevator = false;
             }
           }
         }

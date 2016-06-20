@@ -52,8 +52,7 @@
 	  var context = canvas.getContext("2d");
 	  var renderer = new Renderer(context);
 	  var levelSequence = [
-	    __webpack_require__(4),
-	    __webpack_require__(22)
+	    __webpack_require__(4)
 	  ];
 
 	  gameInstance = new Game(renderer, levelSequence);
@@ -62,7 +61,7 @@
 	  window.addEventListener("keydown", function (e) {
 	    gameInstance.keysDown[e.keyCode] = true;
 	    if (e.keyCode === 32 && gameInstance.status === "menu") {
-	      gameInstance.startLevel();
+	      gameInstance.nextTutorialPage();
 	    }
 	  }, false);
 
@@ -85,6 +84,10 @@
 	var Wire = __webpack_require__(11);
 	var WireJunction = __webpack_require__(16);
 	var Robot = __webpack_require__(3);
+	var Door = __webpack_require__(6);
+	var ButtonBlock = __webpack_require__(8);
+	var Cubby = __webpack_require__(10);
+	var Panel = __webpack_require__(14);
 
 	function Renderer(context, game) {
 	  this.c = context;
@@ -173,6 +176,81 @@
 	  this.c.fillStyle = 'yellow';
 	  this.c.font = "bold 30px 'Inconsolata'";
 	  this.c.fillText("Push SPACEBAR to Start", 136, 370);
+	};
+
+	Renderer.prototype.displayInstructions = function (page) {
+	  this.blackBackground();
+	  this.c.fillStyle = 'white';
+	  this.c.font = "bold 20px 'Inconsolata'";
+	  switch (page) {
+	    case 1:
+	      this.c.fillText("In this game, you are a robot.", 40, 80);
+	      this.c.fillText("You can move left and right using the arrow keys.", 40, 120);
+	      this.c.fillText("You can also ride elevators up or down using the", 40, 160);
+	      this.c.fillText("arrow keys.", 40, 180);
+	      this.c.fillText("Elevators look like this:", 175, 280);
+	      this.drawElevator(225.5, 340.5, 450, false);
+	      this.drawElevator(300.5, 340.5, 450, false);
+	      break;
+	    case 2:
+	      this.c.fillText("Your goal is to reach the red elevators.", 40, 100);
+	      this.c.fillText("They'll take you up to the next level.", 40, 160);
+	      this.drawElevator(225.5, 240.5, 450, true);
+	      this.drawElevator(300.5, 240.5, 450, true);
+	      break;
+	    case 3:
+	      this.c.fillText("Blocking your way will be doors and force fields.", 40, 80);
+	      this.c.fillText("You can't pass through force fields with power.", 40, 100);
+	      this.c.fillText("Doors are opened with buttons, but a button won't", 40, 160);
+	      this.c.fillText("work without power.", 40, 180);
+	      this.drawDoor(new Door(), [160.5, 240.5]);
+	      this.drawButtonBlock(new ButtonBlock({id: 0, side: "left"}), [360.5, 240.5]);
+	      break;
+	    case 4:
+	      this.c.fillText("You will need to change the flow of power to overcome", 40, 80);
+	      this.c.fillText("these obstacles.", 40, 100);
+	      this.c.fillText("You can do this by inserting and removing panels", 40, 160);
+	      this.c.fillText("from sockets.", 40, 180);
+	      this.drawCubby([66.5, 200.5], new Cubby({}));
+	      this.drawCubby([198.5, 200.5], new Cubby({startItem: new Panel(["N", "S"])}));
+	      this.drawCubby([330.5, 200.5], new Cubby({startItem: new Panel(["E", "W"])}));
+	      this.drawCubby([462.5, 200.5], new Cubby({startItem: new Panel(["S", "W"])}));
+	      this.c.fillStyle = 'white';
+	      this.c.fillText("Press SPACEBAR while in front of a socket to insert", 40, 320);
+	      this.c.fillText("or remove a panel.", 40, 340);
+	      break;
+	    case 5:
+	      this.c.fillText("You can increase the height of your robot by", 40, 80);
+	      this.c.fillText("collecting spring power-ups.", 40, 100);
+	      this.drawFullCircle({
+	        pos: [120, 230],
+	        radius: 90,
+	        fill: 'white'
+	      })
+	      this.renderRobot(new Robot([82.5, 220.5]))
+	      this.drawFullCircle({
+	        pos: [300, 225],
+	        radius: 40,
+	        fill: 'white'
+	      })
+	      this.drawSpringPowerUp([262.5, 187.5]);
+	      this.drawFullCircle({
+	        pos: [480, 230],
+	        radius: 90,
+	        fill: 'white'
+	      })
+	      var bigRobot = new Robot([442.5, 220.5]);
+	      bigRobot.height = 75;
+	      this.renderRobot(bigRobot)
+	      this.c.fillStyle = 'white';
+	      this.c.fillText("+", 230, 231);
+	      this.c.fillText("=", 360, 231);
+	      this.c.fillText("You can then use the up and down arrow keys to", 40, 370);
+	      this.c.fillText("adjust your height.", 40, 390);
+	      break;
+	    case 6:
+	      this.game.startLevel();
+	  }
 	};
 
 	Renderer.prototype.displayEndScreen = function () {
@@ -281,39 +359,40 @@
 	        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
 	        var platform_top_y = (BLOCK_LENGTH * topRow) - origin[1] + 0.5;
 	        var adjustedPlatformTop = platform_top_y - additionalPixels;
-	        const COLUMN_WIDTH = 25;
-	        var inset = Math.floor((BLOCK_LENGTH - COLUMN_WIDTH) / 2)
-	        var column_top_y = adjustedPlatformTop + Math.floor(BLOCK_LENGTH/3);
-
+	        //and the bottom
 	        var realBaseBottomY = ((currentLevel.elevators[elv].baseRow + 1) * BLOCK_LENGTH) + 0.5;
 	        var relBaseBottomY = realBaseBottomY - origin[1]
-	        var height = relBaseBottomY - column_top_y
 
-	        if (450 - column_top_y < height) {
-	          height = 450 - column_top_y;
-	        }
-
-	        var grad = this.c.createLinearGradient(x_block + inset, 0, x_block + inset + COLUMN_WIDTH, 0);
-	        grad.addColorStop(0, '#1A1919');
-	        grad.addColorStop(0.5, '#68625F');
-	        grad.addColorStop(1, '#1A1919');
-
-	        this.c.beginPath();
-	        this.c.rect(x_block + inset, column_top_y, COLUMN_WIDTH, height)
-	        this.c.fillStyle = grad;
-	        this.c.fill();
-	        this.c.strokeStyle = '#000';
-	        this.c.stroke();
-
-	        if (currentLevel.elevators[elv].exit === true) {
-	          this.drawPlatform([x_block, adjustedPlatformTop], 'red', '#440000');
-	        } else {
-	          this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
-	        }
+	        this.drawElevator(x_block, adjustedPlatformTop, relBaseBottomY, currentLevel.elevators[elv].exit)
 	      }
 	    }
 
 	    col_left_x += 75;
+	  }
+	};
+
+	Renderer.prototype.drawElevator = function (x_block, adjustedPlatformTop, relBaseBottomY, exit) {
+	  const COLUMN_WIDTH = 25;
+	  var inset = Math.floor((BLOCK_LENGTH - COLUMN_WIDTH) / 2)
+	  var column_top_y = adjustedPlatformTop + Math.floor(BLOCK_LENGTH / 3);
+	  var height = relBaseBottomY - column_top_y
+	  if (450 - column_top_y < height) {
+	    height = 450 - column_top_y;
+	  }
+	  var grad = this.c.createLinearGradient(x_block + inset, 0, x_block + inset + COLUMN_WIDTH, 0);
+	  grad.addColorStop(0, '#1A1919');
+	  grad.addColorStop(0.5, '#68625F');
+	  grad.addColorStop(1, '#1A1919');
+	  this.c.beginPath();
+	  this.c.rect(x_block + inset, column_top_y, COLUMN_WIDTH, height)
+	  this.c.fillStyle = grad;
+	  this.c.fill();
+	  this.c.strokeStyle = '#000';
+	  this.c.stroke();
+	  if (exit) {
+	    this.drawPlatform([x_block, adjustedPlatformTop], 'red', '#440000');
+	  } else {
+	    this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
 	  }
 	};
 
@@ -1078,7 +1157,13 @@
 	  this.keysDown = {};
 	  this.spaceTime = 0;
 	  this.mainLoopRunning = false;
+	  this.tutorialPage = 0;
 	}
+
+	Game.prototype.nextTutorialPage = function () {
+	  this.tutorialPage += 1;
+	  this.renderer.displayInstructions(this.tutorialPage);
+	};
 
 	Game.prototype.startGame = function () {
 	  this.status = "loading";
@@ -1418,7 +1503,7 @@
 	            if (elevatorResult) {
 	              return;
 	            } else { //elevator didn't move (top or bottom floor)
-	              this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	              foundSecondElevator = false;
 	            }
 	          }
 	        }
@@ -2456,212 +2541,6 @@
 	ExitElevator.prototype.constructor = ExitElevator;
 
 	module.exports = ExitElevator;
-
-
-/***/ },
-/* 21 */,
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var obj = __webpack_require__(5);
-	var Level = obj.Level;
-	var LevelBuilder = obj.LevelBuilder;
-	var Door = obj.Door;
-	var Elevator = obj.Elevator;
-	var ExitElevator = obj.ExitElevator;
-	var ButtonBlock = obj.ButtonBlock;
-	var Cubby = obj.Cubby;
-	var Wire = obj.Wire;
-	var WireJunction = obj.WireJunction;
-	var PowerSource = obj.PowerSource;
-	var ForceFieldBlock = obj.ForceFieldBlock;
-	var Panel = obj.Panel;
-	var Spring = obj.Spring;
-
-	var builder = new LevelBuilder();
-
-	var doors = [
-	  new Door(101, "right"),
-	  new Door(102, "left")
-	];
-
-	var elevators = [
-	  new Elevator({
-	    id: 101,
-	    baseRowCol: [10, 5],
-	    startingHeight: 4,
-	    heights: [0, 4, 8]
-	  }),
-	  new Elevator({
-	    id: 101,
-	    baseRowCol: [10, 6],
-	    startingHeight: 4,
-	    heights: [0, 4, 8]
-	  }),
-	  new Elevator({
-	    id: 102,
-	    baseRowCol: [10, 1],
-	    startingHeight: 0,
-	    heights: [0, 6]
-	  }),
-	  new Elevator({
-	    id: 103,
-	    baseRowCol: [12, 17],
-	    startingHeight: 6,
-	    heights: [0, 3, 6, 10]
-	  }),
-	  new Elevator({
-	    id: 103,
-	    baseRowCol: [12, 18],
-	    startingHeight: 6,
-	    heights: [0, 3, 6, 10]
-	  }),
-	  new ExitElevator({
-	    id: 104,
-	    baseRowCol: [2, 21],
-	    startingHeight: 0,
-	    heights: [0, 3, 6, 10]
-	  }),
-	  new ExitElevator({
-	    id: 104,
-	    baseRowCol: [2, 22],
-	    startingHeight: 0,
-	    heights: [0]
-	  })
-	];
-
-	var cubbies = [
-	  new Cubby({
-	    id: "C101",
-	    rowCol: [1, 2],
-	    startItem: new Panel(["N", "S"])
-	  }),
-	  new Cubby({
-	    id: "C102",
-	    rowCol: [11, 15],
-	    startItem: new Panel(["E", "W"])
-	  }),
-	  new Cubby({
-	    id: "C103",
-	    rowCol: [4, 13],
-	    startItem: new Panel(["N", "S"])
-	  }),
-	  new Cubby({
-	    id: "C104",
-	    rowCol: [8, 21],
-	    startItem: new Panel(["S", "W"])
-	  })
-	];
-
-	var powerSources = [
-	  new PowerSource({
-	    id: "PS101",
-	    rowCol: [11, 22]
-	  })
-	]
-
-	var wiring = [
-	  //Force Field Block
-	  new Wire({ rowCol: [11, 21], type: "EW" }),
-	  new Wire({ rowCol: [11, 20], type: "EW" }),
-	  new Wire({ rowCol: [11, 19], type: "EW" }),
-	  new Wire({ rowCol: [11, 18], type: "EW" }),
-	  new Wire({ rowCol: [11, 17], type: "EW" }),
-	  new Wire({ rowCol: [11, 16], type: "EW" }),
-	  new WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }),
-	  new Wire({ rowCol: [11, 14], type: "NE" }),
-	  new Wire({ rowCol: [10, 14], type: "NS" }),
-	  new Wire({ rowCol: [9, 14], type: "NS" }),
-	  new Wire({ rowCol: [8, 14], type: "NS" }),
-	  new Wire({ rowCol: [7, 14], type: "NS" }),
-	  new Wire({ rowCol: [6, 14], type: "NS" }),
-	  new Wire({ rowCol: [5, 14], type: "NSW" }),
-	  new Wire({ rowCol: [4, 14], type: "ES" }),
-	  new Wire({ rowCol: [4, 15], type: "EW" }),
-	  new Wire({ rowCol: [4, 16], type: "EW" }),
-	  new Wire({ rowCol: [4, 17], type: "EW" }),
-	  new Wire({ rowCol: [4, 18], type: "EW" }),
-
-	  //Branch to top button
-	  new Wire({ rowCol: [1, 13], type: "ES" }),
-	  new Wire({ rowCol: [2, 13], type: "NS" }),
-	  new Wire({ rowCol: [3, 13], type: "NS" }),
-	  new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }),
-	  new Wire({ rowCol: [5, 13], type: "NE" }),
-
-	  //Branch to left button
-	  new Wire({ rowCol: [3, 5], type: "EW" }),
-	  new Wire({ rowCol: [3, 6], type: "EW" }),
-	  new Wire({ rowCol: [3, 7], type: "WS" }),
-	  new Wire({ rowCol: [4, 7], type: "NE" }),
-	  new Wire({ rowCol: [4, 8], type: "EW" }),
-	  new Wire({ rowCol: [4, 9], type: "EW" }),
-	  new Wire({ rowCol: [4, 10], type: "EW" }),
-	  new Wire({ rowCol: [4, 11], type: "EW" }),
-	  new Wire({ rowCol: [4, 12], type: "EW" }),
-	]
-
-	var buttonBlocks = [
-	  new ButtonBlock({
-	    id: "BB101",
-	    side: "left",
-	    rowCol: [3, 4],
-	    func: function () {
-	      doors[0].open();
-	    }
-	  }),
-	  new ButtonBlock({
-	    id: "BB102",
-	    side: "right",
-	    rowCol: [1, 14],
-	    func: function () {
-	      doors[1].open();
-	    }
-	  })
-	];
-
-	var forceFieldBlocks = [
-	  new ForceFieldBlock({
-	    id: "FF101",
-	    rowCol: [4, 19]
-	  })
-	];
-
-	var foregroundGrid = [
-	  builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
-	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
-	  ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
-	  ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(7, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "powerBlock")),
-	  builder.rowOf(14, "block").concat(builder.rowOf(8, "")).concat([powerSources[0]]).concat(["powerBlock"]),
-	  builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))
-	];
-
-	var backgroundGrid = [
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick"),
-	  builder.rowOf(24, "brick")
-	];
-
-	level1 = new Level("Level 2", foregroundGrid, backgroundGrid, [550, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
-
-	module.exports = level1;
 
 
 /***/ }

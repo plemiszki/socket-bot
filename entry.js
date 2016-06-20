@@ -6,8 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var context = canvas.getContext("2d");
   var renderer = new Renderer(context);
   var levelSequence = [
-    require('./levels/level1.js'),
-    require('./levels/level2.js')
+    require('./levels/level1.js')
   ];
 
   gameInstance = new Game(renderer, levelSequence);
@@ -16,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("keydown", function (e) {
     gameInstance.keysDown[e.keyCode] = true;
     if (e.keyCode === 32 && gameInstance.status === "menu") {
-      gameInstance.startLevel();
+      gameInstance.nextTutorialPage();
     }
   }, false);
 
