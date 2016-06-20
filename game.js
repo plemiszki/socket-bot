@@ -14,11 +14,6 @@ function Game(renderer, levelSequence) {
   this.tutorialPage = 0;
 }
 
-Game.prototype.nextTutorialPage = function () {
-  this.tutorialPage += 1;
-  this.renderer.displayInstructions(this.tutorialPage);
-};
-
 Game.prototype.startGame = function () {
   this.status = "loading";
   this.renderer.displayLoadScreen();
@@ -27,6 +22,11 @@ Game.prototype.startGame = function () {
 Game.prototype.showMainMenu = function () {
   this.status = "menu";
   this.renderer.displayMenu();
+};
+
+Game.prototype.nextTutorialPage = function () {
+  this.tutorialPage += 1;
+  this.renderer.displayInstructions(this.tutorialPage);
 };
 
 Game.prototype.startLevel = function () {
@@ -86,33 +86,25 @@ Game.prototype.update = function (modifier) {
   var leftCol = this.getLeftColumn(realArrays);
   var rightCol = this.getRightColumn(realArrays);
   var ghostArrays = [this.origin, this.robot.pos];
-
   if (this.status !== "finished") {
     this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
   }
-
   if (this.status === "rising" || this.status === "finished") {
-
     ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
     this.elevatorArray.forEach(function (elevator) {
       elevator.additionalPixels += (elevator.speed * modifier);
     }.bind(this))
-
   } else if (this.status === "descending") {
-
     ghostArrays = this.moveDown(this.elevatorArray[0].speed, modifier);
     this.elevatorArray.forEach(function (elevator) {
       elevator.additionalPixels -= (elevator.speed * modifier);
     }.bind(this))
-
   } else if (this.status === "inControl") {
-
     if (38 in this.keysDown) { //up
       this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "up");
     } else if (40 in this.keysDown) { //down
       this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "down");
     }
-
     if (39 in this.keysDown) { //right
       ghostArrays = this.moveRight(this.robot.speed, modifier);
       ghostCol = this.getRightColumn(ghostArrays)
@@ -176,7 +168,6 @@ Game.prototype.update = function (modifier) {
       }
     }
   }
-
   var ghostHeight = (this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined);
   this.setGhostToReal(ghostArrays, ghostHeight);
   // this.updateDebugHTML(realArrays);
@@ -373,37 +364,33 @@ Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomR
 };
 
 Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRow, key) {
+  const SPRING_SPEED = 6;
+  var adjustedHeightIncrement = SPRING_SPEED;
   var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol]
   var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol]
   if (key === 'up') {
     if (this.robot.height < this.robot.maxHeight) {
-
-      //distance to next row:
+      //reach end of spring?
+      var ghostHeight = this.robot.height + SPRING_SPEED;
+      if (ghostHeight > this.robot.maxHeight) {
+        adjustedHeightIncrement -= (ghostHeight - this.robot.maxHeight);
+      }
+      //hit next row?
       if (this.robot.height <= 10) {
         var distNextRow = 10 - this.robot.height;
       } else {
         var distNextRow = 85 - this.robot.height;
       }
-
-      //amount to raise height:
-      var addHeight = 10;
-
-      //reach end of spring?
-      var ghostHeight = this.robot.height + addHeight;
-      if (ghostHeight > this.robot.maxHeight) {
-        addHeight -= (ghostHeight - this.robot.maxHeight);
-      }
-
-      //hit next row?
-      var ghostDistNextRow = distNextRow - addHeight;
+      var ghostDistNextRow = distNextRow - adjustedHeightIncrement;
       if (ghostDistNextRow >= 0 || (this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock))) {
-        this.robot.height += addHeight;
+        this.robot.height += adjustedHeightIncrement;
+      } else {
+        this.robot.height += distNextRow;
       }
     }
   } else if (key === 'down') {
     if (this.robot.height > 0) {
-      this.robot.height -= 10;
-
+      this.robot.height -= SPRING_SPEED;
       if (this.robot.height < 0) {
         this.robot.height = 0;
       }
@@ -415,7 +402,6 @@ Game.prototype.launchElevatorMaybe = function (elevatorArray, dir) {
   this.elevatorArray = elevatorArray;
   var blockHeightIndex = elevatorArray[0].heights.indexOf(elevatorArray[0].blocksHigh)
   var destinationRow, stopAt
-
   if (dir === "up") {
     if (elevatorArray[0].exit === true) {
       this.status = "finished";
@@ -494,7 +480,6 @@ Game.prototype._afterElevatorInNewSpot = function () {
 Game.prototype.moveLeft = function (pixels, modifier) {
   var returnOrigin = this.origin;
   var returnPos = this.robot.pos;
-
   if (this.origin[0] < 0) {
     returnOrigin[0] = 0;
   } else if (this.robot.pos[0] === 263.5 && this.origin[0] > 0) {
@@ -511,7 +496,6 @@ Game.prototype.moveLeft = function (pixels, modifier) {
 Game.prototype.moveRight = function (pixels, modifier) {
   var returnOrigin = this.origin;
   var returnPos = this.robot.pos;
-
   if (this.levelWidth - this.origin[0] < this.BLOCK_LENGTH * 8) {
     returnOrigin[0] = this.levelWidth - (this.BLOCK_LENGTH * 8);
   } else if (this.robot.pos[0] === 263.5 && (this.levelWidth - this.origin[0]) > (this.BLOCK_LENGTH * 8)) {
@@ -529,7 +513,6 @@ Game.prototype.moveUp = function (pixels, modifier) {
   var returnOrigin = this.origin;
   var returnPos = this.robot.pos;
   var difference;
-
   if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
     returnOrigin[1] -= pixels * modifier;
   } else if (this.robot.pos[1] < 187.5 && this.origin[1] > 0) {
@@ -540,13 +523,11 @@ Game.prototype.moveUp = function (pixels, modifier) {
   } else {
     returnPos[1] -= pixels * modifier;
   }
-
   if (returnOrigin[1] < 0) { //has the view passed the top of the level?
     var difference = 0 - returnOrigin[1] //by how much?
     returnOrigin[1] = 0; //set the view back to 0
     returnPos[1] -= difference; //push the robot down by the same amount
   }
-
   return [returnOrigin, returnPos];
 };
 
@@ -554,7 +535,6 @@ Game.prototype.moveDown = function (pixels, modifier) {
   var returnOrigin = this.origin;
   var returnPos = this.robot.pos;
   var difference;
-
   if (this.robot.pos[1] === 187.5 && (this.levelHeight - this.origin[1]) > (this.BLOCK_LENGTH * 6)) {
     returnOrigin[1] += pixels * modifier;
   } else if (this.robot.pos[1] > 187.5 && (this.levelHeight - this.origin[1]) > (this.BLOCK_LENGTH * 6)) {
@@ -565,14 +545,12 @@ Game.prototype.moveDown = function (pixels, modifier) {
   } else {
     returnPos[1] += pixels * modifier;
   }
-
   var topOfScreenToLevelBottom = this.levelHeight - returnOrigin[1];
   if (topOfScreenToLevelBottom < this.BLOCK_LENGTH * 6) {
     difference = (this.BLOCK_LENGTH * 6) - topOfScreenToLevelBottom;
     returnOrigin[1] = this.levelHeight - (this.BLOCK_LENGTH * 6);
     returnPos[1] += difference;
   }
-
   return [returnOrigin, returnPos];
 };
 
