@@ -45,14 +45,14 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Renderer = __webpack_require__(1)
-	var Game = __webpack_require__(2)
+	var Game = __webpack_require__(11)
 
 	document.addEventListener("DOMContentLoaded", function () {
 	  var canvas = document.getElementById('canvas');
 	  var context = canvas.getContext("2d");
 	  var renderer = new Renderer(context);
 	  var levelSequence = [
-	    __webpack_require__(4)
+	    __webpack_require__(12)
 	  ];
 
 	  gameInstance = new Game(renderer, levelSequence);
@@ -81,13 +81,13 @@
 	const EDGE_TO_INNER = 8;
 	const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
 
-	var Wire = __webpack_require__(11);
-	var WireJunction = __webpack_require__(16);
-	var Robot = __webpack_require__(3);
-	var Door = __webpack_require__(6);
+	var Wire = __webpack_require__(2);
+	var WireJunction = __webpack_require__(4);
+	var Robot = __webpack_require__(6);
+	var Door = __webpack_require__(7);
 	var ButtonBlock = __webpack_require__(8);
-	var Cubby = __webpack_require__(10);
-	var Panel = __webpack_require__(14);
+	var Cubby = __webpack_require__(9);
+	var Panel = __webpack_require__(10);
 
 	function Renderer(context, game) {
 	  this.c = context;
@@ -1144,9 +1144,371 @@
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Robot = __webpack_require__(3);
+	var PowerObject = __webpack_require__(3);
+
+	function Wire(options) {
+	  this.initializePowerObject(options);
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.type = options.type;
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = PowerObject.prototype;
+	Wire.prototype = new Surrogate();
+	Wire.prototype.constructor = Wire;
+
+	Wire.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+
+	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+
+	  //look through wires:
+	  for (var i = 0; i < wiring.length; i++) {
+	    if (this.type.split("").indexOf("W") !== -1) {
+	      if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	        wiring[i].hasPower = true;
+	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
+	      }
+	    }
+	    if (this.type.split("").indexOf("N") !== -1) {
+	      if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	        wiring[i].hasPower = true;
+	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
+	      }
+	    }
+	    if (this.type.split("").indexOf("E") !== -1) {
+	      if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	        wiring[i].hasPower = true;
+	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
+	      }
+	    }
+	    if (this.type.split("").indexOf("S") !== -1) {
+	      if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	        wiring[i].hasPower = true;
+	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
+	      }
+	    }
+	  }
+
+	  //look through force field blocks:
+	  for (var i = 0; i < forceFieldBlocks.length; i++) {
+	    if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	  }
+
+	  //look through button blocks:
+	  for (var i = 0; i < buttonBlocks.length; i++) {
+	    if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	    if (buttonBlocks[i].rowCol[0] === topRowCol[0] && buttonBlocks[i].rowCol[1] === topRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	    if (buttonBlocks[i].rowCol[0] === rightRowCol[0] && buttonBlocks[i].rowCol[1] === rightRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	      buttonBlocks[i].hasPower = true;
+	    }
+	  }
+	}
+
+	module.exports = Wire;
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	function PowerObject() {
+	}
+
+	PowerObject.prototype.initializePowerObject = function (options) {
+	  this.hasPower = false;
+	  if (options) {
+	    this.rowCol = options.rowCol;
+	  }
+	};
+
+	PowerObject.prototype.getPowerStatus = function () {
+	  return (this.hasPower)
+	};
+
+	module.exports = PowerObject;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var WireSegment = __webpack_require__(5);
+
+	function WireJunction(options) {
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.segmentStrings = options.segmentStrings;
+	  this.segments = {};
+	  for (var i = 0; i < this.segmentStrings.length; i++) {
+	    if (this.segmentStrings[i] === "N") {
+	      this.segments['N'] = new WireSegment({ id: "N" });
+	    } else if (this.segmentStrings[i] === "E") {
+	      this.segments['E'] = new WireSegment({ id: "E" });
+	    } else if (this.segmentStrings[i] === "S") {
+	      this.segments['S'] = new WireSegment({ id: "S" });
+	    } else if (this.segmentStrings[i] === "W") {
+	      this.segments['W'] = new WireSegment({ id: "W" });
+	    }
+	  }
+	}
+
+	WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+	  var cubby;
+	  for (var i = 0; i < cubbies.length; i++) {
+	    if (cubbies[i].rowCol[0] === this.rowCol[0] && cubbies[i].rowCol[1] === this.rowCol[1]) {
+	      cubby = cubbies[i];
+	      break;
+	    }
+	  }
+
+	  if (flowing === "leftward" && this.segments['E']) {
+	    this.segments['E'].hasPower = true;
+	    this.giveItemPower(cubby.item, 'E');
+	  } else if (flowing === "rightward" && this.segments['W']) {
+	    this.segments['W'].hasPower = true;
+	    this.giveItemPower(cubby.item, 'W');
+	  } else if (flowing === "upward" && this.segments['S']) {
+	    this.giveItemPower(cubby.item, 'S');
+	    this.segments['S'].hasPower = true;
+	  } else if (flowing === "downward" && this.segments['N']) {
+	    this.giveItemPower(cubby.item, 'N');
+	    this.segments['N'].hasPower = true;
+	  }
+
+	  if (cubby.item) {
+	    if (cubby.item.hasPower) {
+	      for (var i = 0; i < cubby.item.segments.length; i++) {
+	        if (this.segments[cubby.item.segments[i]]) {
+	          this.segments[cubby.item.segments[i]].hasPower = true;
+	        }
+	      }
+	      this.sendPowerFromItem(cubby.item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing);
+	    }
+	  }
+	}
+
+	WireJunction.prototype.giveItemPower = function (item, side) {
+	  if (item && item.segments.indexOf(side) !== -1) {
+	    item.hasPower = true;
+	  }
+	};
+
+	WireJunction.prototype.sendPowerFromItem = function (item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+
+	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+
+	  //look through wires:
+	  for (var i = 0; i < wiring.length; i++) {
+	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	      wiring[i].hasPower = true;
+	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
+	    }
+	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	      wiring[i].hasPower = true;
+	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
+	    }
+	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	      wiring[i].hasPower = true;
+	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
+	    }
+	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	      wiring[i].hasPower = true;
+	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
+	    }
+	  }
+
+	  // //look through force field blocks:
+	  // for (var i = 0; i < forceFieldBlocks.length; i++) {
+	  //   if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  //   if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	  //     forceFieldBlocks[i].hasPower = true;
+	  //   }
+	  // }
+	};
+
+	module.exports = WireJunction;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	function WireSegment(options) {
+	  this.id = options.id;
+	  this.hasPower = false;
+	}
+
+	module.exports = WireSegment;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	function Robot(startingPos) {
+	  this.pos = startingPos;
+	  this.speed = 256;
+	  this.height = 0;
+	  this.maxHeight = 0;
+	};
+
+	module.exports = Robot;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	function Door(id, side) {
+	  this.toString = function () { return "door" };
+	  this.id = id;
+	  this.status = "closed";
+	  this.percentOpen = 0;
+	  this.aniFrame = undefined;
+	  this.side = side;
+	};
+
+	Door.prototype.open = function () {
+	  if(this.status !== "open") {
+	    this.status = "opening";
+	  }
+	};
+
+	module.exports = Door;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var PowerObject = __webpack_require__(3);
+
+	function ButtonBlock(options) {
+	  this.initializePowerObject(options);
+	  this.id = options.id;
+	  this.side = options.side;
+	  this.rowCol = options.rowCol;
+	  this.pushFunc = options.func;
+	  this.toString = function () { return "buttonBlock" };
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = PowerObject.prototype;
+	ButtonBlock.prototype = new Surrogate();
+	ButtonBlock.prototype.constructor = ButtonBlock;
+
+	module.exports = ButtonBlock;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	function Cubby(options) {
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.item = options.startItem;
+
+	  this.toString = function () { return "cubby" };
+	}
+
+	module.exports = Cubby;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Renderer = __webpack_require__(1)
+
+	function Panel(segments) {
+	  this.segments = segments || [];
+	  this.hasPower = false;
+	}
+
+	Panel.prototype.render = function (context, pos, length, power) {
+	  var thickness = (length / 3);
+	  var x = pos[0];
+	  var y = pos[1];
+	  context.beginPath();
+	  context.rect(x, y, length, length);
+	  context.fillStyle = '#333';
+	  context.fill();
+	  context.strokeStyle = '#000';
+	  context.stroke();
+
+	  switch (this.segments.join("")) {
+	    case "EW":
+	      y += (length / 2) - (thickness / 2) + 0.5;
+	      context.beginPath();
+	      context.rect(x, y, length, thickness);
+	      break;
+	    case "NS":
+	      x += (length / 2) - (thickness / 2) + 0.5;
+	      context.beginPath();
+	      context.rect(x, y, thickness, length);
+	      break;
+	    case "SW":
+	      y += (length / 2) - (thickness / 2) + 0.5;
+	      context.beginPath();
+	      context.moveTo(x, y);
+	      context.lineTo(x += (length / 2) + (thickness / 2) + 0.5, y);
+	      context.lineTo(x, y += (thickness / 2) + (length / 2) - 0.5);
+	      context.lineTo(x -= thickness, y);
+	      context.lineTo(x, y -= (length / 2) - (thickness / 2) - 0.5);
+	      context.lineTo(x -= ((length / 2) - (thickness / 2) + 0.5), y);
+	      context.closePath();
+	      break;
+	  }
+	  context.fillStyle = '#484848';
+	  context.fill();
+	  context.strokeStyle = '#000';
+	  context.stroke();
+	};
+
+	module.exports = Panel;
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Robot = __webpack_require__(6);
 	var Renderer = __webpack_require__(1);
-	var Wire = __webpack_require__(11);
+	var Wire = __webpack_require__(2);
 	const BLOCK_LENGTH = 75;
 
 	function Game(renderer, levelSequence) {
@@ -1801,24 +2163,10 @@
 
 
 /***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	function Robot(startingPos) {
-	  this.pos = startingPos;
-	  this.speed = 256;
-	  this.height = 0;
-	  this.maxHeight = 0;
-	};
-
-	module.exports = Robot;
-
-
-/***/ },
-/* 4 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var obj = __webpack_require__(5);
+	var obj = __webpack_require__(13);
 	var Level = obj.Level;
 	var LevelBuilder = obj.LevelBuilder;
 	var Door = obj.Door;
@@ -2020,20 +2368,20 @@
 
 
 /***/ },
-/* 5 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Door = __webpack_require__(6);
-	var Elevator = __webpack_require__(7);
-	var ExitElevator = __webpack_require__(20);
+	var Door = __webpack_require__(7);
+	var Elevator = __webpack_require__(14);
+	var ExitElevator = __webpack_require__(15);
 	var ButtonBlock = __webpack_require__(8);
-	var Cubby = __webpack_require__(10);
-	var Wire = __webpack_require__(11);
-	var WireJunction = __webpack_require__(16);
-	var PowerSource = __webpack_require__(12);
-	var ForceFieldBlock = __webpack_require__(13);
-	var Panel = __webpack_require__(14);
-	var Spring = __webpack_require__(19);
+	var Cubby = __webpack_require__(9);
+	var Wire = __webpack_require__(2);
+	var WireJunction = __webpack_require__(4);
+	var PowerSource = __webpack_require__(16);
+	var ForceFieldBlock = __webpack_require__(17);
+	var Panel = __webpack_require__(10);
+	var Spring = __webpack_require__(18);
 
 	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
 	  this.name = name;
@@ -2077,29 +2425,7 @@
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	function Door(id, side) {
-	  this.toString = function () { return "door" };
-	  this.id = id;
-	  this.status = "closed";
-	  this.percentOpen = 0;
-	  this.aniFrame = undefined;
-	  this.side = side;
-	};
-
-	Door.prototype.open = function () {
-	  if(this.status !== "open") {
-	    this.status = "opening";
-	  }
-	};
-
-	module.exports = Door;
-
-
-/***/ },
-/* 7 */
+/* 14 */
 /***/ function(module, exports) {
 
 	function Elevator(options) {
@@ -2119,158 +2445,37 @@
 
 
 /***/ },
-/* 8 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerObject = __webpack_require__(9);
+	var Elevator = __webpack_require__(14);
 
-	function ButtonBlock(options) {
-	  this.initializePowerObject(options);
+	function ExitElevator(options) {
 	  this.id = options.id;
-	  this.side = options.side;
-	  this.rowCol = options.rowCol;
-	  this.pushFunc = options.func;
-	  this.toString = function () { return "buttonBlock" };
+	  this.col = options.baseRowCol[1];
+	  this.baseRow = options.baseRowCol[0];
+	  this.blocksHigh = options.startingHeight || 0;
+	  this.speed = options.speed || 400;
+	  this.heights = options.heights;
+
+	  this.topRow = this.baseRow - this.blocksHigh;
+	  this.additionalPixels = 0;
+	  this.exit = true;
 	}
 
 	var Surrogate = function () {};
-	Surrogate.prototype = PowerObject.prototype;
-	ButtonBlock.prototype = new Surrogate();
-	ButtonBlock.prototype.constructor = ButtonBlock;
+	Surrogate.prototype = Elevator.prototype;
+	ExitElevator.prototype = new Surrogate();
+	ExitElevator.prototype.constructor = ExitElevator;
 
-	module.exports = ButtonBlock;
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	function PowerObject() {
-	}
-
-	PowerObject.prototype.initializePowerObject = function (options) {
-	  this.hasPower = false;
-	  if (options) {
-	    this.rowCol = options.rowCol;
-	  }
-	};
-
-	PowerObject.prototype.getPowerStatus = function () {
-	  return (this.hasPower)
-	};
-
-	module.exports = PowerObject;
+	module.exports = ExitElevator;
 
 
 /***/ },
-/* 10 */
-/***/ function(module, exports) {
-
-	function Cubby(options) {
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.item = options.startItem;
-
-	  this.toString = function () { return "cubby" };
-	}
-
-	module.exports = Cubby;
-
-
-/***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerObject = __webpack_require__(9);
-
-	function Wire(options) {
-	  this.initializePowerObject(options);
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.type = options.type;
-	}
-
-	var Surrogate = function () {};
-	Surrogate.prototype = PowerObject.prototype;
-	Wire.prototype = new Surrogate();
-	Wire.prototype.constructor = Wire;
-
-	Wire.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
-
-	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
-
-	  //look through wires:
-	  for (var i = 0; i < wiring.length; i++) {
-	    if (this.type.split("").indexOf("W") !== -1) {
-	      if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
-	      }
-	    }
-	    if (this.type.split("").indexOf("N") !== -1) {
-	      if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
-	      }
-	    }
-	    if (this.type.split("").indexOf("E") !== -1) {
-	      if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
-	      }
-	    }
-	    if (this.type.split("").indexOf("S") !== -1) {
-	      if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
-	      }
-	    }
-	  }
-
-	  //look through force field blocks:
-	  for (var i = 0; i < forceFieldBlocks.length; i++) {
-	    if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	    if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	    if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	    if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	  }
-
-	  //look through button blocks:
-	  for (var i = 0; i < buttonBlocks.length; i++) {
-	    if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
-	    }
-	    if (buttonBlocks[i].rowCol[0] === topRowCol[0] && buttonBlocks[i].rowCol[1] === topRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
-	    }
-	    if (buttonBlocks[i].rowCol[0] === rightRowCol[0] && buttonBlocks[i].rowCol[1] === rightRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
-	    }
-	    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
-	    }
-	  }
-	}
-
-	module.exports = Wire;
-
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var PowerObject = __webpack_require__(9);
+	var PowerObject = __webpack_require__(3);
 
 	function PowerSource(options) {
 	  this.initializePowerObject(options);
@@ -2303,10 +2508,10 @@
 
 
 /***/ },
-/* 13 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var PowerObject = __webpack_require__(9);
+	var PowerObject = __webpack_require__(3);
 
 	function ForceFieldBlock(options) {
 	  this.initializePowerObject(options);
@@ -2324,187 +2529,7 @@
 
 
 /***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Renderer = __webpack_require__(1)
-
-	function Panel(segments) {
-	  this.segments = segments || [];
-	  this.hasPower = false;
-	}
-
-	Panel.prototype.render = function (context, pos, length, power) {
-	  var thickness = (length / 3);
-	  var x = pos[0];
-	  var y = pos[1];
-	  context.beginPath();
-	  context.rect(x, y, length, length);
-	  context.fillStyle = '#333';
-	  context.fill();
-	  context.strokeStyle = '#000';
-	  context.stroke();
-
-	  switch (this.segments.join("")) {
-	    case "EW":
-	      y += (length / 2) - (thickness / 2) + 0.5;
-	      context.beginPath();
-	      context.rect(x, y, length, thickness);
-	      break;
-	    case "NS":
-	      x += (length / 2) - (thickness / 2) + 0.5;
-	      context.beginPath();
-	      context.rect(x, y, thickness, length);
-	      break;
-	    case "SW":
-	      y += (length / 2) - (thickness / 2) + 0.5;
-	      context.beginPath();
-	      context.moveTo(x, y);
-	      context.lineTo(x += (length / 2) + (thickness / 2) + 0.5, y);
-	      context.lineTo(x, y += (thickness / 2) + (length / 2) - 0.5);
-	      context.lineTo(x -= thickness, y);
-	      context.lineTo(x, y -= (length / 2) - (thickness / 2) - 0.5);
-	      context.lineTo(x -= ((length / 2) - (thickness / 2) + 0.5), y);
-	      context.closePath();
-	      break;
-	  }
-	  context.fillStyle = '#484848';
-	  context.fill();
-	  context.strokeStyle = '#000';
-	  context.stroke();
-	};
-
-	module.exports = Panel;
-
-
-/***/ },
-/* 15 */,
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var WireSegment = __webpack_require__(18);
-
-	function WireJunction(options) {
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.segmentStrings = options.segmentStrings;
-	  this.segments = {};
-	  for (var i = 0; i < this.segmentStrings.length; i++) {
-	    if (this.segmentStrings[i] === "N") {
-	      this.segments['N'] = new WireSegment({ id: "N" });
-	    } else if (this.segmentStrings[i] === "E") {
-	      this.segments['E'] = new WireSegment({ id: "E" });
-	    } else if (this.segmentStrings[i] === "S") {
-	      this.segments['S'] = new WireSegment({ id: "S" });
-	    } else if (this.segmentStrings[i] === "W") {
-	      this.segments['W'] = new WireSegment({ id: "W" });
-	    }
-	  }
-	}
-
-	WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
-	  var cubby;
-	  for (var i = 0; i < cubbies.length; i++) {
-	    if (cubbies[i].rowCol[0] === this.rowCol[0] && cubbies[i].rowCol[1] === this.rowCol[1]) {
-	      cubby = cubbies[i];
-	      break;
-	    }
-	  }
-
-	  if (flowing === "leftward" && this.segments['E']) {
-	    this.segments['E'].hasPower = true;
-	    this.giveItemPower(cubby.item, 'E');
-	  } else if (flowing === "rightward" && this.segments['W']) {
-	    this.segments['W'].hasPower = true;
-	    this.giveItemPower(cubby.item, 'W');
-	  } else if (flowing === "upward" && this.segments['S']) {
-	    this.giveItemPower(cubby.item, 'S');
-	    this.segments['S'].hasPower = true;
-	  } else if (flowing === "downward" && this.segments['N']) {
-	    this.giveItemPower(cubby.item, 'N');
-	    this.segments['N'].hasPower = true;
-	  }
-
-	  if (cubby.item) {
-	    if (cubby.item.hasPower) {
-	      for (var i = 0; i < cubby.item.segments.length; i++) {
-	        if (this.segments[cubby.item.segments[i]]) {
-	          this.segments[cubby.item.segments[i]].hasPower = true;
-	        }
-	      }
-	      this.sendPowerFromItem(cubby.item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing);
-	    }
-	  }
-	}
-
-	WireJunction.prototype.giveItemPower = function (item, side) {
-	  if (item && item.segments.indexOf(side) !== -1) {
-	    item.hasPower = true;
-	  }
-	};
-
-	WireJunction.prototype.sendPowerFromItem = function (item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
-
-	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
-
-	  //look through wires:
-	  for (var i = 0; i < wiring.length; i++) {
-	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
-	    }
-	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
-	    }
-	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
-	    }
-	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
-	    }
-	  }
-
-	  // //look through force field blocks:
-	  // for (var i = 0; i < forceFieldBlocks.length; i++) {
-	  //   if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  //   if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  //   if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  //   if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  // }
-	};
-
-	module.exports = WireJunction;
-
-
-/***/ },
-/* 17 */,
 /* 18 */
-/***/ function(module, exports) {
-
-	function WireSegment(options) {
-	  this.id = options.id;
-	  this.hasPower = false;
-	}
-
-	module.exports = WireSegment;
-
-
-/***/ },
-/* 19 */
 /***/ function(module, exports) {
 
 	
@@ -2514,33 +2539,6 @@
 	}
 
 	module.exports = Spring;
-
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Elevator = __webpack_require__(7);
-
-	function ExitElevator(options) {
-	  this.id = options.id;
-	  this.col = options.baseRowCol[1];
-	  this.baseRow = options.baseRowCol[0];
-	  this.blocksHigh = options.startingHeight || 0;
-	  this.speed = options.speed || 400;
-	  this.heights = options.heights;
-
-	  this.topRow = this.baseRow - this.blocksHigh;
-	  this.additionalPixels = 0;
-	  this.exit = true;
-	}
-
-	var Surrogate = function () {};
-	Surrogate.prototype = Elevator.prototype;
-	ExitElevator.prototype = new Surrogate();
-	ExitElevator.prototype.constructor = ExitElevator;
-
-	module.exports = ExitElevator;
 
 
 /***/ }
