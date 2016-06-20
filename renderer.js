@@ -1,7 +1,6 @@
 const BLOCK_LENGTH = 75;
 const EDGE_TO_INNER = 8;
 const INNER_RECT_LENGTH = BLOCK_LENGTH - (EDGE_TO_INNER * 2);
-
 var Wire = require('./wire.js');
 var WireJunction = require('./wireJunction.js');
 var Robot = require('./robot.js');
@@ -31,10 +30,10 @@ Renderer.prototype.renderScreen = function () {
     this.incrementTime();
     this.incrementDoors();
     this.renderBackground(this.game.origin, this.game.currentLevel, cornerSquares);
-    this.renderWiring(this.game.origin, this.game.currentLevel, cornerSquares);
+    this.renderBackgroundObjects(this.game.currentLevel.wiring, this.game.origin, this.game.currentLevel, cornerSquares)
+    this.renderBackgroundObjects(this.game.currentLevel.cubbies, this.game.origin, this.game.currentLevel, cornerSquares)
     this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
     this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
-    this.renderCubbies(this.game.origin, this.game.currentLevel, cornerSquares);
     this.renderRobot(this.game.robot);
     if (this.showLevelName) { this.renderLevelName() };
   }
@@ -57,16 +56,6 @@ Renderer.prototype.renderLevelName = function () {
   this.c.fillStyle = 'white';
   this.c.font = "bold 60px 'Inconsolata'";
   this.c.fillText(this.game.currentLevel.name, 200.5, 120.5);
-};
-
-Renderer.prototype.blackBackground = function () {
-  this.drawRectangle({
-    x: 0,
-    y: 0,
-    width: 600,
-    height: 450,
-    fill: 'black'
-  })
 };
 
 Renderer.prototype.displayLoadScreen = function () {
@@ -208,10 +197,8 @@ Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSqua
   for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
     var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
     for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
-
       var x_block = (-1 * origin[0]) + col_left_x + 0.5;
       var y_block = (-1 * origin[1]) + row_top_y + 0.5;
-
       if (currentLevel.foregroundGrid[row][col] === "") {
       } else if (currentLevel.foregroundGrid[row][col] === "block") {
         this.drawBlock([x_block, y_block]);
@@ -245,17 +232,13 @@ Renderer.prototype.renderBackground = function (origin, currentLevel, cornerSqua
   for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
     var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
     for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
-
-      //skip if there's a foreground block covering this square
       if (currentLevel.foregroundGrid[row][col] === "block") {
         col_left_x += 75;
-        continue;
+        continue; //skip - there's a foreground block covering this square
       }
-
       var x_block = (-1 * origin[0]) + col_left_x + 0.5;
       var y_block = (-1 * origin[1]) + row_top_y + 0.5;
-
-      if(currentLevel.backgroundGrid[row][col] === "brick"){
+      if (currentLevel.backgroundGrid[row][col] === "brick"){
         var leftEdges = currentLevel.foregroundGrid[row][col - 1] !== "block"
         this.drawBrick([x_block, y_block], '#632612', leftEdges);
       }
@@ -282,8 +265,7 @@ Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquar
         var adjustedPlatformTop = platform_top_y - additionalPixels;
         //and the bottom
         var realBaseBottomY = ((currentLevel.elevators[elv].baseRow + 1) * BLOCK_LENGTH) + 0.5;
-        var relBaseBottomY = realBaseBottomY - origin[1]
-
+        var relBaseBottomY = realBaseBottomY - origin[1];
         this.drawElevator(x_block, adjustedPlatformTop, relBaseBottomY, currentLevel.elevators[elv].exit)
       }
     }
@@ -317,43 +299,23 @@ Renderer.prototype.drawElevator = function (x_block, adjustedPlatformTop, relBas
   }
 };
 
-Renderer.prototype.renderCubbies = function (origin, currentLevel, cornerSquares) {
-  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
-  //iterate through each visible column:
-  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
-    //iterate through cubbies to see if there's one in this column:
-    for (var cubby = 0; cubby < currentLevel.cubbies.length; cubby++) {
-      if (currentLevel.cubbies[cubby].rowCol[1] === col) {
-        //if so, find where the top is:
-        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
-        var y_block = (BLOCK_LENGTH * currentLevel.cubbies[cubby].rowCol[0]) - origin[1] + 0.5;
-        this.drawCubby([x_block, y_block], currentLevel.cubbies[cubby]);
+Renderer.prototype.renderBackgroundObjects = function (objects, origin, currentLevel, cornerSquares) {
+  for (var i = 0; i < objects.length; i++) {
+    if (objects[i].rowCol[0] >= cornerSquares[0] &&
+        objects[i].rowCol[1] >= cornerSquares[1] &&
+        objects[i].rowCol[0] <= cornerSquares[2] &&
+        objects[i].rowCol[1] <= cornerSquares[3]
+    ) {
+      var x_block = (BLOCK_LENGTH * objects[i].rowCol[1]) - origin[0] + 0.5;
+      var y_block = (BLOCK_LENGTH * objects[i].rowCol[0]) - origin[1] + 0.5;
+      if (objects[i] instanceof Wire) {
+        this.drawWire([x_block, y_block], objects[i]);
+      } else if (objects[i] instanceof WireJunction) {
+        this.drawWireJunction([x_block, y_block], objects[i]);
+      } else if (objects[i] instanceof Cubby) {
+        this.drawCubby([x_block, y_block], objects[i]);
       }
     }
-
-    col_left_x += 75;
-  }
-};
-
-Renderer.prototype.renderWiring = function (origin, currentLevel, cornerSquares) {
-  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
-  //iterate through each visible column:
-  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
-    //iterate through wiring to see if there's one in this column:
-    for (var wire = 0; wire < currentLevel.wiring.length; wire++) {
-      if (currentLevel.wiring[wire].rowCol[1] === col) {
-        //if so, find where the top is:
-        var x_block = (-1 * origin[0]) + col_left_x + 0.5;
-        var y_block = (BLOCK_LENGTH * currentLevel.wiring[wire].rowCol[0]) - origin[1] + 0.5;
-        if (currentLevel.wiring[wire] instanceof Wire) {
-          this.drawWire([x_block, y_block], currentLevel.wiring[wire]);
-        } else {
-          this.drawWireJunction([x_block, y_block], currentLevel.wiring[wire]);
-        }
-      }
-    }
-
-    col_left_x += 75;
   }
 };
 
@@ -922,6 +884,16 @@ Renderer.prototype.drawDot = function (pos) {
     pos: pos,
     fill: 'black',
     radius: 2
+  })
+};
+
+Renderer.prototype.blackBackground = function () {
+  this.drawRectangle({
+    x: 0,
+    y: 0,
+    width: 600,
+    height: 450,
+    fill: 'black'
   })
 };
 
