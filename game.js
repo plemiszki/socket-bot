@@ -86,9 +86,7 @@ Game.prototype.update = function (modifier) {
   var leftCol = this.getLeftColumn(realArrays);
   var rightCol = this.getRightColumn(realArrays);
   var ghostArrays = [this.origin, this.robot.pos];
-  if (this.status !== "finished") {
-    this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
-  }
+
   if (this.status === "rising" || this.status === "finished") {
     ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
     this.elevatorArray.forEach(function (elevator) {
@@ -100,6 +98,7 @@ Game.prototype.update = function (modifier) {
       elevator.additionalPixels -= (elevator.speed * modifier);
     }.bind(this))
   } else if (this.status === "inControl") {
+    this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
     if (38 in this.keysDown) { //up
       this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "up");
     } else if (40 in this.keysDown) { //down
