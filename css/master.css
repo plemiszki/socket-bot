@@ -21,7 +21,6 @@ html {
 
 h1 {
   font-family: 'Inconsolata', sans-serif;
-  visibility: hidden;
 }
 
 content {
@@ -29,6 +28,38 @@ content {
   width: 600px;
   margin: auto;
   /*border: 1px solid red;*/
+}
+
+.icons {
+  width: 217px;
+  height: 100px;
+  text-align: center;
+  margin: auto;
+}
+
+.author {
+  font-size: 20px;
+  width: 300px;
+  height: 20px;
+  margin: 60px auto 0 auto;
+  text-align: center;
+}
+
+.nav-icon {
+  color: #A2A2A2;
+  -webkit-transition: color 0.5s, -webkit-transform 0.5s;
+  transition: color 0.5s, transform 0.5s;
+}
+
+.nav-icon:hover {
+  color: yellow;
+  -webkit-transition: color 0.5s, -webkit-transform 0.5s;
+  transition: color 0.5s, transform 0.5s;
+}
+
+.icons > li {
+  float: left;
+  margin: 15px;
 }
 
 .group:after {
