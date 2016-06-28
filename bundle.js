@@ -52,7 +52,7 @@
 	  var context = canvas.getContext("2d");
 	  var renderer = new Renderer(context);
 	  var levelSequence = [
-	    __webpack_require__(12)
+	    __webpack_require__(19)
 	  ];
 
 	  gameInstance = new Game(renderer, levelSequence);
@@ -689,6 +689,16 @@
 	    this.c.lineTo(pos[0] + BLOCK_LENGTH, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
 	    this.c.lineTo(pos[0] + BLOCK_LENGTH, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
 	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] - 0.5);
+	    this.c.fillStyle = fill;
+	    this.c.fill();
+	  } else if (wire.type === "NW") {
+	    this.c.beginPath();
+	    this.c.moveTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] - 0.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) - 4.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+	    this.c.lineTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) - 4.5);
+	    this.c.lineTo(pos[0] - 0.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
+	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] + (BLOCK_LENGTH / 2) + 4.5);
 	    this.c.lineTo(pos[0] + (BLOCK_LENGTH / 2) + 4.5, pos[1] - 0.5);
 	    this.c.fillStyle = fill;
 	    this.c.fill();
@@ -1582,6 +1592,9 @@
 	  var leftCol = this.getLeftColumn(realArrays);
 	  var rightCol = this.getRightColumn(realArrays);
 	  var ghostArrays = [this.origin, this.robot.pos];
+	  var aboveTopObj = null;
+	  var topObj = null;
+	  var bottomObj = null;
 
 	  if (this.status === "rising" || this.status === "finished") {
 	    ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
@@ -1602,41 +1615,69 @@
 	    }
 	    if (39 in this.keysDown) { //right
 	      ghostArrays = this.moveRight(this.robot.speed, modifier);
-	      ghostCol = this.getRightColumn(ghostArrays)
-	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol], this.currentLevel.foregroundGrid[topRow - 1][ghostCol]) === false ||
-	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol], this.currentLevel.foregroundGrid[bottomRow - 1][ghostCol]) === false) {
+	      ghostCol = this.getRightColumn(ghostArrays);
+	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][ghostCol];
+	      topObj = this.currentLevel.foregroundGrid[topRow][ghostCol];
+	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol];
+	      bottomRightObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol + 1];
+	      if (this.passThrough(topObj, aboveTopObj, "right") === false || this.passThrough(bottomObj, topObj, "right") === false) {
 	        robotX = this.getRealRightX(realArrays);
 	        edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
 	        difference = edge - robotX;
 	        ghostArrays = this.moveRight(difference, 1);
-	      } else if (this.getLeftButtonEdge(ghostArrays) !== -1) {
+	      } else if (bottomRightObj.toString() === "buttonBlock") {
 	        var buttonStuff = this.getLeftButtonEdge(ghostArrays);
-	        var edge = buttonStuff[0];
-	        var button = buttonStuff[1];
-	        robotX = this.getRealRightX(realArrays);
-	        difference = edge - robotX;
-	        ghostArrays = this.moveRight(difference, 1);
-	        // if (button.hasPower) { button.pushFunc() };
-	        button.pushFunc();
+	        if (buttonStuff != -1) {
+	          var edge = buttonStuff[0];
+	          var button = buttonStuff[1];
+	          robotX = this.getRealRightX(realArrays);
+	          difference = edge - robotX;
+	          ghostArrays = this.moveRight(difference, 1);
+	          // if (button.hasPower) { button.pushFunc() };
+	          button.pushFunc();
+	        }
+	      } else if (bottomObj.toString() === "door") {
+	        var edge = this.getLeftDoorEdge(ghostArrays, bottomObj)
+	        if (edge !== -1) {
+	          robotX = this.getRealRightX(realArrays);
+	          difference = robotX - edge;
+	          if (difference > 0) {
+	            ghostArrays = this.moveLeft(difference, 1);
+	          }
+	        }
 	      }
 	    } else if (37 in this.keysDown) { //left
 	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
 	      ghostCol = this.getLeftColumn(ghostArrays)
-	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][ghostCol], this.currentLevel.foregroundGrid[topRow - 1][ghostCol]) === false ||
-	      this.passThrough(this.currentLevel.foregroundGrid[bottomRow][ghostCol], this.currentLevel.foregroundGrid[bottomRow - 1][ghostCol]) === false) {
+	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][ghostCol];
+	      topObj = this.currentLevel.foregroundGrid[topRow][ghostCol];
+	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol];
+	      bottomLeftObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol - 1];
+	      if (this.passThrough(topObj, aboveTopObj, "left") === false || this.passThrough(bottomObj, topObj, "left") === false) {
 	        robotX = this.getRealLeftX(realArrays);
 	        edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
 	        difference = robotX - edge;
 	        ghostArrays = this.moveLeft(difference, 1);
-	      } else if (this.getRightButtonEdge(ghostArrays) !== -1) {
+	      } else if (bottomLeftObj.toString() === "buttonBlock") {
 	        var buttonStuff = this.getRightButtonEdge(ghostArrays);
-	        var edge = buttonStuff[0];
-	        var button = buttonStuff[1];
-	        robotX = this.getRealLeftX(realArrays);
-	        difference = robotX - edge;
-	        ghostArrays = this.moveLeft(difference, 1);
-	        // if (button.hasPower) { button.pushFunc() };
-	        button.pushFunc();
+	        if (buttonStuff != -1) {
+	          var edge = buttonStuff[0];
+	          var button = buttonStuff[1];
+	          robotX = this.getRealLeftX(realArrays);
+	          difference = robotX - edge;
+	          ghostArrays = this.moveLeft(difference, 1);
+	          // if (button.hasPower) { button.pushFunc() };
+	          button.pushFunc();
+	        }
+	      } else if (bottomObj.toString() === "door") {
+	        var edge = this.getRightDoorEdge(ghostArrays, bottomObj)
+	        if (edge != -1) {
+	          robotX = this.getRealLeftX(realArrays);
+	          difference = edge - robotX;
+	          if (difference > 0) {
+	            ghostArrays = this.moveRight(difference, 1);
+	          }
+	        }
 	      }
 	    } else if (32 in this.keysDown && this.spaceTime === 0) { //space
 	      this.spaceTime = 20;
@@ -1667,7 +1708,7 @@
 	  }
 	  var ghostHeight = (this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined);
 	  this.setGhostToReal(ghostArrays, ghostHeight);
-	  // this.updateDebugHTML(realArrays);
+	  this.updateDebugHTML(realArrays);
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
 	  }
@@ -1796,9 +1837,30 @@
 	  }
 	};
 
-	Game.prototype.passThrough = function (object, aboveObject) {
+	Game.prototype.getRightDoorEdge = function (arrays, door) {
+	  if (door.status !== "open" && door.side === "left") {
+	    var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
+	    var doorEdge = blockRealLeftX + (this.BLOCK_LENGTH / 3);
+	    return doorEdge;
+	  } else {
+	    return -1;
+	  }
+	};
+
+	Game.prototype.getLeftDoorEdge = function (arrays, door) {
+	  if (door.status !== "open" && door.side === "right") {
+	    var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
+	    var doorEdge = blockRealRightX - (this.BLOCK_LENGTH / 3) - 1;
+	    return doorEdge;
+	  } else {
+	    return -1;
+	  }
+	};
+
+	Game.prototype.passThrough = function (object, aboveObject, dir) {
+	  dir = dir || ""
 	  if ( object === "block" || object === "platform"
-	      // || object.toString() === "door" && object.status === "closed"
+	      || object.toString() === "door" && object.status === "closed" && object.side != dir
 	      || object.toString() === "buttonBlock"
 	      || object.toString() === "forceFieldBlock"
 	      || object.toString() === "powerSource"
@@ -2131,388 +2193,7 @@
 
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var obj = __webpack_require__(13);
-	var Level = obj.Level;
-	var LevelBuilder = obj.LevelBuilder;
-	var Door = obj.Door;
-	var Elevator = obj.Elevator;
-	var ExitElevator = obj.ExitElevator;
-	var ButtonBlock = obj.ButtonBlock;
-	var Cubby = obj.Cubby;
-	var Wire = obj.Wire;
-	var WireJunction = obj.WireJunction;
-	var PowerSource = obj.PowerSource;
-	var ForceFieldBlock = obj.ForceFieldBlock;
-	var Panel = obj.Panel;
-	var Spring = obj.Spring;
-
-	var builder = new LevelBuilder();
-
-	var doors = [
-	  new Door(101, "right", 'green'),
-	  new Door(102, "right"),
-	  new Door(103, "right"),
-	  new Door(104, "right"),
-	  new Door(105, "right", 'green'),
-	  new Door(106, "left"),
-	  new Door(107, "left", 'green'),
-	  new Door(108, "right", 'green'),
-	  new Door(109, "left"),
-	  new Door(110, "left")
-	];
-
-	var elevators = [
-	  new Elevator({
-	    id: 102,
-	    baseRowCol: [9, 9],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 102,
-	    baseRowCol: [9, 10],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 103,
-	    baseRowCol: [6, 6],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 103,
-	    baseRowCol: [6, 7],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 104,
-	    baseRowCol: [15, 6],
-	    startingHeight: 0,
-	    heights: [0, 3, 6]
-	  }),
-	  new Elevator({
-	    id: 104,
-	    baseRowCol: [15, 7],
-	    startingHeight: 0,
-	    heights: [0, 3, 6]
-	  }),
-	  new Elevator({
-	    id: 105,
-	    baseRowCol: [9, 1],
-	    startingHeight: 3,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 106,
-	    baseRowCol: [18, 11],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 106,
-	    baseRowCol: [18, 12],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 107,
-	    baseRowCol: [18, 19],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 107,
-	    baseRowCol: [18, 20],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 108,
-	    baseRowCol: [15, 24],
-	    startingHeight: 0,
-	    heights: [0, 3, 6]
-	  }),
-	  new Elevator({
-	    id: 108,
-	    baseRowCol: [15, 25],
-	    startingHeight: 0,
-	    heights: [0, 3, 6]
-	  }),
-	  new Elevator({
-	    id: 109,
-	    baseRowCol: [9, 21],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 109,
-	    baseRowCol: [9, 22],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 110,
-	    baseRowCol: [6, 24],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new Elevator({
-	    id: 110,
-	    baseRowCol: [6, 25],
-	    startingHeight: 0,
-	    heights: [0, 3]
-	  }),
-	  new ExitElevator({
-	    id: 101,
-	    baseRowCol: [3, 15],
-	    startingHeight: 0,
-	    heights: [0, 3, 6, 10]
-	  }),
-	  new ExitElevator({
-	    id: 101,
-	    baseRowCol: [3, 16],
-	    startingHeight: 0,
-	    heights: [0]
-	  })
-	];
-
-	var cubbies = [
-	  // new Cubby({
-	  //   id: "C101",
-	  //   rowCol: [1, 2],
-	  //   startItem: new Panel(["N", "S"])
-	  // }),
-	  // new Cubby({
-	  //   id: "C102",
-	  //   rowCol: [11, 15],
-	  //   startItem: new Panel(["E", "W"])
-	  // }),
-	  // new Cubby({
-	  //   id: "C103",
-	  //   rowCol: [4, 13],
-	  //   startItem: new Panel(["N", "S"])
-	  // }),
-	  // new Cubby({
-	  //   id: "C104",
-	  //   rowCol: [8, 21],
-	  //   startItem: new Panel(["S", "W"])
-	  // })
-	];
-
-	var powerSources = [
-	  // new PowerSource({
-	  //   id: "PS101",
-	  //   rowCol: [11, 22]
-	  // })
-	]
-
-	var wiring = [
-	  //Force Field Block
-	  // new Wire({ rowCol: [11, 21], type: "EW" }),
-	  // new Wire({ rowCol: [11, 20], type: "EW" }),
-	  // new Wire({ rowCol: [11, 19], type: "EW" }),
-	  // new Wire({ rowCol: [11, 18], type: "EW" }),
-	  // new Wire({ rowCol: [11, 17], type: "EW" }),
-	  // new Wire({ rowCol: [11, 16], type: "EW" }),
-	  // new WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }),
-	  // new Wire({ rowCol: [11, 14], type: "NE" }),
-	  // new Wire({ rowCol: [10, 14], type: "NS" }),
-	  // new Wire({ rowCol: [9, 14], type: "NS" }),
-	  // new Wire({ rowCol: [8, 14], type: "NS" }),
-	  // new Wire({ rowCol: [7, 14], type: "NS" }),
-	  // new Wire({ rowCol: [6, 14], type: "NS" }),
-	  // new Wire({ rowCol: [5, 14], type: "NSW" }),
-	  // new Wire({ rowCol: [4, 14], type: "ES" }),
-	  // new Wire({ rowCol: [4, 15], type: "EW" }),
-	  // new Wire({ rowCol: [4, 16], type: "EW" }),
-	  // new Wire({ rowCol: [4, 17], type: "EW" }),
-	  // new Wire({ rowCol: [4, 18], type: "EW" }),
-	  //
-	  // //Branch to top button
-	  // new Wire({ rowCol: [1, 13], type: "ES" }),
-	  // new Wire({ rowCol: [2, 13], type: "NS" }),
-	  // new Wire({ rowCol: [3, 13], type: "NS" }),
-	  // new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }),
-	  // new Wire({ rowCol: [5, 13], type: "NE" }),
-	  //
-	  // //Branch to left button
-	  // new Wire({ rowCol: [3, 5], type: "EW" }),
-	  // new Wire({ rowCol: [3, 6], type: "EW" }),
-	  // new Wire({ rowCol: [3, 7], type: "WS" }),
-	  // new Wire({ rowCol: [4, 7], type: "NE" }),
-	  // new Wire({ rowCol: [4, 8], type: "EW" }),
-	  // new Wire({ rowCol: [4, 9], type: "EW" }),
-	  // new Wire({ rowCol: [4, 10], type: "EW" }),
-	  // new Wire({ rowCol: [4, 11], type: "EW" }),
-	  // new Wire({ rowCol: [4, 12], type: "EW" }),
-	]
-
-	var openGreenDoors = function () {
-	  for (var i = 0; i < doors.length; i++) {
-	    if (doors[i].color == 'green') {
-	      doors[i].open()
-	    } else {
-	      doors[i].close()
-	    }
-	  }
-	}
-
-	var openRedDoors = function () {
-	  for (var i = 0; i < doors.length; i++) {
-	    if (doors[i].color == 'red') {
-	      doors[i].open()
-	    } else {
-	      doors[i].close()
-	    }
-	  }
-	}
-
-	var buttonBlocks = [
-	  new ButtonBlock({
-	    id: "BB101",
-	    side: "left",
-	    rowCol: [3, 8],
-	    color: 'green',
-	    func: openGreenDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB102",
-	    side: "right",
-	    rowCol: [1, 18],
-	    func: openRedDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB103",
-	    side: "right",
-	    rowCol: [1, 18],
-	    func: openRedDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB104",
-	    side: "right",
-	    color: 'green',
-	    rowCol: [1, 18],
-	    func: openGreenDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB105",
-	    side: "right",
-	    color: 'green',
-	    rowCol: [1, 18],
-	    func: openGreenDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB106",
-	    side: "left",
-	    rowCol: [1, 18],
-	    func: openRedDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB107",
-	    side: "left",
-	    rowCol: [1, 18],
-	    func: openRedDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB108",
-	    side: "left",
-	    rowCol: [1, 18],
-	    func: openRedDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB109",
-	    side: "right",
-	    color: 'green',
-	    rowCol: [1, 18],
-	    func: openGreenDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB110",
-	    side: "left",
-	    color: 'green',
-	    rowCol: [1, 18],
-	    func: openGreenDoors
-	  }),
-	  new ButtonBlock({
-	    id: "BB111",
-	    side: "right",
-	    rowCol: [1, 18],
-	    func: openRedDoors
-	  })
-	];
-
-	var forceFieldBlocks = [
-	  new ForceFieldBlock({
-	    id: "FF101",
-	    rowCol: [4, 23]
-	  }),
-	  new ForceFieldBlock({
-	    id: "FF101",
-	    rowCol: [4, 23]
-	  })
-	];
-
-	var foregroundGrid = [
-	  builder.rowOf(15, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(15, "block")),
-	  builder.rowOf(6, "block").concat(builder.rowOf(7, "")).concat(builder.rowOf(1, "block")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(2, "")).concat([forceFieldBlocks[1]]).concat(builder.rowOf(1, "block")).concat(builder.rowOf(7, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(6, "block").concat(builder.rowOf(7, "")).concat(doors[0]).concat(builder.rowOf(4, "")).concat(doors[9]).concat(builder.rowOf(7, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(6, "block").concat(builder.rowOf(8, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(8, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat([doors[1]]).concat(builder.rowOf(7, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[10]]).concat(builder.rowOf(7, "")).concat([doors[8]]).concat(builder.rowOf(4, "")).concat(["block"]),
-	  builder.rowOf(1, "block").concat(builder.rowOf(1, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(1, "")).concat(["block"]),
-	  builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(14, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")),
-	  builder.rowOf(1, "block").concat(builder.rowOf(3, "")).concat([buttonBlocks[2]]).concat(builder.rowOf(3, "")).concat([doors[2]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[5]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[8]]).concat(builder.rowOf(4, "")).concat([doors[7]]).concat(builder.rowOf(3, "")).concat([buttonBlocks[9]]).concat(builder.rowOf(3, "")).concat(builder.rowOf(1, "block")),
-	  builder.rowOf(1, "block").concat(builder.rowOf(1, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat([""]).concat(["block"]),
-	  builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(8, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(4, "block").concat([buttonBlocks[4]]).concat(builder.rowOf(22, "")).concat([buttonBlocks[7]]).concat(builder.rowOf(4, "block")),
-	  builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")),
-	  builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat([doors[3]]).concat(builder.rowOf(3, "")).concat([doors[4]]).concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat([doors[5]]).concat(builder.rowOf(3, "")).concat([doors[6]]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")),
-	  builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")),
-	  builder.rowOf(9, "block").concat(builder.rowOf(14, "")).concat(builder.rowOf(9, "block")),
-	  builder.rowOf(9, "block").concat(buttonBlocks[3]).concat(builder.rowOf(12, "")).concat(buttonBlocks[6]).concat(builder.rowOf(9, "block")),
-	  builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(11, "block")),
-	  builder.rowOf(32, "block"),
-	  builder.rowOf(32, "block"),
-	  builder.rowOf(32, "block")
-	];
-
-	var backgroundGrid = [
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick"),
-	  builder.rowOf(32, "brick")
-	];
-
-	level1 = new Level("Level 2", foregroundGrid, backgroundGrid, [1000.5, 1275.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
-
-	module.exports = level1;
-
-
-/***/ },
+/* 12 */,
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -2645,6 +2326,9 @@
 	    if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1]) {
 	      wiring[i].hasPower = true;
 	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "left");
+	    } else if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1]) {
+	      wiring[i].hasPower = true;
+	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "bottom");
 	    }
 	  }
 	}
@@ -2684,6 +2368,211 @@
 	}
 
 	module.exports = Spring;
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var obj = __webpack_require__(13);
+	var Level = obj.Level;
+	var LevelBuilder = obj.LevelBuilder;
+	var Door = obj.Door;
+	var Elevator = obj.Elevator;
+	var ExitElevator = obj.ExitElevator;
+	var ButtonBlock = obj.ButtonBlock;
+	var Cubby = obj.Cubby;
+	var Wire = obj.Wire;
+	var WireJunction = obj.WireJunction;
+	var PowerSource = obj.PowerSource;
+	var ForceFieldBlock = obj.ForceFieldBlock;
+	var Panel = obj.Panel;
+	var Spring = obj.Spring;
+
+	var builder = new LevelBuilder();
+
+	var doors = [
+	  new Door(101, "right"),
+	  new Door(102, "left")
+	];
+
+	var elevators = [
+	  new Elevator({
+	    id: 101,
+	    baseRowCol: [10, 5],
+	    startingHeight: 4,
+	    heights: [0, 4, 8]
+	  }),
+	  new Elevator({
+	    id: 101,
+	    baseRowCol: [10, 6],
+	    startingHeight: 4,
+	    heights: [0, 4, 8]
+	  }),
+	  new Elevator({
+	    id: 102,
+	    baseRowCol: [10, 1],
+	    startingHeight: 0,
+	    heights: [0, 6]
+	  }),
+	  new Elevator({
+	    id: 103,
+	    baseRowCol: [12, 17],
+	    startingHeight: 6,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new Elevator({
+	    id: 103,
+	    baseRowCol: [12, 18],
+	    startingHeight: 6,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new ExitElevator({
+	    id: 104,
+	    baseRowCol: [2, 21],
+	    startingHeight: 0,
+	    heights: [0, 3, 6, 10]
+	  }),
+	  new ExitElevator({
+	    id: 104,
+	    baseRowCol: [2, 22],
+	    startingHeight: 0,
+	    heights: [0]
+	  })
+	];
+
+	var cubbies = [
+	  new Cubby({
+	    id: "C101",
+	    rowCol: [1, 2],
+	    startItem: new Panel(["N", "S"])
+	  }),
+	  new Cubby({
+	    id: "C102",
+	    rowCol: [11, 15],
+	    startItem: new Panel(["E", "W"])
+	  }),
+	  new Cubby({
+	    id: "C103",
+	    rowCol: [4, 13],
+	    startItem: null
+	  }),
+	  new Cubby({
+	    id: "C104",
+	    rowCol: [8, 21],
+	    startItem: new Panel(["S", "W"])
+	  })
+	];
+
+	var powerSources = [
+	  new PowerSource({
+	    id: "PS101",
+	    rowCol: [11, 22]
+	  })
+	]
+
+	var wiring = [
+	  //Force Field Block
+	  new Wire({ rowCol: [11, 21], type: "EW" }),
+	  new Wire({ rowCol: [11, 20], type: "EW" }),
+	  new Wire({ rowCol: [11, 19], type: "EW" }),
+	  new Wire({ rowCol: [11, 18], type: "EW" }),
+	  new Wire({ rowCol: [11, 17], type: "EW" }),
+	  new Wire({ rowCol: [11, 16], type: "EW" }),
+	  new WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }),
+	  new Wire({ rowCol: [11, 14], type: "NE" }),
+	  new Wire({ rowCol: [10, 14], type: "NS" }),
+	  new Wire({ rowCol: [9, 14], type: "NS" }),
+	  new Wire({ rowCol: [8, 14], type: "NS" }),
+	  new Wire({ rowCol: [7, 14], type: "NS" }),
+	  new Wire({ rowCol: [6, 14], type: "NS" }),
+	  new Wire({ rowCol: [5, 14], type: "NSW" }),
+	  new Wire({ rowCol: [4, 14], type: "ES" }),
+	  new Wire({ rowCol: [4, 15], type: "EW" }),
+	  new Wire({ rowCol: [4, 16], type: "EW" }),
+	  new Wire({ rowCol: [4, 17], type: "EW" }),
+	  new Wire({ rowCol: [4, 18], type: "EW" }),
+
+	  //Branch to top button
+	  new Wire({ rowCol: [1, 13], type: "ES" }),
+	  new Wire({ rowCol: [2, 13], type: "NS" }),
+	  new Wire({ rowCol: [3, 13], type: "NS" }),
+	  new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }),
+	  new Wire({ rowCol: [5, 13], type: "NE" }),
+
+	  //Branch to left button
+	  new Wire({ rowCol: [3, 5], type: "EW" }),
+	  new Wire({ rowCol: [3, 6], type: "EW" }),
+	  new Wire({ rowCol: [3, 7], type: "WS" }),
+	  new Wire({ rowCol: [4, 7], type: "NE" }),
+	  new Wire({ rowCol: [4, 8], type: "EW" }),
+	  new Wire({ rowCol: [4, 9], type: "EW" }),
+	  new Wire({ rowCol: [4, 10], type: "EW" }),
+	  new Wire({ rowCol: [4, 11], type: "EW" }),
+	  new Wire({ rowCol: [4, 12], type: "EW" }),
+	]
+
+	var buttonBlocks = [
+	  new ButtonBlock({
+	    id: "BB101",
+	    side: "left",
+	    rowCol: [3, 4],
+	    func: function () {
+	      doors[0].open();
+	    }
+	  }),
+	  new ButtonBlock({
+	    id: "BB102",
+	    side: "right",
+	    rowCol: [1, 14],
+	    func: function () {
+	      doors[1].open();
+	    }
+	  })
+	];
+
+	var forceFieldBlocks = [
+	  new ForceFieldBlock({
+	    id: "FF101",
+	    rowCol: [4, 19]
+	  })
+	];
+
+	var foregroundGrid = [
+	  builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]),
+	  builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")),
+	  ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(7, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "powerBlock")),
+	  builder.rowOf(14, "block").concat(builder.rowOf(8, "")).concat([powerSources[0]]).concat(["powerBlock"]),
+	  builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))
+	];
+
+	var backgroundGrid = [
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick"),
+	  builder.rowOf(24, "brick")
+	];
+
+	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [750.5, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
+
+	module.exports = level1;
 
 
 /***/ }
