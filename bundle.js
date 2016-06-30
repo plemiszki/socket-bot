@@ -52,7 +52,7 @@
 	  var context = canvas.getContext("2d");
 	  var renderer = new Renderer(context);
 	  var levelSequence = [
-	    __webpack_require__(12)
+	    __webpack_require__(19)
 	  ];
 
 	  gameInstance = new Game(renderer, levelSequence);
@@ -2112,7 +2112,182 @@
 
 
 /***/ },
-/* 12 */
+/* 12 */,
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Door = __webpack_require__(7);
+	var Elevator = __webpack_require__(14);
+	var ExitElevator = __webpack_require__(15);
+	var ButtonBlock = __webpack_require__(8);
+	var Cubby = __webpack_require__(9);
+	var Wire = __webpack_require__(2);
+	var WireJunction = __webpack_require__(4);
+	var PowerSource = __webpack_require__(16);
+	var ForceFieldBlock = __webpack_require__(17);
+	var Panel = __webpack_require__(10);
+	var Spring = __webpack_require__(18);
+
+	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
+	  this.name = name;
+	  this.foregroundGrid = foregroundGrid;
+	  this.backgroundGrid = backgroundGrid;
+	  this.startingPos = robotPos;
+	  this.elevators = elevators;
+	  this.doors = doors;
+	  this.cubbies = cubbies;
+	  this.wiring = wiring;
+	  this.powerSources = powerSources;
+	  this.forceFieldBlocks = forceFieldBlocks;
+	  this.buttonBlocks = buttonBlocks;
+	}
+
+	function LevelBuilder() {};
+
+	LevelBuilder.prototype.rowOf = function (rowLength, something) {
+	  var rowArray = [];
+	  for (var i = 0; i < rowLength; i++) {
+	    rowArray.push(something);
+	  }
+	  return rowArray;
+	};
+
+	module.exports = {
+	  Level: Level,
+	  LevelBuilder: LevelBuilder,
+	  Door: Door,
+	  Elevator: Elevator,
+	  ExitElevator: ExitElevator,
+	  ButtonBlock: ButtonBlock,
+	  Cubby: Cubby,
+	  Wire: Wire,
+	  WireJunction: WireJunction,
+	  PowerSource: PowerSource,
+	  ForceFieldBlock: ForceFieldBlock,
+	  Panel: Panel,
+	  Spring: Spring
+	};
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	function Elevator(options) {
+	  this.id = options.id;
+	  this.col = options.baseRowCol[1];
+	  this.baseRow = options.baseRowCol[0];
+	  this.blocksHigh = options.startingHeight || 0;
+	  this.speed = options.speed || 400;
+	  this.heights = options.heights;
+
+	  this.topRow = this.baseRow - this.blocksHigh;
+	  this.additionalPixels = 0;
+	  this.toString = function () { return "elevator" };
+	}
+
+	module.exports = Elevator;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Elevator = __webpack_require__(14);
+
+	function ExitElevator(options) {
+	  this.id = options.id;
+	  this.col = options.baseRowCol[1];
+	  this.baseRow = options.baseRowCol[0];
+	  this.blocksHigh = options.startingHeight || 0;
+	  this.speed = options.speed || 400;
+	  this.heights = options.heights;
+
+	  this.topRow = this.baseRow - this.blocksHigh;
+	  this.additionalPixels = 0;
+	  this.exit = true;
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = Elevator.prototype;
+	ExitElevator.prototype = new Surrogate();
+	ExitElevator.prototype.constructor = ExitElevator;
+
+	module.exports = ExitElevator;
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var PowerObject = __webpack_require__(3);
+
+	function PowerSource(options) {
+	  this.initializePowerObject(options);
+	  this.id = options.id;
+	  this.toString = function () { return "powerSource" };
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = PowerObject.prototype;
+	PowerSource.prototype = new Surrogate();
+	PowerSource.prototype.constructor = PowerSource;
+
+
+	PowerSource.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forcefieldBlocks) {
+	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+
+	  //look through wires:
+	  for (var i = 0; i < wiring.length; i++) {
+	    if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1]) {
+	      wiring[i].hasPower = true;
+	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "left");
+	    }
+	  }
+	}
+
+	module.exports = PowerSource;
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var PowerObject = __webpack_require__(3);
+
+	function ForceFieldBlock(options) {
+	  this.initializePowerObject(options);
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.toString = function () { return "forceFieldBlock" };
+	}
+
+	var Surrogate = function () {};
+	Surrogate.prototype = PowerObject.prototype;
+	ForceFieldBlock.prototype = new Surrogate();
+	ForceFieldBlock.prototype.constructor = ForceFieldBlock;
+
+	module.exports = ForceFieldBlock;
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
+
+	
+	function Spring(options) {
+	  this.pickedUp = false;
+	  this.toString = function () { return "spring" };
+	}
+
+	module.exports = Spring;
+
+
+/***/ },
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var obj = __webpack_require__(13);
@@ -2314,180 +2489,6 @@
 	level1 = new Level("Level 1", foregroundGrid, backgroundGrid, [750.5, 375.5], elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks);
 
 	module.exports = level1;
-
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Door = __webpack_require__(7);
-	var Elevator = __webpack_require__(14);
-	var ExitElevator = __webpack_require__(15);
-	var ButtonBlock = __webpack_require__(8);
-	var Cubby = __webpack_require__(9);
-	var Wire = __webpack_require__(2);
-	var WireJunction = __webpack_require__(4);
-	var PowerSource = __webpack_require__(16);
-	var ForceFieldBlock = __webpack_require__(17);
-	var Panel = __webpack_require__(10);
-	var Spring = __webpack_require__(18);
-
-	function Level(name, foregroundGrid, backgroundGrid, robotPos, elevators, doors, cubbies, wiring, powerSources, forceFieldBlocks, buttonBlocks) {
-	  this.name = name;
-	  this.foregroundGrid = foregroundGrid;
-	  this.backgroundGrid = backgroundGrid;
-	  this.startingPos = robotPos;
-	  this.elevators = elevators;
-	  this.doors = doors;
-	  this.cubbies = cubbies;
-	  this.wiring = wiring;
-	  this.powerSources = powerSources;
-	  this.forceFieldBlocks = forceFieldBlocks;
-	  this.buttonBlocks = buttonBlocks;
-	}
-
-	function LevelBuilder() {};
-
-	LevelBuilder.prototype.rowOf = function (rowLength, something) {
-	  var rowArray = [];
-	  for (var i = 0; i < rowLength; i++) {
-	    rowArray.push(something);
-	  }
-	  return rowArray;
-	};
-
-	module.exports = {
-	  Level: Level,
-	  LevelBuilder: LevelBuilder,
-	  Door: Door,
-	  Elevator: Elevator,
-	  ExitElevator: ExitElevator,
-	  ButtonBlock: ButtonBlock,
-	  Cubby: Cubby,
-	  Wire: Wire,
-	  WireJunction: WireJunction,
-	  PowerSource: PowerSource,
-	  ForceFieldBlock: ForceFieldBlock,
-	  Panel: Panel,
-	  Spring: Spring
-	};
-
-
-/***/ },
-/* 14 */
-/***/ function(module, exports) {
-
-	function Elevator(options) {
-	  this.id = options.id;
-	  this.col = options.baseRowCol[1];
-	  this.baseRow = options.baseRowCol[0];
-	  this.blocksHigh = options.startingHeight || 0;
-	  this.speed = options.speed || 400;
-	  this.heights = options.heights;
-
-	  this.topRow = this.baseRow - this.blocksHigh;
-	  this.additionalPixels = 0;
-	  this.toString = function () { return "elevator" };
-	}
-
-	module.exports = Elevator;
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Elevator = __webpack_require__(14);
-
-	function ExitElevator(options) {
-	  this.id = options.id;
-	  this.col = options.baseRowCol[1];
-	  this.baseRow = options.baseRowCol[0];
-	  this.blocksHigh = options.startingHeight || 0;
-	  this.speed = options.speed || 400;
-	  this.heights = options.heights;
-
-	  this.topRow = this.baseRow - this.blocksHigh;
-	  this.additionalPixels = 0;
-	  this.exit = true;
-	}
-
-	var Surrogate = function () {};
-	Surrogate.prototype = Elevator.prototype;
-	ExitElevator.prototype = new Surrogate();
-	ExitElevator.prototype.constructor = ExitElevator;
-
-	module.exports = ExitElevator;
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var PowerObject = __webpack_require__(3);
-
-	function PowerSource(options) {
-	  this.initializePowerObject(options);
-	  this.id = options.id;
-	  this.toString = function () { return "powerSource" };
-	}
-
-	var Surrogate = function () {};
-	Surrogate.prototype = PowerObject.prototype;
-	PowerSource.prototype = new Surrogate();
-	PowerSource.prototype.constructor = PowerSource;
-
-
-	PowerSource.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forcefieldBlocks) {
-	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
-
-	  //look through wires:
-	  for (var i = 0; i < wiring.length; i++) {
-	    if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1]) {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "left");
-	    }
-	  }
-	}
-
-	module.exports = PowerSource;
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var PowerObject = __webpack_require__(3);
-
-	function ForceFieldBlock(options) {
-	  this.initializePowerObject(options);
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.toString = function () { return "forceFieldBlock" };
-	}
-
-	var Surrogate = function () {};
-	Surrogate.prototype = PowerObject.prototype;
-	ForceFieldBlock.prototype = new Surrogate();
-	ForceFieldBlock.prototype.constructor = ForceFieldBlock;
-
-	module.exports = ForceFieldBlock;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports) {
-
-	
-	function Spring(options) {
-	  this.pickedUp = false;
-	  this.toString = function () { return "spring" };
-	}
-
-	module.exports = Spring;
 
 
 /***/ }
