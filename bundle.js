@@ -228,11 +228,6 @@
 	};
 
 	Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSquares) {
-	  var el = document.getElementById("coord-window");
-	  el.innerHTML = "LEFT: " + cornerSquares[1] + "<br>"
-	                + "TOP: " + cornerSquares[0] + "<br>"
-	                + "RIGHT: " + cornerSquares[3] + "<br>"
-	                + "BOTTOM: " + cornerSquares[2];
 	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
 	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
 	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
@@ -1742,7 +1737,6 @@
 	  }
 	  var ghostHeight = (this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined);
 	  this.setGhostToReal(ghostArrays, ghostHeight);
-	  this.updateDebugHTML(realArrays);
 	  if (this.status === "rising" || this.status === "descending") {
 	    this.checkElevator();
 	  }
@@ -2206,21 +2200,6 @@
 
 	Game.prototype.getBlockRealBottomY = function (row) {
 	  return (0.5 + (row + 1) * this.BLOCK_LENGTH);
-	};
-
-	Game.prototype.updateDebugHTML = function (realArrays) {
-	  var leftLi = document.getElementById("left");
-	  leftLi.innerHTML = "LEFT:<br>" + this.getRealLeftX(realArrays) + "<br>"
-	                    + "col: " + this.getLeftColumn(realArrays);
-	  var rightLi = document.getElementById("right");
-	  rightLi.innerHTML = "RIGHT:<br>" + this.getRealRightX(realArrays) + "<br>"
-	                    + "col: " + this.getRightColumn(realArrays);
-	  var topLi = document.getElementById("top");
-	  topLi.innerHTML = "TOP:<br>" + this.getRealTopY(realArrays) + "<br>"
-	                    + "row: " + this.getTopRow(realArrays);
-	  var bottomLi = document.getElementById("bottom");
-	  bottomLi.innerHTML = "BOTTOM:<br>" + this.getRealBottomY(realArrays) + "<br>"
-	                    + "row: " + this.getBottomRow(realArrays);
 	};
 
 	module.exports = Game;
