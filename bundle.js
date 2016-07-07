@@ -64,7 +64,7 @@
 	  window.addEventListener("keydown", function (e) {
 	    gameInstance.keysDown[e.keyCode] = true;
 	    if (e.keyCode === 32 && gameInstance.status === "menu") {
-	      gameInstance.nextTutorialPage();
+	      gameInstance.startLevel();
 	    }
 	  }, false);
 
@@ -117,7 +117,7 @@
 	    this.renderForeground(this.game.origin, this.game.currentLevel, cornerSquares);
 	    this.renderElevators(this.game.origin, this.game.currentLevel, cornerSquares);
 	    this.renderRobot(this.game.robot);
-	    this.renderMessage(this.game.currentLevel.messages)
+	    if (this.game.currentLevel.messages) { this.renderMessage(this.game.currentLevel.messages) }
 	    if (this.game.currentLevel.name && this.showLevelName) { this.renderLevelName() };
 	  }
 	}
@@ -167,6 +167,7 @@
 	    fill: 'black',
 	    alpha: 0.8
 	  })
+	  this.c.textAlign = "left";
 	  this.c.fillStyle = 'white';
 	  this.c.font = "bold 60px 'Inconsolata'";
 	  this.c.fillText(this.game.currentLevel.name, 200.5, 120.5);
@@ -202,81 +203,6 @@
 	  this.c.fillText("Push SPACEBAR to Start", 136, 370);
 	};
 
-	Renderer.prototype.displayInstructions = function (page) {
-	  this.blackBackground();
-	  this.c.fillStyle = 'white';
-	  this.c.font = "bold 20px 'Inconsolata'";
-	  switch (page) {
-	    case 1:
-	      this.c.fillText("In this game, you are a robot.", 40, 80);
-	      this.c.fillText("You can move left and right using the arrow keys.", 40, 120);
-	      this.c.fillText("You can also ride elevators up or down using the", 40, 160);
-	      this.c.fillText("arrow keys.", 40, 180);
-	      this.c.fillText("Elevators look like this:", 175, 280);
-	      this.drawElevator(225.5, 340.5, 450, false);
-	      this.drawElevator(300.5, 340.5, 450, false);
-	      break;
-	    case 2:
-	      this.c.fillText("Your goal is to reach the red elevators.", 40, 100);
-	      this.c.fillText("They'll take you up to the next level.", 40, 160);
-	      this.drawElevator(225.5, 240.5, 450, true);
-	      this.drawElevator(300.5, 240.5, 450, true);
-	      break;
-	    case 3:
-	      this.c.fillText("Blocking your way will be doors and force fields.", 40, 80);
-	      this.c.fillText("You can't pass through force fields with power.", 40, 100);
-	      this.c.fillText("Doors are opened with buttons, but a button won't", 40, 160);
-	      this.c.fillText("work without power.", 40, 180);
-	      this.drawDoor(new Door(), [160.5, 240.5]);
-	      this.drawButtonBlock(new ButtonBlock({id: 0, side: "left"}), [360.5, 240.5]);
-	      break;
-	    case 4:
-	      this.c.fillText("You will need to change the flow of power to overcome", 40, 80);
-	      this.c.fillText("these obstacles.", 40, 100);
-	      this.c.fillText("You can do this by inserting and removing panels", 40, 160);
-	      this.c.fillText("from sockets.", 40, 180);
-	      this.drawCubby([66.5, 200.5], new Cubby({}));
-	      this.drawCubby([198.5, 200.5], new Cubby({startItem: new Panel(["N", "S"])}));
-	      this.drawCubby([330.5, 200.5], new Cubby({startItem: new Panel(["E", "W"])}));
-	      this.drawCubby([462.5, 200.5], new Cubby({startItem: new Panel(["S", "W"])}));
-	      this.c.fillStyle = 'white';
-	      this.c.fillText("Press SPACEBAR while in front of a socket to insert", 40, 320);
-	      this.c.fillText("or remove a panel.", 40, 340);
-	      break;
-	    case 5:
-	      this.c.fillText("You can increase the height of your robot by", 40, 80);
-	      this.c.fillText("collecting spring power-ups.", 40, 100);
-	      this.drawFullCircle({
-	        pos: [120, 230],
-	        radius: 90,
-	        fill: 'white'
-	      })
-	      this.renderRobot(new Robot([82.5, 220.5]))
-	      this.drawFullCircle({
-	        pos: [300, 225],
-	        radius: 40,
-	        fill: 'white'
-	      })
-	      this.drawSpringPowerUp([262.5, 187.5]);
-	      this.drawFullCircle({
-	        pos: [480, 230],
-	        radius: 90,
-	        fill: 'white'
-	      })
-	      var bigRobot = new Robot([442.5, 220.5]);
-	      bigRobot.height = 75;
-	      this.renderRobot(bigRobot)
-	      this.c.fillStyle = 'white';
-	      this.c.fillText("+", 230, 231);
-	      this.c.fillText("=", 360, 231);
-	      this.c.fillText("You can then use the up and down arrow keys to", 40, 370);
-	      this.c.fillText("adjust your height.", 40, 390);
-	      break;
-	    case 6:
-	      this.game.startLevel();
-	  }
-	};
-
 	Renderer.prototype.displayEndScreen = function () {
 	  this.blackBackground();
 	  this.c.fillStyle = 'white';
@@ -302,11 +228,11 @@
 	};
 
 	Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSquares) {
-	  // var el = document.getElementById("coord-window");
-	  // el.innerHTML = "LEFT: " + cornerSquares[1] + "<br>"
-	  //               + "TOP: " + cornerSquares[0] + "<br>"
-	  //               + "RIGHT: " + cornerSquares[3] + "<br>"
-	  //               + "BOTTOM: " + cornerSquares[2];
+	  var el = document.getElementById("coord-window");
+	  el.innerHTML = "LEFT: " + cornerSquares[1] + "<br>"
+	                + "TOP: " + cornerSquares[0] + "<br>"
+	                + "RIGHT: " + cornerSquares[3] + "<br>"
+	                + "BOTTOM: " + cornerSquares[2];
 	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
 	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
 	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
@@ -831,28 +757,6 @@
 	  var rowHeight = (BLOCK_LENGTH / 4);
 	  this.drawOuterSquare(pos, color, color);
 	  this.c.strokeStyle = '#000';
-	  // for (var i = 0; i < 4; i++) {
-	  //   var thisRowY = Math.floor(y + (rowHeight * i)) + 0.5;
-	  //   this.drawLine([x, thisRowY], [x + BLOCK_LENGTH - 0.5, thisRowY]);
-	  //   if (i % 2 == 0) {
-	  //     if (leftEdges === true) {
-	  //       this.drawLine([x, thisRowY], [x, thisRowY + rowHeight - 0.5]);
-	  //     }
-	  //     this.drawLine(
-	  //       [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY],
-	  //       [x + (BLOCK_LENGTH / 2) + 0.5, thisRowY + rowHeight - 0.5]
-	  //     );
-	  //   } else {
-	  //     this.drawLine(
-	  //       [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY],
-	  //       [Math.floor(x + (BLOCK_LENGTH / 4)) + 0.5, thisRowY + rowHeight - 0.5]
-	  //     );
-	  //     this.drawLine(
-	  //       [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY],
-	  //       [Math.floor(x + (BLOCK_LENGTH / 4) * 3) + 0.5, thisRowY + rowHeight - 0.5]
-	  //     );
-	  //   }
-	  // }
 	}
 
 	Renderer.prototype.drawButtonBlock = function (buttonBlock, pos) {
@@ -1410,21 +1314,21 @@
 	    }
 	  }
 
-	  // //look through force field blocks:
-	  // for (var i = 0; i < forceFieldBlocks.length; i++) {
-	  //   if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  //   if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  //   if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  //   if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	  //     forceFieldBlocks[i].hasPower = true;
-	  //   }
-	  // }
+	  //look through force field blocks:
+	  for (var i = 0; i < forceFieldBlocks.length; i++) {
+	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	      forceFieldBlocks[i].hasPower = true;
+	    }
+	  }
 	};
 
 	module.exports = WireJunction;
@@ -1643,11 +1547,6 @@
 	Game.prototype.showMainMenu = function () {
 	  this.status = "menu";
 	  this.renderer.displayMenu();
-	};
-
-	Game.prototype.nextTutorialPage = function () {
-	  this.tutorialPage += 1;
-	  this.renderer.displayInstructions(this.tutorialPage);
 	};
 
 	Game.prototype.startLevel = function () {
@@ -2363,7 +2262,8 @@
 	  new Message(41, 43, 2, 5, "top", "Place the correct panel in this socket", "to send power to the button."),
 	  new Message(48, 54, 2, 5, "top", "Disrupt power to force fields", "to pass through them."),
 	  new Message(58, 61, 2, 5, "top", "The spring power-up allows you to extend", "the height of your robot."),
-	  new Message(61, 65, 2, 5, "top", "Now you can the up and down", "arrow keys to adjust your height."),
+	  new Message(61, 69, 2, 5, "top", "Now you can use the up and down", "arrow keys to adjust your height."),
+	  new Message(70, 76, 3, 4, "top", "Your goal is to find the red elevators.", "You can ride them up to the next level.")
 	]
 
 	var elevators = [
@@ -2415,18 +2315,18 @@
 	    startingHeight: 0,
 	    heights: [0, 2]
 	  }),
-	  // new ExitElevator({
-	  //   id: 104,
-	  //   baseRowCol: [2, 21],
-	  //   startingHeight: 0,
-	  //   heights: [0, 3, 6, 10]
-	  // }),
-	  // new ExitElevator({
-	  //   id: 104,
-	  //   baseRowCol: [2, 22],
-	  //   startingHeight: 0,
-	  //   heights: [0]
-	  // })
+	  new ExitElevator({
+	    id: 105,
+	    baseRowCol: [5, 75],
+	    startingHeight: 0,
+	    heights: [0, 10]
+	  }),
+	  new ExitElevator({
+	    id: 105,
+	    baseRowCol: [5, 76],
+	    startingHeight: 0,
+	    heights: [0, 10]
+	  })
 	];
 
 	var cubbies = [
@@ -2521,33 +2421,36 @@
 	  new ForceFieldBlock({
 	    id: "FF101",
 	    rowCol: [2, 53]
+	  }),
+	  new ForceFieldBlock({
+	    id: "FF101",
+	    rowCol: [3, 69]
 	  })
 	];
 
 	var foregroundGrid = [
-	  builder.rowOf(29, "block").concat([powerSources[0]]).concat(builder.rowOf(38, "block")).concat([powerSources[3]]).concat(builder.rowOf(2, "block")),
-	  ["block"].concat(builder.rowOf(9, "")).concat(["block"]).concat(builder.rowOf(8, "")).concat(["block"]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(builder.rowOf(5, "")).concat(["block"]).concat(builder.rowOf(23, "")),
-	  ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat([buttonBlocks[0]]).concat(["", "block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(["", buttonBlocks[1]]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(23, "")),
-	  ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(9, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(10, "")).concat(["block", ""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(16, "")),
-	  ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(13, "")).concat(doors[0]).concat(builder.rowOf(16, "")).concat(doors[1]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat([new Spring()]).concat(builder.rowOf(8, "")),
-	  builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat([powerSources[1]]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "").concat(builder.rowOf(5, "block")).concat([powerSources[2]]).concat(builder.rowOf(18, "block")))
+	  builder.rowOf(29, "block").concat([powerSources[0]]).concat(builder.rowOf(38, "block")).concat([powerSources[3]]).concat(builder.rowOf(6, "block")).concat(["", "", "block"]),
+	  ["block"].concat(builder.rowOf(9, "")).concat(["block"]).concat(builder.rowOf(8, "")).concat(["block"]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(builder.rowOf(5, "")).concat(["block"]).concat(builder.rowOf(29, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat([buttonBlocks[0]]).concat(["", "block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(["", buttonBlocks[1]]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(29, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(9, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(10, "")).concat(["block", ""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[1]]).concat(builder.rowOf(7, "")).concat(["block"]),
+	  ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(13, "")).concat(doors[0]).concat(builder.rowOf(16, "")).concat(doors[1]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat([new Spring()]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat(["block"]),
+	  builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat([powerSources[1]]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat([powerSources[2]]).concat(builder.rowOf(22, "block")).concat(["", "", "block"])
 	];
 
 	var backgroundGrid = [
-	  builder.rowOf(71, "brick"),
-	  builder.rowOf(71, "brick"),
-	  builder.rowOf(71, "brick"),
-	  builder.rowOf(71, "brick"),
-	  builder.rowOf(71, "brick"),
-	  builder.rowOf(71, "brick")
+	  builder.rowOf(78, "brick"),
+	  builder.rowOf(78, "brick"),
+	  builder.rowOf(78, "brick"),
+	  builder.rowOf(78, "brick"),
+	  builder.rowOf(78, "brick"),
+	  builder.rowOf(78, "brick")
 	];
 
 	level = new Level({
 	  color: '#632612',
 	  foregroundGrid: foregroundGrid,
 	  backgroundGrid: backgroundGrid,
-	  // startingPos: [225.5, 300.5],
-	  startingPos: [2960, 300.5],
+	  startingPos: [225.5, 300.5],
 	  elevators: elevators,
 	  doors: doors,
 	  cubbies: cubbies,
