@@ -1541,9 +1541,6 @@
 
 	Game.prototype.startLevel = function () {
 	  this.currentLevel = this.levelSequence[0];
-	  for (var i = 0; i < this.currentLevel.foregroundGrid.length; i++) {
-	    console.log(this.currentLevel.foregroundGrid[i].length)
-	  }
 	  if (this.currentLevel.name) {
 	    this.renderer.showLevelName = true;
 	    var flashN = 5;
