@@ -6,7 +6,7 @@
 
 Socket Bot is a platformer browser game built with HTML Canvas. In each level, the player must redirect the flow of electricity by inserting or removing panels from sockets, creating a path to the exit.
 
-![Screenshot](/images/shot-2.jpg)
+[![Screenshot](/images/shot-2.jpg)][live]
 
 ## How to Play
 
@@ -203,5 +203,5 @@ PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, force
   After determining which directions power should be sent, the sendPower function then checks to see if there are neighboring objects in those directions that can also send power. If so, the sendPower function is called on those objects. The base case is reached when an object is reached with no neighboring objects to transfer the power to.
 
   Button blocks and force field blocks do not send power, but should receive power if a wire is connected to them. Therefore, the sendPower function also checks the location of each button block and force field block and sets its hasPower property to true if it's connected.
-  
+
   Using this method, power is delivered from each power source to all the objects connected to that source.
