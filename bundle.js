@@ -246,15 +246,15 @@
 	        this.drawPlatform([x_block, y_block], '#2c2929', '#161515');
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
 	        this.drawDoor(currentLevel.foregroundGrid[row][col],[x_block, y_block]);
-	      } else if (currentLevel.foregroundGrid[row][col].toString() === "buttonBlock") {
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "ButtonBlock") {
 	        this.drawButtonBlock(currentLevel.foregroundGrid[row][col],[x_block, y_block]);
-	      } else if (currentLevel.foregroundGrid[row][col].toString() === "powerSource") {
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "PowerSource") {
 	        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "powerBlock") {
 	        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
-	      } else if (currentLevel.foregroundGrid[row][col].toString() === "forceFieldBlock") {
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "ForceFieldBlock") {
 	        this.drawForceFieldBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
-	      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "forceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
+	      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "ForceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
 	        this.drawForceField([x_block, y_block]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "spring" && currentLevel.foregroundGrid[row][col].pickedUp === false) {
 	        this.drawSpringPowerUp([x_block, y_block]);
@@ -1104,8 +1104,6 @@
 
 	function Wire(options) {
 	  this.initializePowerObject(options);
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
 	  this.type = options.type;
 	}
 
@@ -1114,12 +1112,33 @@
 	Wire.prototype = new Surrogate();
 	Wire.prototype.constructor = Wire;
 
-	Wire.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+	module.exports = Wire;
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	function PowerObject() {}
+
+	PowerObject.prototype.initializePowerObject = function (options) {
+	  this.hasPower = false;
+	  this.id = options.id;
+	  this.rowCol = options.rowCol;
+	  this.toString = function () { return this.constructor.name };
+	};
+
+	PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
 
 	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
 	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
 	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
 	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+
+	  //if object is a Power Source, send power in all four directions
+	  if (this.constructor.name == 'PowerSource') {
+	    this.type = "NESW"
+	  }
 
 	  //look through wires:
 	  for (var i = 0; i < wiring.length; i++) {
@@ -1178,51 +1197,6 @@
 	    }
 	    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
 	      buttonBlocks[i].hasPower = true;
-	    }
-	  }
-	}
-
-	module.exports = Wire;
-
-
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	function PowerObject() {
-	}
-
-	PowerObject.prototype.initializePowerObject = function (options) {
-	  this.hasPower = false;
-	  if (options) {
-	    this.rowCol = options.rowCol;
-	  }
-	};
-
-	PowerObject.prototype.getPowerStatus = function () {
-	  return (this.hasPower)
-	};
-
-	PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forcefieldBlocks) {
-	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
-
-	  //look through wires:
-	  for (var i = 0; i < wiring.length; i++) {
-	    if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1]) {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "leftward");
-	    } else if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1]) {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "downward");
-	    } else if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1]) {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "rightward");
-	    } else if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1]) {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forcefieldBlocks, "upward");
 	    }
 	  }
 	}
@@ -1421,12 +1395,9 @@
 
 	function ButtonBlock(options) {
 	  this.initializePowerObject(options);
-	  this.id = options.id;
 	  this.side = options.side;
-	  this.rowCol = options.rowCol;
 	  this.pushFunc = options.func;
 	  this.color = options.color || 'red';
-	  this.toString = function () { return "buttonBlock" };
 	}
 
 	var Surrogate = function () {};
@@ -1685,7 +1656,7 @@
 	        edge = 0.5 + (ghostCol * this.BLOCK_LENGTH) - 1;
 	        difference = edge - robotX;
 	        ghostArrays = this.moveRight(difference, 1);
-	      } else if (bottomRightObj.toString() === "buttonBlock") {
+	      } else if (bottomRightObj.toString() === "ButtonBlock") {
 	        var buttonStuff = this.getLeftButtonEdge(ghostArrays);
 	        if (buttonStuff != -1) {
 	          var edge = buttonStuff[0];
@@ -1717,7 +1688,7 @@
 	        edge = 0.5 + ((ghostCol + 1) * this.BLOCK_LENGTH);
 	        difference = robotX - edge;
 	        ghostArrays = this.moveLeft(difference, 1);
-	      } else if (bottomLeftObj.toString() === "buttonBlock") {
+	      } else if (bottomLeftObj.toString() === "ButtonBlock") {
 	        var buttonStuff = this.getRightButtonEdge(ghostArrays);
 	        if (buttonStuff != -1) {
 	          var edge = buttonStuff[0];
@@ -1858,7 +1829,7 @@
 	  var nextColumnToRight = this.getRightColumn(arrays) + 1
 	  if (
 	    this.currentLevel.foregroundGrid[
-	      this.getTopRow(arrays)][nextColumnToRight].toString() === "buttonBlock" &&
+	      this.getTopRow(arrays)][nextColumnToRight].toString() === "ButtonBlock" &&
 	      this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight].side === "left") {
 	    var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight];
 	    var robotRightX = this.getRealRightX(arrays);
@@ -1878,7 +1849,7 @@
 	  var nextColumnToLeft = this.getLeftColumn(arrays) - 1
 	  if (
 	    this.currentLevel.foregroundGrid[
-	      this.getTopRow(arrays)][nextColumnToLeft].toString() === "buttonBlock" &&
+	      this.getTopRow(arrays)][nextColumnToLeft].toString() === "ButtonBlock" &&
 	      this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft].side === "right"
 	  ) {
 	    var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft]
@@ -1919,9 +1890,9 @@
 	  dir = dir || ""
 	  if ( object === "block" || object === "platform"
 	      || object.toString() === "door" && object.status === "closed" && object.side != dir
-	      || object.toString() === "buttonBlock"
-	      || object.toString() === "forceFieldBlock"
-	      || object.toString() === "powerSource"
+	      || object.toString() === "ButtonBlock"
+	      || object.toString() === "ForceFieldBlock"
+	      || object.toString() === "PowerSource"
 	      || object === "forceField" && aboveObject.hasPower
 	  ) {
 	    return false;
@@ -2604,8 +2575,6 @@
 
 	function PowerSource(options) {
 	  this.initializePowerObject(options);
-	  this.id = options.id;
-	  this.toString = function () { return "powerSource" };
 	}
 
 	var Surrogate = function () {};
@@ -2624,9 +2593,6 @@
 
 	function ForceFieldBlock(options) {
 	  this.initializePowerObject(options);
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.toString = function () { return "forceFieldBlock" };
 	}
 
 	var Surrogate = function () {};
