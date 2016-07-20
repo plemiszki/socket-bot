@@ -55,7 +55,7 @@
 	  var renderer = new Renderer(context);
 	  var levelSequence = [__webpack_require__(12), __webpack_require__(20), __webpack_require__(21), __webpack_require__(22)];
 	
-	  gameInstance = new Game(renderer, levelSequence);
+	  var gameInstance = new Game(renderer, levelSequence);
 	  renderer.game = gameInstance;
 	
 	  window.addEventListener("keydown", function (e) {
@@ -120,7 +120,7 @@
 	    }
 	    if (this.game.currentLevel.name && this.showLevelName) {
 	      this.renderLevelName();
-	    };
+	    }
 	  }
 	};
 	
@@ -137,7 +137,7 @@
 	  var rightCol = this.game.getRightColumn(realArrays);
 	  for (var i = 0; i < messages.length; i++) {
 	    if (messages[i].left <= leftCol && messages[i].right >= rightCol && messages[i].top <= topRow && messages[i].bottom >= bottomRow) {
-	      var addY = messages[i].pos == "bottom" ? 295 : 0;
+	      var addY = messages[i].pos === "bottom" ? 295 : 0;
 	      this.drawRectangle({
 	        x: 5,
 	        y: 5 + addY,
@@ -219,7 +219,7 @@
 	  var topRow = Math.floor(origin[1] / BLOCK_LENGTH);
 	  if (topRow === -1) {
 	    topRow = 0;
-	  };
+	  }
 	  var bottomRow = Math.floor((origin[1] + BLOCK_LENGTH * 6 - 1) / BLOCK_LENGTH);
 	  if (bottomRow >= this.game.currentLevel.foregroundGrid.length) {
 	    bottomRow = this.game.currentLevel.foregroundGrid.length - 1;
@@ -227,7 +227,7 @@
 	  var leftCol = Math.floor(origin[0] / BLOCK_LENGTH) - 1;
 	  if (leftCol < 0) {
 	    leftCol = 0;
-	  };
+	  }
 	  var rightCol = Math.floor((origin[0] + BLOCK_LENGTH * 8 - 1) / BLOCK_LENGTH) + 1;
 	  if (rightCol >= this.game.currentLevel.foregroundGrid[0].length) {
 	    rightCol = this.game.currentLevel.foregroundGrid[0].length - 1;
@@ -237,64 +237,64 @@
 	};
 	
 	Renderer.prototype.renderForeground = function (origin, currentLevel, cornerSquares) {
-	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
+	  var rowTopY = cornerSquares[0] * BLOCK_LENGTH;
 	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
-	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	    var colLeftX = cornerSquares[1] * BLOCK_LENGTH;
 	    for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
-	      var x_block = -1 * origin[0] + col_left_x + 0.5;
-	      var y_block = -1 * origin[1] + row_top_y + 0.5;
-	      if (currentLevel.foregroundGrid[row][col] === "") {} else if (currentLevel.foregroundGrid[row][col] === "block") {
-	        this.drawBlock([x_block, y_block]);
+	      var xBlock = -1 * origin[0] + colLeftX + 0.5;
+	      var yBlock = -1 * origin[1] + rowTopY + 0.5;
+	      if (currentLevel.foregroundGrid[row][col] === "block") {
+	        this.drawBlock([xBlock, yBlock]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "platform") {
-	        this.drawPlatform([x_block, y_block], '#2c2929', '#161515');
+	        this.drawPlatform([xBlock, yBlock], '#2c2929', '#161515');
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "door") {
-	        this.drawDoor(currentLevel.foregroundGrid[row][col], [x_block, y_block]);
+	        this.drawDoor(currentLevel.foregroundGrid[row][col], [xBlock, yBlock]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "ButtonBlock") {
-	        this.drawButtonBlock(currentLevel.foregroundGrid[row][col], [x_block, y_block]);
+	        this.drawButtonBlock(currentLevel.foregroundGrid[row][col], [xBlock, yBlock]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "PowerSource") {
-	        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+	        this.drawPowerBlock([xBlock, yBlock], currentLevel.foregroundGrid[row][col]);
 	      } else if (currentLevel.foregroundGrid[row][col] === "powerBlock") {
-	        this.drawPowerBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
+	        this.drawPowerBlock([xBlock, yBlock], currentLevel.foregroundGrid[row][col]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "ForceFieldBlock") {
-	        this.drawForceFieldBlock([x_block, y_block], currentLevel.foregroundGrid[row][col]);
-	      } else if (currentLevel.foregroundGrid[row - 1][col].toString() === "ForceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
-	        this.drawForceField([x_block, y_block]);
+	        this.drawForceFieldBlock([xBlock, yBlock], currentLevel.foregroundGrid[row][col]);
+	      } else if (currentLevel.foregroundGrid[row][col].toString() === "forceField" && currentLevel.foregroundGrid[row - 1][col].toString() === "ForceFieldBlock" && currentLevel.foregroundGrid[row - 1][col].hasPower) {
+	        this.drawForceField([xBlock, yBlock]);
 	      } else if (currentLevel.foregroundGrid[row][col].toString() === "spring" && currentLevel.foregroundGrid[row][col].pickedUp === false) {
-	        this.drawSpringPowerUp([x_block, y_block]);
+	        this.drawSpringPowerUp([xBlock, yBlock]);
 	      }
 	
-	      col_left_x += 75;
+	      colLeftX += 75;
 	    }
 	
-	    row_top_y += 75;
+	    rowTopY += 75;
 	  }
 	};
 	
 	Renderer.prototype.renderBackground = function (origin, currentLevel, cornerSquares) {
-	  var row_top_y = cornerSquares[0] * BLOCK_LENGTH;
+	  var rowTopY = cornerSquares[0] * BLOCK_LENGTH;
 	  for (var row = cornerSquares[0]; row <= cornerSquares[2]; row++) {
-	    var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	    var colLeftX = cornerSquares[1] * BLOCK_LENGTH;
 	    for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
 	      if (currentLevel.foregroundGrid[row][col] === "block") {
-	        col_left_x += 75;
+	        colLeftX += 75;
 	        continue; //skip - there's a foreground block covering this square
 	      }
-	      var x_block = -1 * origin[0] + col_left_x + 0.5;
-	      var y_block = -1 * origin[1] + row_top_y + 0.5;
+	      var xBlock = -1 * origin[0] + colLeftX + 0.5;
+	      var yBlock = -1 * origin[1] + rowTopY + 0.5;
 	      if (currentLevel.backgroundGrid[row][col] === "brick") {
 	        var leftEdges = currentLevel.foregroundGrid[row][col - 1] !== "block";
-	        this.drawBrick([x_block, y_block], currentLevel.color, leftEdges);
+	        this.drawBrick([xBlock, yBlock], currentLevel.color, leftEdges);
 	      }
 	
-	      col_left_x += 75;
+	      colLeftX += 75;
 	    }
 	
-	    row_top_y += 75;
+	    rowTopY += 75;
 	  }
 	};
 	
 	Renderer.prototype.renderElevators = function (origin, currentLevel, cornerSquares) {
-	  var col_left_x = cornerSquares[1] * BLOCK_LENGTH;
+	  var colLeftX = cornerSquares[1] * BLOCK_LENGTH;
 	  //iterate through each visible column:
 	  for (var col = cornerSquares[1]; col <= cornerSquares[3]; col++) {
 	    //iterate through elevators to see if there's one in this column:
@@ -303,56 +303,56 @@
 	        //if so, find where the top is:
 	        var topRow = currentLevel.elevators[elv].topRow;
 	        var additionalPixels = currentLevel.elevators[elv].additionalPixels;
-	        var x_block = -1 * origin[0] + col_left_x + 0.5;
-	        var platform_top_y = BLOCK_LENGTH * topRow - origin[1] + 0.5;
-	        var adjustedPlatformTop = platform_top_y - additionalPixels;
+	        var xBlock = -1 * origin[0] + colLeftX + 0.5;
+	        var platformTopY = BLOCK_LENGTH * topRow - origin[1] + 0.5;
+	        var adjustedPlatformTop = platformTopY - additionalPixels;
 	        //and the bottom
 	        var realBaseBottomY = (currentLevel.elevators[elv].baseRow + 1) * BLOCK_LENGTH + 0.5;
 	        var relBaseBottomY = realBaseBottomY - origin[1];
-	        this.drawElevator(x_block, adjustedPlatformTop, relBaseBottomY, currentLevel.elevators[elv].exit);
+	        this.drawElevator(xBlock, adjustedPlatformTop, relBaseBottomY, currentLevel.elevators[elv].exit);
 	      }
 	    }
 	
-	    col_left_x += 75;
+	    colLeftX += 75;
 	  }
 	};
 	
-	Renderer.prototype.drawElevator = function (x_block, adjustedPlatformTop, relBaseBottomY, exit) {
+	Renderer.prototype.drawElevator = function (xBlock, adjustedPlatformTop, relBaseBottomY, exit) {
 	  var COLUMN_WIDTH = 25;
 	  var inset = Math.floor((BLOCK_LENGTH - COLUMN_WIDTH) / 2);
-	  var column_top_y = adjustedPlatformTop + Math.floor(BLOCK_LENGTH / 3);
-	  var height = relBaseBottomY - column_top_y;
-	  if (450 - column_top_y < height) {
-	    height = 450 - column_top_y;
+	  var columnTopY = adjustedPlatformTop + Math.floor(BLOCK_LENGTH / 3);
+	  var height = relBaseBottomY - columnTopY;
+	  if (450 - columnTopY < height) {
+	    height = 450 - columnTopY;
 	  }
-	  var grad = this.c.createLinearGradient(x_block + inset, 0, x_block + inset + COLUMN_WIDTH, 0);
+	  var grad = this.c.createLinearGradient(xBlock + inset, 0, xBlock + inset + COLUMN_WIDTH, 0);
 	  grad.addColorStop(0, '#1A1919');
 	  grad.addColorStop(0.5, '#68625F');
 	  grad.addColorStop(1, '#1A1919');
 	  this.c.beginPath();
-	  this.c.rect(x_block + inset, column_top_y, COLUMN_WIDTH, height);
+	  this.c.rect(xBlock + inset, columnTopY, COLUMN_WIDTH, height);
 	  this.c.fillStyle = grad;
 	  this.c.fill();
 	  this.c.strokeStyle = '#000';
 	  this.c.stroke();
 	  if (exit) {
-	    this.drawPlatform([x_block, adjustedPlatformTop], 'red', '#440000');
+	    this.drawPlatform([xBlock, adjustedPlatformTop], 'red', '#440000');
 	  } else {
-	    this.drawPlatform([x_block, adjustedPlatformTop], '#67480E', '#211705');
+	    this.drawPlatform([xBlock, adjustedPlatformTop], '#67480E', '#211705');
 	  }
 	};
 	
 	Renderer.prototype.renderBackgroundObjects = function (objects, origin, currentLevel, cornerSquares) {
 	  for (var i = 0; i < objects.length; i++) {
 	    if (objects[i].rowCol[0] >= cornerSquares[0] && objects[i].rowCol[1] >= cornerSquares[1] && objects[i].rowCol[0] <= cornerSquares[2] && objects[i].rowCol[1] <= cornerSquares[3]) {
-	      var x_block = BLOCK_LENGTH * objects[i].rowCol[1] - origin[0] + 0.5;
-	      var y_block = BLOCK_LENGTH * objects[i].rowCol[0] - origin[1] + 0.5;
+	      var xBlock = BLOCK_LENGTH * objects[i].rowCol[1] - origin[0] + 0.5;
+	      var yBlock = BLOCK_LENGTH * objects[i].rowCol[0] - origin[1] + 0.5;
 	      if (objects[i] instanceof Wire) {
-	        this.drawWire([x_block, y_block], objects[i]);
+	        this.drawWire([xBlock, yBlock], objects[i]);
 	      } else if (objects[i] instanceof WireJunction) {
-	        this.drawWireJunction([x_block, y_block], objects[i]);
+	        this.drawWireJunction([xBlock, yBlock], objects[i]);
 	      } else if (objects[i] instanceof Cubby) {
-	        this.drawCubby([x_block, y_block], objects[i]);
+	        this.drawCubby([xBlock, yBlock], objects[i]);
 	      }
 	    }
 	  }
@@ -490,12 +490,12 @@
 	    var doorHalfHeight = (BLOCK_LENGTH - 1 - openSpace) / 2;
 	    if (doorHalfHeight < -1) {
 	      doorHalfHeight = -1;
-	    };
+	    }
 	    var negPercent = door.percentOpen - 1;
 	    var negToothHeight = 0;
 	    if (negPercent >= 0) {
 	      negToothHeight = (BLOCK_LENGTH - 1) * negPercent / 2;
-	    };
+	    }
 	
 	    this.c.beginPath();
 	    this.c.moveTo(topLeftCorner[0], topLeftCorner[1] - 1);
@@ -505,7 +505,7 @@
 	    var topHeight = topLeftCorner[1] + doorHalfHeight + TOOTH_HEIGHT - negToothHeight;
 	    if (topHeight < topLeftCorner[1] - 1) {
 	      topHeight = topLeftCorner[1] - 1;
-	    };
+	    }
 	    this.c.lineTo(topLeftCorner[0] + 4 / 5 * width, topHeight);
 	    this.c.lineTo(topLeftCorner[0] + 1 / 5 * width, topHeight);
 	    this.c.lineTo(topLeftCorner[0] + 1 / 5 * width, topLeftCorner[1] + doorHalfHeight);
@@ -593,11 +593,7 @@
 	};
 	
 	Renderer.prototype.drawWire = function (pos, wire) {
-	  if (wire.hasPower) {
-	    var fill = this.gradientArray[this.gradientIndex];
-	  } else {
-	    var fill = '#333';
-	  }
+	  var fill = wire.hasPower ? this.gradientArray[this.gradientIndex] : '#333';
 	  if (wire.type === "EW") {
 	    this.drawRectangle({
 	      x: pos[0] - 0.5,
@@ -1057,7 +1053,7 @@
 	};
 	
 	Renderer.prototype.fillGradientArray = function (rgbColor, arrayLength) {
-	  returnArray = [rgbColor];
+	  var returnArray = [rgbColor];
 	  for (var i = 0; i < arrayLength; i++) {
 	    rgbColor = this.shadeRGBColor(rgbColor, -0.02);
 	    returnArray.push(rgbColor);
@@ -1516,8 +1512,6 @@
 
 	'use strict';
 	
-	/*jshint esversion: 6 */
-	
 	var Robot = __webpack_require__(6);
 	var Renderer = __webpack_require__(1);
 	var Wire = __webpack_require__(2);
@@ -1599,6 +1593,8 @@
 	};
 	
 	Game.prototype.main = function (passedThen) {
+	  var _this = this;
+	
 	  if (this.spaceTime > 0) {
 	    this.spaceTime -= 1;
 	  }
@@ -1606,9 +1602,9 @@
 	  var delta = now - passedThen;
 	  this.update(delta / 1000);
 	  this.renderer.renderScreen();
-	  newThen = now;
+	  var newThen = now;
 	  window.requestAnimationFrame(function () {
-	    gameInstance.main(newThen);
+	    _this.main(newThen);
 	  });
 	};
 	
@@ -1627,12 +1623,12 @@
 	    ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
 	    this.elevatorArray.forEach(function (elevator) {
 	      elevator.additionalPixels += elevator.speed * modifier;
-	    }.bind(this));
+	    });
 	  } else if (this.status === "descending") {
 	    ghostArrays = this.moveDown(this.elevatorArray[0].speed, modifier);
 	    this.elevatorArray.forEach(function (elevator) {
 	      elevator.additionalPixels -= elevator.speed * modifier;
-	    }.bind(this));
+	    });
 	  } else if (this.status === "inControl") {
 	    this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
 	    if (38 in this.keysDown) {
@@ -1645,71 +1641,70 @@
 	    if (39 in this.keysDown) {
 	      //right
 	      ghostArrays = this.moveRight(this.robot.speed, modifier);
-	      ghostCol = this.getRightColumn(ghostArrays);
+	      var ghostCol = this.getRightColumn(ghostArrays);
 	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][ghostCol];
 	      topObj = this.currentLevel.foregroundGrid[topRow][ghostCol];
 	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol];
-	      bottomRightObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol + 1];
-	      var edge;
+	      var bottomRightObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol + 1];
 	      if (this.passThrough(topObj, aboveTopObj, "right") === false || this.passThrough(bottomObj, topObj, "right") === false) {
-	        robotX = this.getRealRightX(realArrays);
+	        var robotX = this.getRealRightX(realArrays);
 	        edge = 0.5 + ghostCol * this.BLOCK_LENGTH - 1;
-	        difference = edge - robotX;
+	        var difference = edge - robotX;
 	        ghostArrays = this.moveRight(difference, 1);
 	      } else if (bottomRightObj.toString() === "ButtonBlock") {
-	        var buttonStuff = this.getLeftButtonEdge(ghostArrays);
-	        if (buttonStuff != -1) {
-	          edge = buttonStuff[0];
-	          var button = buttonStuff[1];
-	          robotX = this.getRealRightX(realArrays);
-	          difference = edge - robotX;
-	          ghostArrays = this.moveRight(difference, 1);
-	          if (button.hasPower) {
-	            button.pushFunc(button);
+	        var _buttonStuff = this.getLeftButtonEdge(ghostArrays);
+	        if (_buttonStuff !== -1) {
+	          edge = _buttonStuff[0];
+	          var _button = _buttonStuff[1];
+	          var _robotX = this.getRealRightX(realArrays);
+	          var _difference = edge - _robotX;
+	          ghostArrays = this.moveRight(_difference, 1);
+	          if (_button.hasPower) {
+	            _button.pushFunc(_button);
 	          }
 	        }
 	      } else if (bottomObj.toString() === "door") {
 	        edge = this.getLeftDoorEdge(ghostArrays, bottomObj);
 	        if (edge !== -1) {
-	          robotX = this.getRealRightX(realArrays);
-	          difference = robotX - edge;
-	          if (difference > 0) {
-	            ghostArrays = this.moveLeft(difference, 1);
+	          var _robotX2 = this.getRealRightX(realArrays);
+	          var _difference2 = _robotX2 - edge;
+	          if (_difference2 > 0) {
+	            ghostArrays = this.moveLeft(_difference2, 1);
 	          }
 	        }
 	      }
 	    } else if (37 in this.keysDown) {
 	      //left
 	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
-	      ghostCol = this.getLeftColumn(ghostArrays);
-	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][ghostCol];
-	      topObj = this.currentLevel.foregroundGrid[topRow][ghostCol];
-	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol];
-	      bottomLeftObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol - 1];
+	      var _ghostCol = this.getLeftColumn(ghostArrays);
+	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][_ghostCol];
+	      topObj = this.currentLevel.foregroundGrid[topRow][_ghostCol];
+	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][_ghostCol];
+	      var bottomLeftObj = this.currentLevel.foregroundGrid[bottomRow][_ghostCol - 1];
 	      if (this.passThrough(topObj, aboveTopObj, "left") === false || this.passThrough(bottomObj, topObj, "left") === false) {
-	        robotX = this.getRealLeftX(realArrays);
-	        edge = 0.5 + (ghostCol + 1) * this.BLOCK_LENGTH;
-	        difference = robotX - edge;
-	        ghostArrays = this.moveLeft(difference, 1);
+	        var _robotX3 = this.getRealLeftX(realArrays);
+	        edge = 0.5 + (_ghostCol + 1) * this.BLOCK_LENGTH;
+	        var _difference3 = _robotX3 - edge;
+	        ghostArrays = this.moveLeft(_difference3, 1);
 	      } else if (bottomLeftObj.toString() === "ButtonBlock") {
 	        var buttonStuff = this.getRightButtonEdge(ghostArrays);
-	        if (buttonStuff != -1) {
+	        if (buttonStuff !== -1) {
 	          var edge = buttonStuff[0];
 	          var button = buttonStuff[1];
-	          robotX = this.getRealLeftX(realArrays);
-	          difference = robotX - edge;
-	          ghostArrays = this.moveLeft(difference, 1);
+	          var _robotX4 = this.getRealLeftX(realArrays);
+	          var _difference4 = _robotX4 - edge;
+	          ghostArrays = this.moveLeft(_difference4, 1);
 	          if (button.hasPower) {
 	            button.pushFunc(button);
 	          }
 	        }
 	      } else if (bottomObj.toString() === "door") {
-	        var edge = this.getRightDoorEdge(ghostArrays, bottomObj);
-	        if (edge != -1) {
-	          robotX = this.getRealLeftX(realArrays);
-	          difference = edge - robotX;
-	          if (difference > 0) {
-	            ghostArrays = this.moveRight(difference, 1);
+	        edge = this.getRightDoorEdge(ghostArrays, bottomObj);
+	        if (edge !== -1) {
+	          var _robotX5 = this.getRealLeftX(realArrays);
+	          var _difference5 = edge - _robotX5;
+	          if (_difference5 > 0) {
+	            ghostArrays = this.moveRight(_difference5, 1);
 	          }
 	        }
 	      }
@@ -1812,14 +1807,20 @@
 	};
 	
 	Game.prototype.clearPower = function () {
-	  for (var i = 0; i < this.currentLevel.wiring.length; i++) {
-	    if (this.currentLevel.wiring[i] instanceof Wire) {
-	      this.currentLevel.wiring[i].hasPower = false;
+	  var _this2 = this;
+	
+	  var _loop = function _loop(i) {
+	    if (_this2.currentLevel.wiring[i] instanceof Wire) {
+	      _this2.currentLevel.wiring[i].hasPower = false;
 	    } else {
-	      Object.keys(this.currentLevel.wiring[i].segments).forEach(function (key) {
+	      Object.keys(_this2.currentLevel.wiring[i].segments).forEach(function (key) {
 	        this.currentLevel.wiring[i].segments[key].hasPower = false;
-	      }.bind(this));
+	      }.bind(_this2));
 	    }
+	  };
+	
+	  for (var i = 0; i < this.currentLevel.wiring.length; i++) {
+	    _loop(i);
 	  }
 	  for (var _i = 0; _i < this.currentLevel.forceFieldBlocks.length; _i++) {
 	    this.currentLevel.forceFieldBlocks[_i].hasPower = false;
@@ -1885,7 +1886,7 @@
 	
 	Game.prototype.passThrough = function (object, aboveObject, dir) {
 	  dir = dir || "";
-	  if (object === "block" || object === "platform" || object.toString() === "door" && object.status === "closed" && object.side != dir || object.toString() === "ButtonBlock" || object.toString() === "ForceFieldBlock" || object.toString() === "PowerSource" || object === "forceField" && aboveObject.hasPower) {
+	  if (object === "block" || object === "platform" || object.toString() === "door" && object.status === "closed" && object.side !== dir || object.toString() === "ButtonBlock" || object.toString() === "ForceFieldBlock" || object.toString() === "PowerSource" || object === "forceField" && aboveObject.hasPower) {
 	    return false;
 	  } else {
 	    return true;
@@ -1896,7 +1897,6 @@
 	  var elevators = this.currentLevel.elevators;
 	  var belowRow = bottomRow + 1;
 	  var foundElevator = false;
-	  var elevatorResult;
 	  if (leftCol === rightCol) {
 	    var elevatorsToLaunch = [];
 	    for (var el = 0; el < elevators.length; el++) {
@@ -1908,8 +1908,10 @@
 	            elevatorsToLaunch.push(elevators[j]);
 	          }
 	        }
-	        elevatorResult = this.launchElevatorMaybe(elevatorsToLaunch, key);
-	        elevatorResult ? "" : this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	        var elevatorResult = this.launchElevatorMaybe(elevatorsToLaunch, key);
+	        if (elevatorResult === false) {
+	          this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	        }
 	        break;
 	      }
 	    }
@@ -1924,8 +1926,8 @@
 	        for (var el2 = 0; el2 < elevators.length; el2++) {
 	          if (elevators[el2] !== elevators[_el] && elevators[el2].id === elevators[_el].id && elevators[el2].col === rightCol) {
 	            foundSecondElevator = true;
-	            elevatorResult = this.launchElevatorMaybe([elevators[_el], elevators[el2]], key);
-	            if (elevatorResult) {
+	            var _elevatorResult = this.launchElevatorMaybe([elevators[_el], elevators[el2]], key);
+	            if (_elevatorResult) {
 	              return;
 	            } else {
 	              //elevator didn't move (top or bottom floor)
@@ -1999,7 +2001,7 @@
 	        return false;
 	      }
 	    }
-	  } else if (dir == "down") {
+	  } else if (dir === "down") {
 	    if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
 	      this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex - 1];
 	      destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex - 1];
@@ -2022,7 +2024,7 @@
 	};
 	
 	Game.prototype.checkElevator = function () {
-	  var _this = this;
+	  var _this3 = this;
 	
 	  if (this.status === "rising") {
 	    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos]);
@@ -2030,12 +2032,12 @@
 	      this._afterElevatorInNewSpot();
 	    } else if (realRobotBottom < this.stopAt) {
 	      (function () {
-	        var difference = _this.stopAt - realRobotBottom;
-	        _this.moveDown(difference, 1);
-	        _this.elevatorArray.forEach(function (elevator) {
+	        var difference = _this3.stopAt - realRobotBottom;
+	        _this3.moveDown(difference, 1);
+	        _this3.elevatorArray.forEach(function (elevator) {
 	          elevator.additionalPixels -= difference;
-	        }.bind(_this));
-	        _this._afterElevatorInNewSpot();
+	        });
+	        _this3._afterElevatorInNewSpot();
 	      })();
 	    }
 	  } else if (this.status === "descending") {
@@ -2044,12 +2046,12 @@
 	      this._afterElevatorInNewSpot();
 	    } else if (_realRobotBottom > this.stopAt) {
 	      (function () {
-	        var difference = _realRobotBottom - _this.stopAt;
-	        _this.moveUp(difference, 1);
-	        _this.elevatorArray.forEach(function (elevator) {
+	        var difference = _realRobotBottom - _this3.stopAt;
+	        _this3.moveUp(difference, 1);
+	        _this3.elevatorArray.forEach(function (elevator) {
 	          elevator.additionalPixels += difference;
-	        }.bind(_this));
-	        _this._afterElevatorInNewSpot();
+	        });
+	        _this3._afterElevatorInNewSpot();
 	      })();
 	    }
 	  }
@@ -2103,18 +2105,18 @@
 	  if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
 	    returnOrigin[1] -= pixels * modifier;
 	  } else if (this.robot.pos[1] < 187.5 && this.origin[1] > 0) {
-	    var _difference = 187.5 - this.robot.pos[1];
+	    var difference = 187.5 - this.robot.pos[1];
 	    returnOrigin[1] -= pixels * modifier;
 	    returnPos[1] = 187.5;
-	    returnOrigin[1] -= _difference;
+	    returnOrigin[1] -= difference;
 	  } else {
 	    returnPos[1] -= pixels * modifier;
 	  }
 	  if (returnOrigin[1] < 0) {
 	    //has the view passed the top of the level?
-	    var _difference2 = 0 - returnOrigin[1]; //by how much?
+	    var _difference6 = 0 - returnOrigin[1]; //by how much?
 	    returnOrigin[1] = 0; //set the view back to 0
-	    returnPos[1] -= _difference2; //push the robot down by the same amount
+	    returnPos[1] -= _difference6; //push the robot down by the same amount
 	  }
 	  return [returnOrigin, returnPos];
 	};
@@ -2354,7 +2356,7 @@
 	
 	var backgroundGrid = [builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick")];
 	
-	level = new Level({
+	var level = new Level({
 	  color: '#632612',
 	  foregroundGrid: foregroundGrid,
 	  backgroundGrid: backgroundGrid,
@@ -2406,7 +2408,7 @@
 	  this.messages = options.messages;
 	}
 	
-	function LevelBuilder() {};
+	function LevelBuilder() {}
 	
 	LevelBuilder.prototype.rowOf = function (rowLength, something) {
 	  var rowArray = [];
@@ -2551,7 +2553,7 @@
 	  this.pos = pos;
 	  this.text = text;
 	  this.text2 = text2;
-	};
+	}
 	
 	module.exports = Message;
 
@@ -2675,7 +2677,7 @@
 	
 	var backgroundGrid = [builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick")];
 	
-	level = new Level({
+	var level = new Level({
 	  name: "Level 1",
 	  color: '#632612',
 	  foregroundGrid: foregroundGrid,
@@ -2793,7 +2795,7 @@
 	
 	var backgroundGrid = [builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick")];
 	
-	level = new Level({
+	var level = new Level({
 	  name: "Level 2",
 	  color: '#4A7A36',
 	  foregroundGrid: foregroundGrid,
@@ -2967,7 +2969,7 @@
 	
 	var openGreenDoors = function openGreenDoors(button) {
 	  for (var i = 0; i < doors.length; i++) {
-	    if (doors[i].color == 'green') {
+	    if (doors[i].color === 'green') {
 	      doors[i].open();
 	    } else {
 	      doors[i].close();
@@ -2977,7 +2979,7 @@
 	
 	var openRedDoors = function openRedDoors(button) {
 	  for (var i = 0; i < doors.length; i++) {
-	    if (doors[i].color == 'red') {
+	    if (doors[i].color === 'red') {
 	      doors[i].open();
 	    } else {
 	      doors[i].close();
@@ -3059,7 +3061,7 @@
 	
 	var backgroundGrid = [builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick")];
 	
-	level = new Level({
+	var level = new Level({
 	  name: "Level 3",
 	  color: '#8B8D9A',
 	  foregroundGrid: foregroundGrid,
