@@ -36,13 +36,13 @@ This difference is then passed to the game's update function, which checks what 
 
 ```javascript
 Game.prototype.main = function (passedThen) {
-  var now = Date.now();
-  var delta = now - passedThen;
+  let now = Date.now();
+  let delta = now - passedThen;
   this.update(delta / 1000);
   this.renderer.renderScreen();
-  newThen = now;
-  window.requestAnimationFrame(function () {
-    gameInstance.main(newThen);
+  let newThen = now;
+  window.requestAnimationFrame(() => {
+    this.main(newThen);
   });
 };
   ```
