@@ -58,7 +58,7 @@ PowerObject.prototype.initializePowerObject = function (options) {
   this.hasPower = false;
   this.id = options.id;
   this.rowCol = options.rowCol;
-  this.toString = function () { return this.constructor.name };
+  this.toString = () => this.constructor.name;
 };
   ```
 ```javascript
@@ -115,7 +115,7 @@ Whenever a socket is inserted or removed, the updatePower function is called.
 ```javascript
 Game.prototype.updatePower = function () {
   this.clearPower();
-  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
+  for (let i = 0; i < this.currentLevel.powerSources.length; i++) {
     this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
   }
 };
@@ -126,18 +126,18 @@ The updatePower function first calls the clearPower function, which sets the has
 ```javascript
 PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
 
-  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+  let topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+  let leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+  let rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+  let bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
 
   //if object is a Power Source, send power in all four directions
-  if (this.constructor.name == 'PowerSource') {
-    this.type = "NESW"
+  if (this.constructor.name === 'PowerSource') {
+    this.type = "NESW";
   }
 
   //look through wires:
-  for (var i = 0; i < wiring.length; i++) {
+  for (let i = 0; i < wiring.length; i++) {
     if (this.type.split("").indexOf("W") !== -1) {
       if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
         wiring[i].hasPower = true;
@@ -165,7 +165,7 @@ PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, force
   }
 
   //look through force field blocks:
-  for (var i = 0; i < forceFieldBlocks.length; i++) {
+  for (let i = 0; i < forceFieldBlocks.length; i++) {
     if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
       forceFieldBlocks[i].hasPower = true;
     }
@@ -181,7 +181,7 @@ PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, force
   }
 
   //look through button blocks:
-  for (var i = 0; i < buttonBlocks.length; i++) {
+  for (let i = 0; i < buttonBlocks.length; i++) {
     if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
       buttonBlocks[i].hasPower = true;
     }
@@ -195,7 +195,7 @@ PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, force
       buttonBlocks[i].hasPower = true;
     }
   }
-}
+};
   ```
 
   The sendPower function checks to see which directions power should be sent. If the object is a power source, power is sent in all four directions. If the object is a wire, power is sent only in the direction(s) where the wire is pointing (and not in the same direction where the power has come from).

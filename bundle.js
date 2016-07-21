@@ -46,16 +46,23 @@
 
 	'use strict';
 	
-	var Renderer = __webpack_require__(1);
-	var Game = __webpack_require__(11);
+	var _renderer = __webpack_require__(1);
+	
+	var _renderer2 = _interopRequireDefault(_renderer);
+	
+	var _game = __webpack_require__(11);
+	
+	var _game2 = _interopRequireDefault(_game);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	document.addEventListener("DOMContentLoaded", function () {
 	  var canvas = document.getElementById('canvas');
 	  var context = canvas.getContext("2d");
-	  var renderer = new Renderer(context);
+	  var renderer = new _renderer2.default(context);
 	  var levelSequence = [__webpack_require__(12), __webpack_require__(20), __webpack_require__(21), __webpack_require__(22)];
 	
-	  var gameInstance = new Game(renderer, levelSequence);
+	  var gameInstance = new _game2.default(renderer, levelSequence);
 	  renderer.game = gameInstance;
 	
 	  window.addEventListener("keydown", function (e) {
@@ -78,16 +85,40 @@
 
 	'use strict';
 	
+	var _wire = __webpack_require__(2);
+	
+	var _wire2 = _interopRequireDefault(_wire);
+	
+	var _wireJunction = __webpack_require__(4);
+	
+	var _wireJunction2 = _interopRequireDefault(_wireJunction);
+	
+	var _robot = __webpack_require__(6);
+	
+	var _robot2 = _interopRequireDefault(_robot);
+	
+	var _door = __webpack_require__(7);
+	
+	var _door2 = _interopRequireDefault(_door);
+	
+	var _buttonBlock = __webpack_require__(8);
+	
+	var _buttonBlock2 = _interopRequireDefault(_buttonBlock);
+	
+	var _cubby = __webpack_require__(9);
+	
+	var _cubby2 = _interopRequireDefault(_cubby);
+	
+	var _panel = __webpack_require__(10);
+	
+	var _panel2 = _interopRequireDefault(_panel);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
 	var BLOCK_LENGTH = 75;
 	var EDGE_TO_INNER = 8;
 	var INNER_RECT_LENGTH = BLOCK_LENGTH - EDGE_TO_INNER * 2;
-	var Wire = __webpack_require__(2);
-	var WireJunction = __webpack_require__(4);
-	var Robot = __webpack_require__(6);
-	var Door = __webpack_require__(7);
-	var ButtonBlock = __webpack_require__(8);
-	var Cubby = __webpack_require__(9);
-	var Panel = __webpack_require__(10);
+	
 	
 	function Renderer(context, game) {
 	  this.c = context;
@@ -193,7 +224,7 @@
 	    radius: 100,
 	    fill: '#58D3F7'
 	  });
-	  var menuRobot = new Robot([413.5, 120.5]);
+	  var menuRobot = new _robot2.default([413.5, 120.5]);
 	  menuRobot.height = 70;
 	  this.renderRobot(menuRobot);
 	  this.c.fillStyle = 'white';
@@ -347,11 +378,11 @@
 	    if (objects[i].rowCol[0] >= cornerSquares[0] && objects[i].rowCol[1] >= cornerSquares[1] && objects[i].rowCol[0] <= cornerSquares[2] && objects[i].rowCol[1] <= cornerSquares[3]) {
 	      var xBlock = BLOCK_LENGTH * objects[i].rowCol[1] - origin[0] + 0.5;
 	      var yBlock = BLOCK_LENGTH * objects[i].rowCol[0] - origin[1] + 0.5;
-	      if (objects[i] instanceof Wire) {
+	      if (objects[i] instanceof _wire2.default) {
 	        this.drawWire([xBlock, yBlock], objects[i]);
-	      } else if (objects[i] instanceof WireJunction) {
+	      } else if (objects[i] instanceof _wireJunction2.default) {
 	        this.drawWireJunction([xBlock, yBlock], objects[i]);
-	      } else if (objects[i] instanceof Cubby) {
+	      } else if (objects[i] instanceof _cubby2.default) {
 	        this.drawCubby([xBlock, yBlock], objects[i]);
 	      }
 	    }
@@ -1079,7 +1110,11 @@
 
 	'use strict';
 	
-	var PowerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(3);
+	
+	var _powerObject2 = _interopRequireDefault(_powerObject);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function Wire(options) {
 	  this.initializePowerObject(options);
@@ -1087,7 +1122,7 @@
 	}
 	
 	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = PowerObject.prototype;
+	Surrogate.prototype = _powerObject2.default.prototype;
 	Wire.prototype = new Surrogate();
 	Wire.prototype.constructor = Wire;
 	
@@ -1102,11 +1137,13 @@
 	function PowerObject() {}
 	
 	PowerObject.prototype.initializePowerObject = function (options) {
+	  var _this = this;
+	
 	  this.hasPower = false;
 	  this.id = options.id;
 	  this.rowCol = options.rowCol;
 	  this.toString = function () {
-	    return this.constructor.name;
+	    return _this.constructor.name;
 	  };
 	};
 	
@@ -1118,7 +1155,7 @@
 	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
 	
 	  //if object is a Power Source, send power in all four directions
-	  if (this.constructor.name == 'PowerSource') {
+	  if (this.constructor.name === 'PowerSource') {
 	    this.type = "NESW";
 	  }
 	
@@ -1151,34 +1188,34 @@
 	  }
 	
 	  //look through force field blocks:
-	  for (var i = 0; i < forceFieldBlocks.length; i++) {
-	    if (forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
+	  for (var _i = 0; _i < forceFieldBlocks.length; _i++) {
+	    if (forceFieldBlocks[_i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[_i].rowCol[1] === leftRowCol[1]) {
+	      forceFieldBlocks[_i].hasPower = true;
 	    }
-	    if (forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
+	    if (forceFieldBlocks[_i].rowCol[0] === topRowCol[0] && forceFieldBlocks[_i].rowCol[1] === topRowCol[1]) {
+	      forceFieldBlocks[_i].hasPower = true;
 	    }
-	    if (forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
+	    if (forceFieldBlocks[_i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[_i].rowCol[1] === rightRowCol[1]) {
+	      forceFieldBlocks[_i].hasPower = true;
 	    }
-	    if (forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
+	    if (forceFieldBlocks[_i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[_i].rowCol[1] === bottomRowCol[1]) {
+	      forceFieldBlocks[_i].hasPower = true;
 	    }
 	  }
 	
 	  //look through button blocks:
-	  for (var i = 0; i < buttonBlocks.length; i++) {
-	    if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	  for (var _i2 = 0; _i2 < buttonBlocks.length; _i2++) {
+	    if (buttonBlocks[_i2].rowCol[0] === leftRowCol[0] && buttonBlocks[_i2].rowCol[1] === leftRowCol[1]) {
+	      buttonBlocks[_i2].hasPower = true;
 	    }
-	    if (buttonBlocks[i].rowCol[0] === topRowCol[0] && buttonBlocks[i].rowCol[1] === topRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	    if (buttonBlocks[_i2].rowCol[0] === topRowCol[0] && buttonBlocks[_i2].rowCol[1] === topRowCol[1]) {
+	      buttonBlocks[_i2].hasPower = true;
 	    }
-	    if (buttonBlocks[i].rowCol[0] === rightRowCol[0] && buttonBlocks[i].rowCol[1] === rightRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	    if (buttonBlocks[_i2].rowCol[0] === rightRowCol[0] && buttonBlocks[_i2].rowCol[1] === rightRowCol[1]) {
+	      buttonBlocks[_i2].hasPower = true;
 	    }
-	    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	    if (buttonBlocks[_i2].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i2].rowCol[1] === bottomRowCol[1]) {
+	      buttonBlocks[_i2].hasPower = true;
 	    }
 	  }
 	};
@@ -1191,7 +1228,11 @@
 
 	'use strict';
 	
-	var WireSegment = __webpack_require__(5);
+	var _wireSegment = __webpack_require__(5);
+	
+	var _wireSegment2 = _interopRequireDefault(_wireSegment);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function WireJunction(options) {
 	  this.id = options.id;
@@ -1200,22 +1241,22 @@
 	  this.segments = {};
 	  for (var i = 0; i < this.segmentStrings.length; i++) {
 	    if (this.segmentStrings[i] === "N") {
-	      this.segments['N'] = new WireSegment({ id: "N" });
+	      this.segments['N'] = new _wireSegment2.default({ id: "N" });
 	    } else if (this.segmentStrings[i] === "E") {
-	      this.segments['E'] = new WireSegment({ id: "E" });
+	      this.segments['E'] = new _wireSegment2.default({ id: "E" });
 	    } else if (this.segmentStrings[i] === "S") {
-	      this.segments['S'] = new WireSegment({ id: "S" });
+	      this.segments['S'] = new _wireSegment2.default({ id: "S" });
 	    } else if (this.segmentStrings[i] === "W") {
-	      this.segments['W'] = new WireSegment({ id: "W" });
+	      this.segments['W'] = new _wireSegment2.default({ id: "W" });
 	    }
 	  }
 	}
 	
 	WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
 	  var cubby;
-	  for (var i = 0; i < cubbies.length; i++) {
-	    if (cubbies[i].rowCol[0] === this.rowCol[0] && cubbies[i].rowCol[1] === this.rowCol[1]) {
-	      cubby = cubbies[i];
+	  for (var _i = 0; _i < cubbies.length; _i++) {
+	    if (cubbies[_i].rowCol[0] === this.rowCol[0] && cubbies[_i].rowCol[1] === this.rowCol[1]) {
+	      cubby = cubbies[_i];
 	      break;
 	    }
 	  }
@@ -1260,38 +1301,38 @@
 	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
 	
 	  //look through wires:
-	  for (var i = 0; i < wiring.length; i++) {
-	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
+	  for (var _i2 = 0; _i2 < wiring.length; _i2++) {
+	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[_i2].rowCol[0] === leftRowCol[0] && wiring[_i2].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	      wiring[_i2].hasPower = true;
+	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
 	    }
-	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
+	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[_i2].rowCol[0] === topRowCol[0] && wiring[_i2].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	      wiring[_i2].hasPower = true;
+	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
 	    }
-	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
+	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[_i2].rowCol[0] === rightRowCol[0] && wiring[_i2].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	      wiring[_i2].hasPower = true;
+	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
 	    }
-	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
-	      wiring[i].hasPower = true;
-	      wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
+	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[_i2].rowCol[0] === bottomRowCol[0] && wiring[_i2].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	      wiring[_i2].hasPower = true;
+	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
 	    }
 	  }
 	
 	  //look through button blocks:
-	  for (var i = 0; i < buttonBlocks.length; i++) {
-	    if (buttonBlocks[i].rowCol[0] === leftRowCol[0] && buttonBlocks[i].rowCol[1] === leftRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	  for (var _i3 = 0; _i3 < buttonBlocks.length; _i3++) {
+	    if (buttonBlocks[_i3].rowCol[0] === leftRowCol[0] && buttonBlocks[_i3].rowCol[1] === leftRowCol[1]) {
+	      buttonBlocks[_i3].hasPower = true;
 	    }
-	    if (buttonBlocks[i].rowCol[0] === topRowCol[0] && buttonBlocks[i].rowCol[1] === topRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	    if (buttonBlocks[_i3].rowCol[0] === topRowCol[0] && buttonBlocks[_i3].rowCol[1] === topRowCol[1]) {
+	      buttonBlocks[_i3].hasPower = true;
 	    }
-	    if (buttonBlocks[i].rowCol[0] === rightRowCol[0] && buttonBlocks[i].rowCol[1] === rightRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	    if (buttonBlocks[_i3].rowCol[0] === rightRowCol[0] && buttonBlocks[_i3].rowCol[1] === rightRowCol[1]) {
+	      buttonBlocks[_i3].hasPower = true;
 	    }
-	    if (buttonBlocks[i].rowCol[0] === bottomRowCol[0] && buttonBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	      buttonBlocks[i].hasPower = true;
+	    if (buttonBlocks[_i3].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i3].rowCol[1] === bottomRowCol[1]) {
+	      buttonBlocks[_i3].hasPower = true;
 	    }
 	  }
 	
@@ -1338,7 +1379,7 @@
 	  this.speed = 256;
 	  this.height = 0;
 	  this.maxHeight = 0;
-	};
+	}
 	
 	module.exports = Robot;
 
@@ -1358,7 +1399,7 @@
 	  this.aniFrame = undefined;
 	  this.side = side;
 	  this.color = color || 'red';
-	};
+	}
 	
 	Door.prototype.open = function () {
 	  if (this.status !== "open") {
@@ -1380,7 +1421,11 @@
 
 	'use strict';
 	
-	var PowerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(3);
+	
+	var _powerObject2 = _interopRequireDefault(_powerObject);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function ButtonBlock(options) {
 	  this.initializePowerObject(options);
@@ -1390,7 +1435,7 @@
 	}
 	
 	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = PowerObject.prototype;
+	Surrogate.prototype = _powerObject2.default.prototype;
 	ButtonBlock.prototype = new Surrogate();
 	ButtonBlock.prototype.constructor = ButtonBlock;
 	
@@ -1420,7 +1465,11 @@
 
 	'use strict';
 	
-	var Renderer = __webpack_require__(1);
+	var _renderer = __webpack_require__(1);
+	
+	var _renderer2 = _interopRequireDefault(_renderer);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function Panel(segments) {
 	  this.segments = segments || [];
@@ -1512,9 +1561,20 @@
 
 	'use strict';
 	
-	var Robot = __webpack_require__(6);
-	var Renderer = __webpack_require__(1);
-	var Wire = __webpack_require__(2);
+	var _robot = __webpack_require__(6);
+	
+	var _robot2 = _interopRequireDefault(_robot);
+	
+	var _renderer = __webpack_require__(1);
+	
+	var _renderer2 = _interopRequireDefault(_renderer);
+	
+	var _wire = __webpack_require__(2);
+	
+	var _wire2 = _interopRequireDefault(_wire);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
 	var BLOCK_LENGTH = 75;
 	
 	function Game(renderer, levelSequence) {
@@ -1539,16 +1599,20 @@
 	};
 	
 	Game.prototype.startLevel = function () {
+	  var _this = this;
+	
 	  this.currentLevel = this.levelSequence[0];
 	  if (this.currentLevel.name) {
-	    this.renderer.showLevelName = true;
-	    var flashN = 5;
-	    var levelFlash = window.setInterval(function () {
-	      flashN = this.renderer.toggleLevelName(flashN);
-	      if (flashN === 0) {
-	        clearInterval(levelFlash);
-	      }
-	    }.bind(this), 600);
+	    (function () {
+	      _this.renderer.showLevelName = true;
+	      var flashN = 5;
+	      var levelFlash = window.setInterval(function () {
+	        flashN = _this.renderer.toggleLevelName(flashN);
+	        if (flashN === 0) {
+	          clearInterval(levelFlash);
+	        }
+	      }, 600);
+	    })();
 	  }
 	  this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
 	  this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
@@ -1574,7 +1638,7 @@
 	    this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
 	    robotY = 187.5;
 	  }
-	  this.robot = new Robot([robotX, robotY]);
+	  this.robot = new _robot2.default([robotX, robotY]);
 	  this.status = "inControl";
 	  this.updatePower();
 	  if (this.mainLoopRunning === false) {
@@ -1593,7 +1657,7 @@
 	};
 	
 	Game.prototype.main = function (passedThen) {
-	  var _this = this;
+	  var _this2 = this;
 	
 	  if (this.spaceTime > 0) {
 	    this.spaceTime -= 1;
@@ -1604,7 +1668,7 @@
 	  this.renderer.renderScreen();
 	  var newThen = now;
 	  window.requestAnimationFrame(function () {
-	    _this.main(newThen);
+	    _this2.main(newThen);
 	  });
 	};
 	
@@ -1807,15 +1871,15 @@
 	};
 	
 	Game.prototype.clearPower = function () {
-	  var _this2 = this;
+	  var _this3 = this;
 	
 	  var _loop = function _loop(i) {
-	    if (_this2.currentLevel.wiring[i] instanceof Wire) {
-	      _this2.currentLevel.wiring[i].hasPower = false;
+	    if (_this3.currentLevel.wiring[i] instanceof _wire2.default) {
+	      _this3.currentLevel.wiring[i].hasPower = false;
 	    } else {
-	      Object.keys(_this2.currentLevel.wiring[i].segments).forEach(function (key) {
+	      Object.keys(_this3.currentLevel.wiring[i].segments).forEach(function (key) {
 	        this.currentLevel.wiring[i].segments[key].hasPower = false;
-	      }.bind(_this2));
+	      }.bind(_this3));
 	    }
 	  };
 	
@@ -2024,7 +2088,7 @@
 	};
 	
 	Game.prototype.checkElevator = function () {
-	  var _this3 = this;
+	  var _this4 = this;
 	
 	  if (this.status === "rising") {
 	    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos]);
@@ -2032,12 +2096,12 @@
 	      this._afterElevatorInNewSpot();
 	    } else if (realRobotBottom < this.stopAt) {
 	      (function () {
-	        var difference = _this3.stopAt - realRobotBottom;
-	        _this3.moveDown(difference, 1);
-	        _this3.elevatorArray.forEach(function (elevator) {
+	        var difference = _this4.stopAt - realRobotBottom;
+	        _this4.moveDown(difference, 1);
+	        _this4.elevatorArray.forEach(function (elevator) {
 	          elevator.additionalPixels -= difference;
 	        });
-	        _this3._afterElevatorInNewSpot();
+	        _this4._afterElevatorInNewSpot();
 	      })();
 	    }
 	  } else if (this.status === "descending") {
@@ -2046,12 +2110,12 @@
 	      this._afterElevatorInNewSpot();
 	    } else if (_realRobotBottom > this.stopAt) {
 	      (function () {
-	        var difference = _realRobotBottom - _this3.stopAt;
-	        _this3.moveUp(difference, 1);
-	        _this3.elevatorArray.forEach(function (elevator) {
+	        var difference = _realRobotBottom - _this4.stopAt;
+	        _this4.moveUp(difference, 1);
+	        _this4.elevatorArray.forEach(function (elevator) {
 	          elevator.additionalPixels += difference;
 	        });
-	        _this3._afterElevatorInNewSpot();
+	        _this4._afterElevatorInNewSpot();
 	      })();
 	    }
 	  }
@@ -2384,18 +2448,55 @@
 
 	'use strict';
 	
-	var Door = __webpack_require__(7);
-	var Elevator = __webpack_require__(14);
-	var ExitElevator = __webpack_require__(15);
-	var ButtonBlock = __webpack_require__(8);
-	var Cubby = __webpack_require__(9);
-	var Wire = __webpack_require__(2);
-	var WireJunction = __webpack_require__(4);
-	var PowerSource = __webpack_require__(16);
-	var ForceFieldBlock = __webpack_require__(17);
-	var Panel = __webpack_require__(10);
-	var Spring = __webpack_require__(18);
-	var Message = __webpack_require__(19);
+	var _door = __webpack_require__(7);
+	
+	var _door2 = _interopRequireDefault(_door);
+	
+	var _elevator = __webpack_require__(14);
+	
+	var _elevator2 = _interopRequireDefault(_elevator);
+	
+	var _exitElevator = __webpack_require__(15);
+	
+	var _exitElevator2 = _interopRequireDefault(_exitElevator);
+	
+	var _buttonBlock = __webpack_require__(8);
+	
+	var _buttonBlock2 = _interopRequireDefault(_buttonBlock);
+	
+	var _cubby = __webpack_require__(9);
+	
+	var _cubby2 = _interopRequireDefault(_cubby);
+	
+	var _wire = __webpack_require__(2);
+	
+	var _wire2 = _interopRequireDefault(_wire);
+	
+	var _wireJunction = __webpack_require__(4);
+	
+	var _wireJunction2 = _interopRequireDefault(_wireJunction);
+	
+	var _powerSource = __webpack_require__(16);
+	
+	var _powerSource2 = _interopRequireDefault(_powerSource);
+	
+	var _forceFieldBlock = __webpack_require__(17);
+	
+	var _forceFieldBlock2 = _interopRequireDefault(_forceFieldBlock);
+	
+	var _panel = __webpack_require__(10);
+	
+	var _panel2 = _interopRequireDefault(_panel);
+	
+	var _spring = __webpack_require__(18);
+	
+	var _spring2 = _interopRequireDefault(_spring);
+	
+	var _message = __webpack_require__(19);
+	
+	var _message2 = _interopRequireDefault(_message);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function Level(options) {
 	  this.name = options.name;
@@ -2426,18 +2527,18 @@
 	module.exports = {
 	  Level: Level,
 	  LevelBuilder: LevelBuilder,
-	  Door: Door,
-	  Elevator: Elevator,
-	  ExitElevator: ExitElevator,
-	  ButtonBlock: ButtonBlock,
-	  Cubby: Cubby,
-	  Wire: Wire,
-	  WireJunction: WireJunction,
-	  PowerSource: PowerSource,
-	  ForceFieldBlock: ForceFieldBlock,
-	  Panel: Panel,
-	  Spring: Spring,
-	  Message: Message
+	  Door: _door2.default,
+	  Elevator: _elevator2.default,
+	  ExitElevator: _exitElevator2.default,
+	  ButtonBlock: _buttonBlock2.default,
+	  Cubby: _cubby2.default,
+	  Wire: _wire2.default,
+	  WireJunction: _wireJunction2.default,
+	  PowerSource: _powerSource2.default,
+	  ForceFieldBlock: _forceFieldBlock2.default,
+	  Panel: _panel2.default,
+	  Spring: _spring2.default,
+	  Message: _message2.default
 	};
 
 /***/ },
@@ -2469,7 +2570,11 @@
 
 	'use strict';
 	
-	var Elevator = __webpack_require__(14);
+	var _elevator = __webpack_require__(14);
+	
+	var _elevator2 = _interopRequireDefault(_elevator);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function ExitElevator(options) {
 	  this.id = options.id;
@@ -2485,7 +2590,7 @@
 	}
 	
 	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = Elevator.prototype;
+	Surrogate.prototype = _elevator2.default.prototype;
 	ExitElevator.prototype = new Surrogate();
 	ExitElevator.prototype.constructor = ExitElevator;
 	
@@ -2497,14 +2602,18 @@
 
 	'use strict';
 	
-	var PowerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(3);
+	
+	var _powerObject2 = _interopRequireDefault(_powerObject);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function PowerSource(options) {
 	  this.initializePowerObject(options);
 	}
 	
 	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = PowerObject.prototype;
+	Surrogate.prototype = _powerObject2.default.prototype;
 	PowerSource.prototype = new Surrogate();
 	PowerSource.prototype.constructor = PowerSource;
 	
@@ -2516,14 +2625,18 @@
 
 	'use strict';
 	
-	var PowerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(3);
+	
+	var _powerObject2 = _interopRequireDefault(_powerObject);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function ForceFieldBlock(options) {
 	  this.initializePowerObject(options);
 	}
 	
 	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = PowerObject.prototype;
+	Surrogate.prototype = _powerObject2.default.prototype;
 	ForceFieldBlock.prototype = new Surrogate();
 	ForceFieldBlock.prototype.constructor = ForceFieldBlock;
 	
