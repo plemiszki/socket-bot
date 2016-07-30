@@ -50,7 +50,7 @@
 	
 	var _renderer2 = _interopRequireDefault(_renderer);
 	
-	var _game = __webpack_require__(11);
+	var _game = __webpack_require__(10);
 	
 	var _game2 = _interopRequireDefault(_game);
 	
@@ -60,7 +60,7 @@
 	  var canvas = document.getElementById('canvas');
 	  var context = canvas.getContext("2d");
 	  var renderer = new _renderer2.default(context);
-	  var levelSequence = [__webpack_require__(12), __webpack_require__(20), __webpack_require__(21), __webpack_require__(22)];
+	  var levelSequence = [__webpack_require__(11), __webpack_require__(19), __webpack_require__(20), __webpack_require__(21)];
 	
 	  var gameInstance = new _game2.default(renderer, levelSequence);
 	  renderer.game = gameInstance;
@@ -89,27 +89,27 @@
 	
 	var _wire2 = _interopRequireDefault(_wire);
 	
-	var _wireJunction = __webpack_require__(4);
+	var _wireJunction = __webpack_require__(3);
 	
 	var _wireJunction2 = _interopRequireDefault(_wireJunction);
 	
-	var _robot = __webpack_require__(6);
+	var _robot = __webpack_require__(5);
 	
 	var _robot2 = _interopRequireDefault(_robot);
 	
-	var _door = __webpack_require__(7);
+	var _door = __webpack_require__(6);
 	
 	var _door2 = _interopRequireDefault(_door);
 	
-	var _buttonBlock = __webpack_require__(8);
+	var _buttonBlock = __webpack_require__(7);
 	
 	var _buttonBlock2 = _interopRequireDefault(_buttonBlock);
 	
-	var _cubby = __webpack_require__(9);
+	var _cubby = __webpack_require__(8);
 	
 	var _cubby2 = _interopRequireDefault(_cubby);
 	
-	var _panel = __webpack_require__(10);
+	var _panel = __webpack_require__(9);
 	
 	var _panel2 = _interopRequireDefault(_panel);
 	
@@ -1110,250 +1110,204 @@
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(22);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function Wire(options) {
-	  this.initializePowerObject(options);
-	  this.type = options.type;
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = _powerObject2.default.prototype;
-	Wire.prototype = new Surrogate();
-	Wire.prototype.constructor = Wire;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Wire = function (_PowerObject) {
+	  _inherits(Wire, _PowerObject);
+	
+	  function Wire(options) {
+	    _classCallCheck(this, Wire);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Wire).call(this, options));
+	
+	    _this.type = options.type;
+	    return _this;
+	  }
+	
+	  return Wire;
+	}(_powerObject2.default);
+	
+	// var Surrogate = function () {};
+	// Surrogate.prototype = PowerObject.prototype;
+	// Wire.prototype = new Surrogate();
+	// Wire.prototype.constructor = Wire;
 	
 	module.exports = Wire;
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	function PowerObject() {}
-	
-	PowerObject.prototype.initializePowerObject = function (options) {
-	  var _this = this;
-	
-	  this.hasPower = false;
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.toString = function () {
-	    return _this.constructor.name;
-	  };
-	};
-	
-	PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
-	
-	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
-	
-	  //if object is a Power Source, send power in all four directions
-	  if (this.constructor.name === 'PowerSource') {
-	    this.type = "NESW";
-	  }
-	
-	  //look through wires:
-	  for (var i = 0; i < wiring.length; i++) {
-	    if (this.type.split("").indexOf("W") !== -1) {
-	      if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
-	      }
-	    }
-	    if (this.type.split("").indexOf("N") !== -1) {
-	      if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
-	      }
-	    }
-	    if (this.type.split("").indexOf("E") !== -1) {
-	      if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
-	      }
-	    }
-	    if (this.type.split("").indexOf("S") !== -1) {
-	      if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
-	        wiring[i].hasPower = true;
-	        wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
-	      }
-	    }
-	  }
-	
-	  //look through force field blocks:
-	  for (var _i = 0; _i < forceFieldBlocks.length; _i++) {
-	    if (forceFieldBlocks[_i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[_i].rowCol[1] === leftRowCol[1]) {
-	      forceFieldBlocks[_i].hasPower = true;
-	    }
-	    if (forceFieldBlocks[_i].rowCol[0] === topRowCol[0] && forceFieldBlocks[_i].rowCol[1] === topRowCol[1]) {
-	      forceFieldBlocks[_i].hasPower = true;
-	    }
-	    if (forceFieldBlocks[_i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[_i].rowCol[1] === rightRowCol[1]) {
-	      forceFieldBlocks[_i].hasPower = true;
-	    }
-	    if (forceFieldBlocks[_i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[_i].rowCol[1] === bottomRowCol[1]) {
-	      forceFieldBlocks[_i].hasPower = true;
-	    }
-	  }
-	
-	  //look through button blocks:
-	  for (var _i2 = 0; _i2 < buttonBlocks.length; _i2++) {
-	    if (buttonBlocks[_i2].rowCol[0] === leftRowCol[0] && buttonBlocks[_i2].rowCol[1] === leftRowCol[1]) {
-	      buttonBlocks[_i2].hasPower = true;
-	    }
-	    if (buttonBlocks[_i2].rowCol[0] === topRowCol[0] && buttonBlocks[_i2].rowCol[1] === topRowCol[1]) {
-	      buttonBlocks[_i2].hasPower = true;
-	    }
-	    if (buttonBlocks[_i2].rowCol[0] === rightRowCol[0] && buttonBlocks[_i2].rowCol[1] === rightRowCol[1]) {
-	      buttonBlocks[_i2].hasPower = true;
-	    }
-	    if (buttonBlocks[_i2].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i2].rowCol[1] === bottomRowCol[1]) {
-	      buttonBlocks[_i2].hasPower = true;
-	    }
-	  }
-	};
-	
-	module.exports = PowerObject;
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _wireSegment = __webpack_require__(5);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _wireSegment = __webpack_require__(4);
 	
 	var _wireSegment2 = _interopRequireDefault(_wireSegment);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function WireJunction(options) {
-	  this.id = options.id;
-	  this.rowCol = options.rowCol;
-	  this.segmentStrings = options.segmentStrings;
-	  this.segments = {};
-	  for (var i = 0; i < this.segmentStrings.length; i++) {
-	    if (this.segmentStrings[i] === "N") {
-	      this.segments['N'] = new _wireSegment2.default({ id: "N" });
-	    } else if (this.segmentStrings[i] === "E") {
-	      this.segments['E'] = new _wireSegment2.default({ id: "E" });
-	    } else if (this.segmentStrings[i] === "S") {
-	      this.segments['S'] = new _wireSegment2.default({ id: "S" });
-	    } else if (this.segmentStrings[i] === "W") {
-	      this.segments['W'] = new _wireSegment2.default({ id: "W" });
-	    }
-	  }
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	WireJunction.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
-	  var cubby;
-	  for (var _i = 0; _i < cubbies.length; _i++) {
-	    if (cubbies[_i].rowCol[0] === this.rowCol[0] && cubbies[_i].rowCol[1] === this.rowCol[1]) {
-	      cubby = cubbies[_i];
-	      break;
+	var WireJunction = function () {
+	  function WireJunction(options) {
+	    _classCallCheck(this, WireJunction);
+	
+	    this.id = options.id;
+	    this.rowCol = options.rowCol;
+	    this.segmentStrings = options.segmentStrings;
+	    this.segments = {};
+	    for (var i = 0; i < this.segmentStrings.length; i++) {
+	      if (this.segmentStrings[i] === "N") {
+	        this.segments['N'] = new _wireSegment2.default({ id: "N" });
+	      } else if (this.segmentStrings[i] === "E") {
+	        this.segments['E'] = new _wireSegment2.default({ id: "E" });
+	      } else if (this.segmentStrings[i] === "S") {
+	        this.segments['S'] = new _wireSegment2.default({ id: "S" });
+	      } else if (this.segmentStrings[i] === "W") {
+	        this.segments['W'] = new _wireSegment2.default({ id: "W" });
+	      }
 	    }
 	  }
 	
-	  if (flowing === "leftward" && this.segments['E']) {
-	    this.segments['E'].hasPower = true;
-	    this.giveItemPower(cubby.item, 'E');
-	  } else if (flowing === "rightward" && this.segments['W']) {
-	    this.segments['W'].hasPower = true;
-	    this.giveItemPower(cubby.item, 'W');
-	  } else if (flowing === "upward" && this.segments['S']) {
-	    this.giveItemPower(cubby.item, 'S');
-	    this.segments['S'].hasPower = true;
-	  } else if (flowing === "downward" && this.segments['N']) {
-	    this.giveItemPower(cubby.item, 'N');
-	    this.segments['N'].hasPower = true;
-	  }
-	
-	  if (cubby.item) {
-	    if (cubby.item.hasPower) {
-	      for (var i = 0; i < cubby.item.segments.length; i++) {
-	        if (this.segments[cubby.item.segments[i]]) {
-	          this.segments[cubby.item.segments[i]].hasPower = true;
+	  _createClass(WireJunction, [{
+	    key: 'sendPower',
+	    value: function sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+	      var cubby;
+	      for (var _i = 0; _i < cubbies.length; _i++) {
+	        if (cubbies[_i].rowCol[0] === this.rowCol[0] && cubbies[_i].rowCol[1] === this.rowCol[1]) {
+	          cubby = cubbies[_i];
+	          break;
 	        }
 	      }
-	      this.sendPowerFromItem(cubby.item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing);
-	    }
-	  }
-	};
 	
-	WireJunction.prototype.giveItemPower = function (item, side) {
-	  if (item && item.segments.indexOf(side) !== -1) {
-	    item.hasPower = true;
-	  }
-	};
+	      if (flowing === "leftward" && this.segments['E']) {
+	        this.segments['E'].hasPower = true;
+	        this.giveItemPower(cubby.item, 'E');
+	      } else if (flowing === "rightward" && this.segments['W']) {
+	        this.segments['W'].hasPower = true;
+	        this.giveItemPower(cubby.item, 'W');
+	      } else if (flowing === "upward" && this.segments['S']) {
+	        this.giveItemPower(cubby.item, 'S');
+	        this.segments['S'].hasPower = true;
+	      } else if (flowing === "downward" && this.segments['N']) {
+	        this.giveItemPower(cubby.item, 'N');
+	        this.segments['N'].hasPower = true;
+	      }
 	
-	WireJunction.prototype.sendPowerFromItem = function (item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+	      if (cubby.item) {
+	        if (cubby.item.hasPower) {
+	          for (var i = 0; i < cubby.item.segments.length; i++) {
+	            if (this.segments[cubby.item.segments[i]]) {
+	              this.segments[cubby.item.segments[i]].hasPower = true;
+	            }
+	          }
+	          this.sendPowerFromItem(cubby.item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'giveItemPower',
+	    value: function giveItemPower(item, side) {
+	      if (item && item.segments.indexOf(side) !== -1) {
+	        item.hasPower = true;
+	      }
+	    }
+	  }, {
+	    key: 'sendPowerFromItem',
+	    value: function sendPowerFromItem(item, wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
 	
-	  var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	  var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	  var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	  var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+	      var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	      var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	      var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	      var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
 	
-	  //look through wires:
-	  for (var _i2 = 0; _i2 < wiring.length; _i2++) {
-	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[_i2].rowCol[0] === leftRowCol[0] && wiring[_i2].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
-	      wiring[_i2].hasPower = true;
-	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
-	    }
-	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[_i2].rowCol[0] === topRowCol[0] && wiring[_i2].rowCol[1] === topRowCol[1] && flowing !== "downward") {
-	      wiring[_i2].hasPower = true;
-	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
-	    }
-	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[_i2].rowCol[0] === rightRowCol[0] && wiring[_i2].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
-	      wiring[_i2].hasPower = true;
-	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
-	    }
-	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[_i2].rowCol[0] === bottomRowCol[0] && wiring[_i2].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
-	      wiring[_i2].hasPower = true;
-	      wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
-	    }
-	  }
+	      //look through wires:
+	      for (var _i2 = 0; _i2 < wiring.length; _i2++) {
+	        if (item.segments.indexOf("W") !== -1 && this.segments["W"] && wiring[_i2].rowCol[0] === leftRowCol[0] && wiring[_i2].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	          wiring[_i2].hasPower = true;
+	          wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
+	        }
+	        if (item.segments.indexOf("N") !== -1 && this.segments["N"] && wiring[_i2].rowCol[0] === topRowCol[0] && wiring[_i2].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	          wiring[_i2].hasPower = true;
+	          wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
+	        }
+	        if (item.segments.indexOf("E") !== -1 && this.segments["E"] && wiring[_i2].rowCol[0] === rightRowCol[0] && wiring[_i2].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	          wiring[_i2].hasPower = true;
+	          wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
+	        }
+	        if (item.segments.indexOf("S") !== -1 && this.segments["S"] && wiring[_i2].rowCol[0] === bottomRowCol[0] && wiring[_i2].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	          wiring[_i2].hasPower = true;
+	          wiring[_i2].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
+	        }
+	      }
 	
-	  //look through button blocks:
-	  for (var _i3 = 0; _i3 < buttonBlocks.length; _i3++) {
-	    if (buttonBlocks[_i3].rowCol[0] === leftRowCol[0] && buttonBlocks[_i3].rowCol[1] === leftRowCol[1]) {
-	      buttonBlocks[_i3].hasPower = true;
-	    }
-	    if (buttonBlocks[_i3].rowCol[0] === topRowCol[0] && buttonBlocks[_i3].rowCol[1] === topRowCol[1]) {
-	      buttonBlocks[_i3].hasPower = true;
-	    }
-	    if (buttonBlocks[_i3].rowCol[0] === rightRowCol[0] && buttonBlocks[_i3].rowCol[1] === rightRowCol[1]) {
-	      buttonBlocks[_i3].hasPower = true;
-	    }
-	    if (buttonBlocks[_i3].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i3].rowCol[1] === bottomRowCol[1]) {
-	      buttonBlocks[_i3].hasPower = true;
-	    }
-	  }
+	      //look through button blocks:
+	      for (var _i3 = 0; _i3 < buttonBlocks.length; _i3++) {
+	        if (buttonBlocks[_i3].rowCol[0] === leftRowCol[0] && buttonBlocks[_i3].rowCol[1] === leftRowCol[1]) {
+	          buttonBlocks[_i3].hasPower = true;
+	        }
+	        if (buttonBlocks[_i3].rowCol[0] === topRowCol[0] && buttonBlocks[_i3].rowCol[1] === topRowCol[1]) {
+	          buttonBlocks[_i3].hasPower = true;
+	        }
+	        if (buttonBlocks[_i3].rowCol[0] === rightRowCol[0] && buttonBlocks[_i3].rowCol[1] === rightRowCol[1]) {
+	          buttonBlocks[_i3].hasPower = true;
+	        }
+	        if (buttonBlocks[_i3].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i3].rowCol[1] === bottomRowCol[1]) {
+	          buttonBlocks[_i3].hasPower = true;
+	        }
+	      }
 	
-	  //look through force field blocks:
-	  for (var i = 0; i < forceFieldBlocks.length; i++) {
-	    if (item.segments.indexOf("W") !== -1 && this.segments["W"] && forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
+	      //look through force field blocks:
+	      for (var i = 0; i < forceFieldBlocks.length; i++) {
+	        if (item.segments.indexOf("W") !== -1 && this.segments["W"] && forceFieldBlocks[i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[i].rowCol[1] === leftRowCol[1]) {
+	          forceFieldBlocks[i].hasPower = true;
+	        }
+	        if (item.segments.indexOf("N") !== -1 && this.segments["N"] && forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
+	          forceFieldBlocks[i].hasPower = true;
+	        }
+	        if (item.segments.indexOf("E") !== -1 && this.segments["E"] && forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
+	          forceFieldBlocks[i].hasPower = true;
+	        }
+	        if (item.segments.indexOf("S") !== -1 && this.segments["S"] && forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
+	          forceFieldBlocks[i].hasPower = true;
+	        }
+	      }
 	    }
-	    if (item.segments.indexOf("N") !== -1 && this.segments["N"] && forceFieldBlocks[i].rowCol[0] === topRowCol[0] && forceFieldBlocks[i].rowCol[1] === topRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	    if (item.segments.indexOf("E") !== -1 && this.segments["E"] && forceFieldBlocks[i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[i].rowCol[1] === rightRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	    if (item.segments.indexOf("S") !== -1 && this.segments["S"] && forceFieldBlocks[i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[i].rowCol[1] === bottomRowCol[1]) {
-	      forceFieldBlocks[i].hasPower = true;
-	    }
-	  }
-	};
+	  }]);
+	
+	  return WireJunction;
+	}();
 	
 	module.exports = WireJunction;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var WireSegment = function WireSegment(options) {
+	  _classCallCheck(this, WireSegment);
+	
+	  this.id = options.id;
+	  this.hasPower = false;
+	};
+	
+	module.exports = WireSegment;
 
 /***/ },
 /* 5 */
@@ -1361,12 +1315,18 @@
 
 	"use strict";
 	
-	function WireSegment(options) {
-	  this.id = options.id;
-	  this.hasPower = false;
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	module.exports = WireSegment;
+	var Robot = function Robot(startingPos) {
+	  _classCallCheck(this, Robot);
+	
+	  this.pos = startingPos;
+	  this.speed = 256;
+	  this.height = 0;
+	  this.maxHeight = 0;
+	};
+	
+	module.exports = Robot;
 
 /***/ },
 /* 6 */
@@ -1374,96 +1334,122 @@
 
 	"use strict";
 	
-	function Robot(startingPos) {
-	  this.pos = startingPos;
-	  this.speed = 256;
-	  this.height = 0;
-	  this.maxHeight = 0;
-	}
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	module.exports = Robot;
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	"use strict";
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	function Door(id, side, color) {
-	  this.toString = function () {
-	    return "door";
-	  };
-	  this.id = id;
-	  this.status = "closed";
-	  this.percentOpen = 0;
-	  this.aniFrame = undefined;
-	  this.side = side;
-	  this.color = color || 'red';
-	}
+	var Door = function () {
+	  function Door(id, side, color) {
+	    _classCallCheck(this, Door);
 	
-	Door.prototype.open = function () {
-	  if (this.status !== "open") {
-	    this.status = "opening";
+	    this.id = id;
+	    this.status = "closed";
+	    this.percentOpen = 0;
+	    this.aniFrame = undefined;
+	    this.side = side;
+	    this.color = color || 'red';
 	  }
-	};
 	
-	Door.prototype.close = function () {
-	  if (this.status !== "closed") {
-	    this.status = "closing";
-	  }
-	};
+	  _createClass(Door, [{
+	    key: "toString",
+	    value: function toString() {
+	      return "door";
+	    }
+	  }, {
+	    key: "open",
+	    value: function open() {
+	      if (this.status !== "open") {
+	        this.status = "opening";
+	      }
+	    }
+	  }, {
+	    key: "close",
+	    value: function close() {
+	      if (this.status !== "closed") {
+	        this.status = "closing";
+	      }
+	    }
+	  }]);
+	
+	  return Door;
+	}();
 	
 	module.exports = Door;
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(22);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function ButtonBlock(options) {
-	  this.initializePowerObject(options);
-	  this.side = options.side;
-	  this.pushFunc = options.func;
-	  this.color = options.color || 'red';
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = _powerObject2.default.prototype;
-	ButtonBlock.prototype = new Surrogate();
-	ButtonBlock.prototype.constructor = ButtonBlock;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ButtonBlock = function (_PowerObject) {
+	  _inherits(ButtonBlock, _PowerObject);
+	
+	  function ButtonBlock(options) {
+	    _classCallCheck(this, ButtonBlock);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ButtonBlock).call(this, options));
+	
+	    _this.side = options.side;
+	    _this.pushFunc = options.func;
+	    _this.color = options.color || 'red';
+	    return _this;
+	  }
+	
+	  return ButtonBlock;
+	}(_powerObject2.default);
+	
+	// function ButtonBlock(options) {
+	//   this.initializePowerObject(options);
+	//   this.side = options.side;
+	//   this.pushFunc = options.func;
+	//   this.color = options.color || 'red';
+	// }
+	//
+	// var Surrogate = function () {};
+	// Surrogate.prototype = PowerObject.prototype;
+	// ButtonBlock.prototype = new Surrogate();
+	// ButtonBlock.prototype.constructor = ButtonBlock;
 	
 	module.exports = ButtonBlock;
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	"use strict";
 	
-	function Cubby(options) {
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var Cubby = function Cubby(options) {
+	  _classCallCheck(this, Cubby);
+	
 	  this.id = options.id;
 	  this.rowCol = options.rowCol;
 	  this.item = options.startItem;
-	
-	  this.toString = function () {
-	    return "cubby";
-	  };
-	}
+	};
 	
 	module.exports = Cubby;
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _renderer = __webpack_require__(1);
 	
@@ -1471,97 +1457,108 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function Panel(segments) {
-	  this.segments = segments || [];
-	  this.hasPower = false;
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	Panel.prototype.render = function (context, pos, length, power) {
-	  var thickness = length / 3;
-	  var x = pos[0];
-	  var y = pos[1];
-	  context.beginPath();
-	  context.rect(x, y, length, length);
-	  context.fillStyle = '#333';
-	  context.fill();
-	  context.strokeStyle = '#000';
-	  context.stroke();
+	var Panel = function () {
+	  function Panel(segments) {
+	    _classCallCheck(this, Panel);
 	
-	  switch (this.segments.join("")) {
-	    case "EW":
-	      y += length / 2 - thickness / 2 + 0.5;
-	      context.beginPath();
-	      context.rect(x, y, length, thickness);
-	      break;
-	    case "NS":
-	      x += length / 2 - thickness / 2 + 0.5;
-	      context.beginPath();
-	      context.rect(x, y, thickness, length);
-	      break;
-	    case "SW":
-	      y += length / 2 - thickness / 2 + 0.5;
-	      context.beginPath();
-	      context.moveTo(x, y);
-	      context.lineTo(x += length / 2 + thickness / 2 + 0.5, y);
-	      context.lineTo(x, y += thickness / 2 + length / 2 - 0.5);
-	      context.lineTo(x -= thickness, y);
-	      context.lineTo(x, y -= length / 2 - thickness / 2 - 0.5);
-	      context.lineTo(x -= length / 2 - thickness / 2 + 0.5, y);
-	      context.closePath();
-	      break;
-	    case "NE":
-	      x += length / 2 - thickness / 2 + 0.5;
-	      context.beginPath();
-	      context.moveTo(x, y);
-	      context.lineTo(x, y += thickness / 2 + length / 2 - 0.5);
-	      context.lineTo(x += length / 2 + thickness / 2 - 0.5, y);
-	      context.lineTo(x, y -= thickness);
-	      context.lineTo(x -= length / 2 - thickness / 2, y);
-	      context.lineTo(x, y -= length / 2 - thickness / 2 - 0.5);
-	      context.closePath();
-	      break;
-	    case "ESW":
-	      y += length / 2 - thickness / 2 + 0.5;
-	      context.beginPath();
-	      context.moveTo(x, y);
-	      context.lineTo(x += length, y);
-	      context.lineTo(x, y += thickness);
-	      context.lineTo(x -= length / 2 - thickness / 2, y);
-	      context.lineTo(x, y += length / 2 - thickness / 2 - 0.5);
-	      context.lineTo(x -= length / 2 - thickness / 2, y);
-	      context.lineTo(x, y -= length / 2 - thickness / 2);
-	      context.lineTo(x -= length / 2 - thickness / 2, y);
-	      context.closePath();
-	      break;
-	    case "ENW":
-	      y += length / 2 - thickness / 2 + 0.5;
-	      context.beginPath();
-	      context.moveTo(x, y);
-	      context.lineTo(x += length / 2 - thickness / 2 + 0.5, y);
-	      context.lineTo(x, y -= length / 2 - thickness / 2 + 0.5);
-	      context.lineTo(x += thickness, y);
-	      context.lineTo(x, y += length / 2 - thickness / 2 + 0.5);
-	      context.lineTo(x += length / 2 - thickness / 2 - 0.5, y);
-	      context.lineTo(x, y += thickness);
-	      context.lineTo(x -= length, y);
-	      context.closePath();
-	      break;
+	    this.segments = segments || [];
+	    this.hasPower = false;
 	  }
-	  context.fillStyle = '#484848';
-	  context.fill();
-	  context.strokeStyle = '#000';
-	  context.stroke();
-	};
+	
+	  _createClass(Panel, [{
+	    key: 'render',
+	    value: function render(context, pos, length, power) {
+	      var thickness = length / 3;
+	      var x = pos[0];
+	      var y = pos[1];
+	      context.beginPath();
+	      context.rect(x, y, length, length);
+	      context.fillStyle = '#333';
+	      context.fill();
+	      context.strokeStyle = '#000';
+	      context.stroke();
+	
+	      switch (this.segments.join("")) {
+	        case "EW":
+	          y += length / 2 - thickness / 2 + 0.5;
+	          context.beginPath();
+	          context.rect(x, y, length, thickness);
+	          break;
+	        case "NS":
+	          x += length / 2 - thickness / 2 + 0.5;
+	          context.beginPath();
+	          context.rect(x, y, thickness, length);
+	          break;
+	        case "SW":
+	          y += length / 2 - thickness / 2 + 0.5;
+	          context.beginPath();
+	          context.moveTo(x, y);
+	          context.lineTo(x += length / 2 + thickness / 2 + 0.5, y);
+	          context.lineTo(x, y += thickness / 2 + length / 2 - 0.5);
+	          context.lineTo(x -= thickness, y);
+	          context.lineTo(x, y -= length / 2 - thickness / 2 - 0.5);
+	          context.lineTo(x -= length / 2 - thickness / 2 + 0.5, y);
+	          context.closePath();
+	          break;
+	        case "NE":
+	          x += length / 2 - thickness / 2 + 0.5;
+	          context.beginPath();
+	          context.moveTo(x, y);
+	          context.lineTo(x, y += thickness / 2 + length / 2 - 0.5);
+	          context.lineTo(x += length / 2 + thickness / 2 - 0.5, y);
+	          context.lineTo(x, y -= thickness);
+	          context.lineTo(x -= length / 2 - thickness / 2, y);
+	          context.lineTo(x, y -= length / 2 - thickness / 2 - 0.5);
+	          context.closePath();
+	          break;
+	        case "ESW":
+	          y += length / 2 - thickness / 2 + 0.5;
+	          context.beginPath();
+	          context.moveTo(x, y);
+	          context.lineTo(x += length, y);
+	          context.lineTo(x, y += thickness);
+	          context.lineTo(x -= length / 2 - thickness / 2, y);
+	          context.lineTo(x, y += length / 2 - thickness / 2 - 0.5);
+	          context.lineTo(x -= length / 2 - thickness / 2, y);
+	          context.lineTo(x, y -= length / 2 - thickness / 2);
+	          context.lineTo(x -= length / 2 - thickness / 2, y);
+	          context.closePath();
+	          break;
+	        case "ENW":
+	          y += length / 2 - thickness / 2 + 0.5;
+	          context.beginPath();
+	          context.moveTo(x, y);
+	          context.lineTo(x += length / 2 - thickness / 2 + 0.5, y);
+	          context.lineTo(x, y -= length / 2 - thickness / 2 + 0.5);
+	          context.lineTo(x += thickness, y);
+	          context.lineTo(x, y += length / 2 - thickness / 2 + 0.5);
+	          context.lineTo(x += length / 2 - thickness / 2 - 0.5, y);
+	          context.lineTo(x, y += thickness);
+	          context.lineTo(x -= length, y);
+	          context.closePath();
+	          break;
+	      }
+	      context.fillStyle = '#484848';
+	      context.fill();
+	      context.strokeStyle = '#000';
+	      context.stroke();
+	    }
+	  }]);
+	
+	  return Panel;
+	}();
 	
 	module.exports = Panel;
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _robot = __webpack_require__(6);
+	var _robot = __webpack_require__(5);
 	
 	var _robot2 = _interopRequireDefault(_robot);
 	
@@ -2271,12 +2268,12 @@
 	module.exports = Game;
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _level_builder = __webpack_require__(13);
+	var _level_builder = __webpack_require__(12);
 	
 	var _level_builder2 = _interopRequireDefault(_level_builder);
 	
@@ -2443,28 +2440,30 @@
 	module.exports = level;
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _door = __webpack_require__(7);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _door = __webpack_require__(6);
 	
 	var _door2 = _interopRequireDefault(_door);
 	
-	var _elevator = __webpack_require__(14);
+	var _elevator = __webpack_require__(13);
 	
 	var _elevator2 = _interopRequireDefault(_elevator);
 	
-	var _exitElevator = __webpack_require__(15);
+	var _exitElevator = __webpack_require__(14);
 	
 	var _exitElevator2 = _interopRequireDefault(_exitElevator);
 	
-	var _buttonBlock = __webpack_require__(8);
+	var _buttonBlock = __webpack_require__(7);
 	
 	var _buttonBlock2 = _interopRequireDefault(_buttonBlock);
 	
-	var _cubby = __webpack_require__(9);
+	var _cubby = __webpack_require__(8);
 	
 	var _cubby2 = _interopRequireDefault(_cubby);
 	
@@ -2472,33 +2471,37 @@
 	
 	var _wire2 = _interopRequireDefault(_wire);
 	
-	var _wireJunction = __webpack_require__(4);
+	var _wireJunction = __webpack_require__(3);
 	
 	var _wireJunction2 = _interopRequireDefault(_wireJunction);
 	
-	var _powerSource = __webpack_require__(16);
+	var _powerSource = __webpack_require__(15);
 	
 	var _powerSource2 = _interopRequireDefault(_powerSource);
 	
-	var _forceFieldBlock = __webpack_require__(17);
+	var _forceFieldBlock = __webpack_require__(16);
 	
 	var _forceFieldBlock2 = _interopRequireDefault(_forceFieldBlock);
 	
-	var _panel = __webpack_require__(10);
+	var _panel = __webpack_require__(9);
 	
 	var _panel2 = _interopRequireDefault(_panel);
 	
-	var _spring = __webpack_require__(18);
+	var _spring = __webpack_require__(17);
 	
 	var _spring2 = _interopRequireDefault(_spring);
 	
-	var _message = __webpack_require__(19);
+	var _message = __webpack_require__(18);
 	
 	var _message2 = _interopRequireDefault(_message);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function Level(options) {
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var Level = function Level(options) {
+	  _classCallCheck(this, Level);
+	
 	  this.name = options.name;
 	  this.color = options.color;
 	  this.foregroundGrid = options.foregroundGrid;
@@ -2512,17 +2515,26 @@
 	  this.forceFieldBlocks = options.forceFieldBlocks;
 	  this.buttonBlocks = options.buttonBlocks;
 	  this.messages = options.messages;
-	}
-	
-	function LevelBuilder() {}
-	
-	LevelBuilder.prototype.rowOf = function (rowLength, something) {
-	  var rowArray = [];
-	  for (var i = 0; i < rowLength; i++) {
-	    rowArray.push(something);
-	  }
-	  return rowArray;
 	};
+	
+	var LevelBuilder = function () {
+	  function LevelBuilder() {
+	    _classCallCheck(this, LevelBuilder);
+	  }
+	
+	  _createClass(LevelBuilder, [{
+	    key: 'rowOf',
+	    value: function rowOf(rowLength, something) {
+	      var rowArray = [];
+	      for (var i = 0; i < rowLength; i++) {
+	        rowArray.push(something);
+	      }
+	      return rowArray;
+	    }
+	  }]);
+	
+	  return LevelBuilder;
+	}();
 	
 	module.exports = {
 	  Level: Level,
@@ -2542,27 +2554,81 @@
 	};
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports) {
 
 	"use strict";
 	
-	function Elevator(options) {
-	  this.id = options.id;
-	  this.col = options.baseRowCol[1];
-	  this.baseRow = options.baseRowCol[0];
-	  this.blocksHigh = options.startingHeight || 0;
-	  this.speed = options.speed || 400;
-	  this.heights = options.heights;
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	  this.topRow = this.baseRow - this.blocksHigh;
-	  this.additionalPixels = 0;
-	  this.toString = function () {
-	    return "elevator";
-	  };
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var Elevator = function () {
+	  function Elevator(options) {
+	    _classCallCheck(this, Elevator);
+	
+	    this.id = options.id;
+	    this.col = options.baseRowCol[1];
+	    this.baseRow = options.baseRowCol[0];
+	    this.blocksHigh = options.startingHeight || 0;
+	    this.speed = options.speed || 400;
+	    this.heights = options.heights;
+	
+	    this.topRow = this.baseRow - this.blocksHigh;
+	    this.additionalPixels = 0;
+	  }
+	
+	  _createClass(Elevator, [{
+	    key: "toString",
+	    value: function toString() {
+	      return "elevator";
+	    }
+	  }]);
+	
+	  return Elevator;
+	}();
 	
 	module.exports = Elevator;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _elevator = __webpack_require__(13);
+	
+	var _elevator2 = _interopRequireDefault(_elevator);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ExitElevator = function (_Elevator) {
+	  _inherits(ExitElevator, _Elevator);
+	
+	  function ExitElevator(options) {
+	    _classCallCheck(this, ExitElevator);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ExitElevator).call(this, options));
+	
+	    _this.exit = true;
+	    return _this;
+	  }
+	
+	  return ExitElevator;
+	}(_elevator2.default);
+	
+	// var Surrogate = function () {};
+	// Surrogate.prototype = Elevator.prototype;
+	// ExitElevator.prototype = new Surrogate();
+	// ExitElevator.prototype.constructor = ExitElevator;
+	
+	module.exports = ExitElevator;
 
 /***/ },
 /* 15 */
@@ -2570,31 +2636,40 @@
 
 	'use strict';
 	
-	var _elevator = __webpack_require__(14);
+	var _powerObject = __webpack_require__(22);
 	
-	var _elevator2 = _interopRequireDefault(_elevator);
+	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function ExitElevator(options) {
-	  this.id = options.id;
-	  this.col = options.baseRowCol[1];
-	  this.baseRow = options.baseRowCol[0];
-	  this.blocksHigh = options.startingHeight || 0;
-	  this.speed = options.speed || 400;
-	  this.heights = options.heights;
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	  this.topRow = this.baseRow - this.blocksHigh;
-	  this.additionalPixels = 0;
-	  this.exit = true;
-	}
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
-	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = _elevator2.default.prototype;
-	ExitElevator.prototype = new Surrogate();
-	ExitElevator.prototype.constructor = ExitElevator;
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	module.exports = ExitElevator;
+	var PowerSource = function (_PowerObject) {
+	  _inherits(PowerSource, _PowerObject);
+	
+	  function PowerSource(options) {
+	    _classCallCheck(this, PowerSource);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(PowerSource).call(this, options));
+	  }
+	
+	  return PowerSource;
+	}(_powerObject2.default);
+	
+	// function PowerSource(options) {
+	//   this.initializePowerObject(options);
+	// }
+	//
+	// var Surrogate = function () {};
+	// Surrogate.prototype = PowerObject.prototype;
+	// PowerSource.prototype = new Surrogate();
+	// PowerSource.prototype.constructor = PowerSource;
+	
+	module.exports = PowerSource;
 
 /***/ },
 /* 16 */
@@ -2602,45 +2677,69 @@
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(3);
+	var _powerObject = __webpack_require__(22);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function PowerSource(options) {
-	  this.initializePowerObject(options);
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = _powerObject2.default.prototype;
-	PowerSource.prototype = new Surrogate();
-	PowerSource.prototype.constructor = PowerSource;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
-	module.exports = PowerSource;
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ForceFieldBlock = function (_PowerObject) {
+	  _inherits(ForceFieldBlock, _PowerObject);
+	
+	  function ForceFieldBlock(options) {
+	    _classCallCheck(this, ForceFieldBlock);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(ForceFieldBlock).call(this, options));
+	  }
+	
+	  return ForceFieldBlock;
+	}(_powerObject2.default);
+	
+	// function ForceFieldBlock(options) {
+	//   this.initializePowerObject(options);
+	// }
+	//
+	// var Surrogate = function () {};
+	// Surrogate.prototype = PowerObject.prototype;
+	// ForceFieldBlock.prototype = new Surrogate();
+	// ForceFieldBlock.prototype.constructor = ForceFieldBlock;
+	
+	module.exports = ForceFieldBlock;
 
 /***/ },
 /* 17 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 	
-	var _powerObject = __webpack_require__(3);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _powerObject2 = _interopRequireDefault(_powerObject);
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var Spring = function () {
+	  function Spring(options) {
+	    _classCallCheck(this, Spring);
 	
-	function ForceFieldBlock(options) {
-	  this.initializePowerObject(options);
-	}
+	    this.pickedUp = false;
+	  }
 	
-	var Surrogate = function Surrogate() {};
-	Surrogate.prototype = _powerObject2.default.prototype;
-	ForceFieldBlock.prototype = new Surrogate();
-	ForceFieldBlock.prototype.constructor = ForceFieldBlock;
+	  _createClass(Spring, [{
+	    key: "toString",
+	    value: function toString() {
+	      return "spring";
+	    }
+	  }]);
 	
-	module.exports = ForceFieldBlock;
+	  return Spring;
+	}();
+	
+	module.exports = Spring;
 
 /***/ },
 /* 18 */
@@ -2648,22 +2747,11 @@
 
 	"use strict";
 	
-	function Spring(options) {
-	  this.pickedUp = false;
-	  this.toString = function () {
-	    return "spring";
-	  };
-	}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	module.exports = Spring;
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	"use strict";
+	var Message = function Message(left, right, top, bottom, pos, text, text2) {
+	  _classCallCheck(this, Message);
 	
-	function Message(left, right, top, bottom, pos, text, text2) {
 	  this.left = left;
 	  this.right = right;
 	  this.top = top;
@@ -2671,17 +2759,17 @@
 	  this.pos = pos;
 	  this.text = text;
 	  this.text2 = text2;
-	}
+	};
 	
 	module.exports = Message;
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _level_builder = __webpack_require__(13);
+	var _level_builder = __webpack_require__(12);
 	
 	var _level_builder2 = _interopRequireDefault(_level_builder);
 	
@@ -2818,12 +2906,12 @@
 	module.exports = level;
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _level_builder = __webpack_require__(13);
+	var _level_builder = __webpack_require__(12);
 	
 	var _level_builder2 = _interopRequireDefault(_level_builder);
 	
@@ -2941,12 +3029,12 @@
 	module.exports = level;
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _level_builder = __webpack_require__(13);
+	var _level_builder = __webpack_require__(12);
 	
 	var _level_builder2 = _interopRequireDefault(_level_builder);
 	
@@ -3210,6 +3298,111 @@
 	});
 	
 	module.exports = level;
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var PowerObject = function () {
+	  function PowerObject(options) {
+	    var _this = this;
+	
+	    _classCallCheck(this, PowerObject);
+	
+	    this.hasPower = false;
+	    this.id = options.id;
+	    this.rowCol = options.rowCol;
+	    this.toString = function () {
+	      return _this.constructor.name;
+	    };
+	  }
+	
+	  _createClass(PowerObject, [{
+	    key: "sendPower",
+	    value: function sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+	
+	      var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	      var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	      var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	      var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+	
+	      //if object is a Power Source, send power in all four directions
+	      if (this.constructor.name === 'PowerSource') {
+	        this.type = "NESW";
+	      }
+	
+	      //look through wires:
+	      for (var i = 0; i < wiring.length; i++) {
+	        if (this.type.split("").indexOf("W") !== -1) {
+	          if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
+	          }
+	        }
+	        if (this.type.split("").indexOf("N") !== -1) {
+	          if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
+	          }
+	        }
+	        if (this.type.split("").indexOf("E") !== -1) {
+	          if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
+	          }
+	        }
+	        if (this.type.split("").indexOf("S") !== -1) {
+	          if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
+	          }
+	        }
+	      }
+	
+	      //look through force field blocks:
+	      for (var _i = 0; _i < forceFieldBlocks.length; _i++) {
+	        if (forceFieldBlocks[_i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[_i].rowCol[1] === leftRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	        if (forceFieldBlocks[_i].rowCol[0] === topRowCol[0] && forceFieldBlocks[_i].rowCol[1] === topRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	        if (forceFieldBlocks[_i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[_i].rowCol[1] === rightRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	        if (forceFieldBlocks[_i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[_i].rowCol[1] === bottomRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	      }
+	
+	      //look through button blocks:
+	      for (var _i2 = 0; _i2 < buttonBlocks.length; _i2++) {
+	        if (buttonBlocks[_i2].rowCol[0] === leftRowCol[0] && buttonBlocks[_i2].rowCol[1] === leftRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	        if (buttonBlocks[_i2].rowCol[0] === topRowCol[0] && buttonBlocks[_i2].rowCol[1] === topRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	        if (buttonBlocks[_i2].rowCol[0] === rightRowCol[0] && buttonBlocks[_i2].rowCol[1] === rightRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	        if (buttonBlocks[_i2].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i2].rowCol[1] === bottomRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	      }
+	    }
+	  }]);
+	
+	  return PowerObject;
+	}();
+	
+	module.exports = PowerObject;
 
 /***/ }
 /******/ ]);
