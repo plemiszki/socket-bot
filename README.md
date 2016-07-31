@@ -106,7 +106,7 @@ Whenever a socket is inserted or removed, the updatePower function is called.
 ```javascript
 updatePower() {
   this.clearPower();
-  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
+  for (let i = 0; i < this.currentLevel.powerSources.length; i++) {
     this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
   }
 }
