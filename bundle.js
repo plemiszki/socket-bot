@@ -1137,11 +1137,6 @@
 	  return Wire;
 	}(_powerObject2.default);
 	
-	// var Surrogate = function () {};
-	// Surrogate.prototype = PowerObject.prototype;
-	// Wire.prototype = new Surrogate();
-	// Wire.prototype.constructor = Wire;
-	
 	module.exports = Wire;
 
 /***/ },
@@ -1411,18 +1406,6 @@
 	  return ButtonBlock;
 	}(_powerObject2.default);
 	
-	// function ButtonBlock(options) {
-	//   this.initializePowerObject(options);
-	//   this.side = options.side;
-	//   this.pushFunc = options.func;
-	//   this.color = options.color || 'red';
-	// }
-	//
-	// var Surrogate = function () {};
-	// Surrogate.prototype = PowerObject.prototype;
-	// ButtonBlock.prototype = new Surrogate();
-	// ButtonBlock.prototype.constructor = ButtonBlock;
-	
 	module.exports = ButtonBlock;
 
 /***/ },
@@ -1558,6 +1541,8 @@
 
 	'use strict';
 	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
 	var _robot = __webpack_require__(5);
 	
 	var _robot2 = _interopRequireDefault(_robot);
@@ -1572,698 +1557,749 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
 	var BLOCK_LENGTH = 75;
 	
-	function Game(renderer, levelSequence) {
-	  this.renderer = renderer;
-	  this.BLOCK_LENGTH = 75;
-	  this.levelSequence = levelSequence;
-	  this.origin = [0, 0];
-	  this.keysDown = {};
-	  this.spaceTime = 0;
-	  this.mainLoopRunning = false;
-	  this.tutorialPage = 0;
-	}
+	var Game = function () {
+	  function Game(renderer, levelSequence) {
+	    _classCallCheck(this, Game);
 	
-	Game.prototype.startGame = function () {
-	  this.status = "loading";
-	  this.renderer.displayLoadScreen();
-	};
-	
-	Game.prototype.showMainMenu = function () {
-	  this.status = "menu";
-	  this.renderer.displayMenu();
-	};
-	
-	Game.prototype.startLevel = function () {
-	  var _this = this;
-	
-	  this.currentLevel = this.levelSequence[0];
-	  if (this.currentLevel.name) {
-	    (function () {
-	      _this.renderer.showLevelName = true;
-	      var flashN = 5;
-	      var levelFlash = window.setInterval(function () {
-	        flashN = _this.renderer.toggleLevelName(flashN);
-	        if (flashN === 0) {
-	          clearInterval(levelFlash);
-	        }
-	      }, 600);
-	    })();
-	  }
-	  this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
-	  this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
-	  if (this.currentLevel.backgroundGrid.length !== this.currentLevel.foregroundGrid.length || this.currentLevel.backgroundGrid[0].length !== this.currentLevel.foregroundGrid[0].length) {
-	    throw "foregroundGrid and backgroundGrid dimensions don't match!";
+	    this.renderer = renderer;
+	    this.BLOCK_LENGTH = 75;
+	    this.levelSequence = levelSequence;
+	    this.origin = [0, 0];
+	    this.keysDown = {};
+	    this.spaceTime = 0;
+	    this.mainLoopRunning = false;
+	    this.tutorialPage = 0;
 	  }
 	
-	  var robotX, robotY;
-	  if (this.currentLevel.startingPos[0] - 263.5 < 0) {
-	    this.origin[0] = 0;
-	    robotX = this.currentLevel.startingPos[0];
-	  } else {
-	    this.origin[0] = this.currentLevel.startingPos[0] - 263.5;
-	    robotX = 263.5;
-	  }
-	  if (this.currentLevel.startingPos[1] - 187.5 < 0) {
-	    this.origin[1] = 0;
-	    robotY = this.currentLevel.startingPos[1];
-	  } else if (this.currentLevel.foregroundGrid.length * BLOCK_LENGTH - this.currentLevel.startingPos[1] < 187.5) {
-	    this.origin[1] = this.currentLevel.foregroundGrid.length * BLOCK_LENGTH - 450;
-	    robotY = this.currentLevel.startingPos[1] - this.origin[1];
-	  } else {
-	    this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
-	    robotY = 187.5;
-	  }
-	  this.robot = new _robot2.default([robotX, robotY]);
-	  this.status = "inControl";
-	  this.updatePower();
-	  if (this.mainLoopRunning === false) {
-	    this.mainLoopRunning = true;
-	    this.main(Date.now());
-	  }
-	};
-	
-	Game.prototype.advanceLevel = function () {
-	  this.levelSequence.shift();
-	  if (this.levelSequence.length === 0) {
-	    this.status = "end screen";
-	  } else {
-	    this.startLevel();
-	  }
-	};
-	
-	Game.prototype.main = function (passedThen) {
-	  var _this2 = this;
-	
-	  if (this.spaceTime > 0) {
-	    this.spaceTime -= 1;
-	  }
-	  var now = Date.now();
-	  var delta = now - passedThen;
-	  this.update(delta / 1000);
-	  this.renderer.renderScreen();
-	  var newThen = now;
-	  window.requestAnimationFrame(function () {
-	    _this2.main(newThen);
-	  });
-	};
-	
-	Game.prototype.update = function (modifier) {
-	  var realArrays = [this.origin, this.robot.pos];
-	  var topRow = this.getTopRow(realArrays);
-	  var bottomRow = this.getBottomRow(realArrays);
-	  var leftCol = this.getLeftColumn(realArrays);
-	  var rightCol = this.getRightColumn(realArrays);
-	  var ghostArrays = [this.origin, this.robot.pos];
-	  var aboveTopObj = null;
-	  var topObj = null;
-	  var bottomObj = null;
-	
-	  if (this.status === "rising" || this.status === "finished") {
-	    ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
-	    this.elevatorArray.forEach(function (elevator) {
-	      elevator.additionalPixels += elevator.speed * modifier;
-	    });
-	  } else if (this.status === "descending") {
-	    ghostArrays = this.moveDown(this.elevatorArray[0].speed, modifier);
-	    this.elevatorArray.forEach(function (elevator) {
-	      elevator.additionalPixels -= elevator.speed * modifier;
-	    });
-	  } else if (this.status === "inControl") {
-	    this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
-	    if (38 in this.keysDown) {
-	      //up
-	      this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "up");
-	    } else if (40 in this.keysDown) {
-	      //down
-	      this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "down");
+	  _createClass(Game, [{
+	    key: 'startGame',
+	    value: function startGame() {
+	      this.status = "loading";
+	      this.renderer.displayLoadScreen();
 	    }
-	    if (39 in this.keysDown) {
-	      //right
-	      ghostArrays = this.moveRight(this.robot.speed, modifier);
-	      var ghostCol = this.getRightColumn(ghostArrays);
-	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][ghostCol];
-	      topObj = this.currentLevel.foregroundGrid[topRow][ghostCol];
-	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol];
-	      var bottomRightObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol + 1];
-	      if (this.passThrough(topObj, aboveTopObj, "right") === false || this.passThrough(bottomObj, topObj, "right") === false) {
-	        var robotX = this.getRealRightX(realArrays);
-	        edge = 0.5 + ghostCol * this.BLOCK_LENGTH - 1;
-	        var difference = edge - robotX;
-	        ghostArrays = this.moveRight(difference, 1);
-	      } else if (bottomRightObj.toString() === "ButtonBlock") {
-	        var _buttonStuff = this.getLeftButtonEdge(ghostArrays);
-	        if (_buttonStuff !== -1) {
-	          edge = _buttonStuff[0];
-	          var _button = _buttonStuff[1];
-	          var _robotX = this.getRealRightX(realArrays);
-	          var _difference = edge - _robotX;
-	          ghostArrays = this.moveRight(_difference, 1);
-	          if (_button.hasPower) {
-	            _button.pushFunc(_button);
-	          }
-	        }
-	      } else if (bottomObj.toString() === "door") {
-	        edge = this.getLeftDoorEdge(ghostArrays, bottomObj);
-	        if (edge !== -1) {
-	          var _robotX2 = this.getRealRightX(realArrays);
-	          var _difference2 = _robotX2 - edge;
-	          if (_difference2 > 0) {
-	            ghostArrays = this.moveLeft(_difference2, 1);
-	          }
-	        }
+	  }, {
+	    key: 'showMainMenu',
+	    value: function showMainMenu() {
+	      this.status = "menu";
+	      this.renderer.displayMenu();
+	    }
+	  }, {
+	    key: 'startLevel',
+	    value: function startLevel() {
+	      var _this = this;
+	
+	      this.currentLevel = this.levelSequence[0];
+	      if (this.currentLevel.name) {
+	        (function () {
+	          _this.renderer.showLevelName = true;
+	          var flashN = 5;
+	          var levelFlash = window.setInterval(function () {
+	            flashN = _this.renderer.toggleLevelName(flashN);
+	            if (flashN === 0) {
+	              clearInterval(levelFlash);
+	            }
+	          }, 600);
+	        })();
 	      }
-	    } else if (37 in this.keysDown) {
-	      //left
-	      ghostArrays = this.moveLeft(this.robot.speed, modifier);
-	      var _ghostCol = this.getLeftColumn(ghostArrays);
-	      aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][_ghostCol];
-	      topObj = this.currentLevel.foregroundGrid[topRow][_ghostCol];
-	      bottomObj = this.currentLevel.foregroundGrid[bottomRow][_ghostCol];
-	      var bottomLeftObj = this.currentLevel.foregroundGrid[bottomRow][_ghostCol - 1];
-	      if (this.passThrough(topObj, aboveTopObj, "left") === false || this.passThrough(bottomObj, topObj, "left") === false) {
-	        var _robotX3 = this.getRealLeftX(realArrays);
-	        edge = 0.5 + (_ghostCol + 1) * this.BLOCK_LENGTH;
-	        var _difference3 = _robotX3 - edge;
-	        ghostArrays = this.moveLeft(_difference3, 1);
-	      } else if (bottomLeftObj.toString() === "ButtonBlock") {
-	        var buttonStuff = this.getRightButtonEdge(ghostArrays);
-	        if (buttonStuff !== -1) {
-	          var edge = buttonStuff[0];
-	          var button = buttonStuff[1];
-	          var _robotX4 = this.getRealLeftX(realArrays);
-	          var _difference4 = _robotX4 - edge;
-	          ghostArrays = this.moveLeft(_difference4, 1);
-	          if (button.hasPower) {
-	            button.pushFunc(button);
-	          }
-	        }
-	      } else if (bottomObj.toString() === "door") {
-	        edge = this.getRightDoorEdge(ghostArrays, bottomObj);
-	        if (edge !== -1) {
-	          var _robotX5 = this.getRealLeftX(realArrays);
-	          var _difference5 = edge - _robotX5;
-	          if (_difference5 > 0) {
-	            ghostArrays = this.moveRight(_difference5, 1);
-	          }
-	        }
+	      this.levelWidth = this.currentLevel.backgroundGrid[0].length * this.BLOCK_LENGTH;
+	      this.levelHeight = this.currentLevel.backgroundGrid.length * this.BLOCK_LENGTH;
+	      if (this.currentLevel.backgroundGrid.length !== this.currentLevel.foregroundGrid.length || this.currentLevel.backgroundGrid[0].length !== this.currentLevel.foregroundGrid[0].length) {
+	        throw "foregroundGrid and backgroundGrid dimensions don't match!";
 	      }
-	    } else if (32 in this.keysDown && this.spaceTime === 0) {
-	      //space
-	      this.spaceTime = 20;
-	      var robotLeft = this.getRealLeftX(realArrays);
-	      var leftColumn = this.getLeftColumn(realArrays);
-	      var leftEdge = this.BLOCK_LENGTH * leftColumn + 0.5;
-	      var distanceToLeftEdge = robotLeft - leftEdge;
-	      if (distanceToLeftEdge <= 15) {
-	        var cubby = this.cubbyAt([topRow, leftColumn]);
-	        if (cubby && this.heightCloseEnough()) {
-	          this.moveLeft(distanceToLeftEdge, 1);
-	          this.swapCubbyItem(cubby);
-	        }
+	
+	      var robotX, robotY;
+	      if (this.currentLevel.startingPos[0] - 263.5 < 0) {
+	        this.origin[0] = 0;
+	        robotX = this.currentLevel.startingPos[0];
 	      } else {
-	        var robotRight = this.getRealRightX(realArrays);
-	        var rightColumn = this.getRightColumn(realArrays);
-	        var rightEdge = this.BLOCK_LENGTH * (rightColumn + 1);
-	        var distanceToRightEdge = rightEdge - robotRight;
-	        if (distanceToRightEdge <= 15) {
-	          var _cubby = this.cubbyAt([topRow, rightColumn]);
-	          if (_cubby && this.heightCloseEnough()) {
-	            this.moveRight(distanceToRightEdge, 1);
-	            this.swapCubbyItem(_cubby);
-	          }
-	        }
+	        this.origin[0] = this.currentLevel.startingPos[0] - 263.5;
+	        robotX = 263.5;
+	      }
+	      if (this.currentLevel.startingPos[1] - 187.5 < 0) {
+	        this.origin[1] = 0;
+	        robotY = this.currentLevel.startingPos[1];
+	      } else if (this.currentLevel.foregroundGrid.length * BLOCK_LENGTH - this.currentLevel.startingPos[1] < 187.5) {
+	        this.origin[1] = this.currentLevel.foregroundGrid.length * BLOCK_LENGTH - 450;
+	        robotY = this.currentLevel.startingPos[1] - this.origin[1];
+	      } else {
+	        this.origin[1] = this.currentLevel.startingPos[1] - 187.5;
+	        robotY = 187.5;
+	      }
+	      this.robot = new _robot2.default([robotX, robotY]);
+	      this.status = "inControl";
+	      this.updatePower();
+	      if (this.mainLoopRunning === false) {
+	        this.mainLoopRunning = true;
+	        this.main(Date.now());
 	      }
 	    }
-	  }
-	  var ghostHeight = this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined;
-	  this.setGhostToReal(ghostArrays, ghostHeight);
-	  if (this.status === "rising" || this.status === "descending") {
-	    this.checkElevator();
-	  }
-	  if (this.status === "finished" && this.robot.pos[1] < -200) {
-	    this.advanceLevel();
-	  }
-	};
-	
-	Game.prototype.checkSpringHeight = function (ghostArrays) {
-	  var topRow = this.getTopRow(ghostArrays);
-	  var leftCol = this.getLeftColumn(ghostArrays);
-	  var rightCol = this.getRightColumn(ghostArrays);
-	  if (this.passThrough(this.currentLevel.foregroundGrid[topRow][leftCol]) === false || this.passThrough(this.currentLevel.foregroundGrid[topRow][rightCol]) === false) {
-	    var realTopY = this.getRealTopY(ghostArrays);
-	    var diff = this.getBlockRealBottomY(topRow) - this.getRealTopY(ghostArrays);
-	    return this.robot.height - diff;
-	  }
-	};
-	
-	Game.prototype.cubbyAt = function (rowCol) {
-	  for (var i = 0; i < this.currentLevel.cubbies.length; i++) {
-	    if (this.currentLevel.cubbies[i].rowCol[0] === rowCol[0] && this.currentLevel.cubbies[i].rowCol[1] === rowCol[1]) {
-	      return this.currentLevel.cubbies[i];
-	    }
-	  }
-	};
-	
-	Game.prototype.heightCloseEnough = function () {
-	  return this.robot.height % BLOCK_LENGTH <= 20;
-	};
-	
-	Game.prototype.swapCubbyItem = function (cubby) {
-	  var itemFromCubby = cubby.item;
-	  cubby.item = this.robot.item;
-	  this.robot.item = itemFromCubby;
-	  if (this.robot.item) {
-	    this.robot.item.hasPower = false;
-	  }
-	  this.updatePower();
-	};
-	
-	Game.prototype.checkForSpring = function (topRow, bottomRow, leftCol, rightCol) {
-	  if (this.currentLevel.foregroundGrid[topRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][leftCol].pickedUp === false) {
-	    this.getSpring(this.currentLevel.foregroundGrid[topRow][leftCol]);
-	  }
-	  if (this.currentLevel.foregroundGrid[topRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][rightCol].pickedUp === false) {
-	    this.getSpring(this.currentLevel.foregroundGrid[topRow][rightCol]);
-	  }
-	  if (this.currentLevel.foregroundGrid[bottomRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][leftCol].pickedUp === false) {
-	    this.getSpring(this.currentLevel.foregroundGrid[bottomRow][leftCol]);
-	  }
-	  if (this.currentLevel.foregroundGrid[bottomRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][rightCol].pickedUp === false) {
-	    this.getSpring(this.currentLevel.foregroundGrid[bottomRow][rightCol]);
-	  }
-	};
-	
-	Game.prototype.getSpring = function (spring) {
-	  spring.pickedUp = true;
-	  this.robot.maxHeight += 75;
-	};
-	
-	Game.prototype.updatePower = function () {
-	  this.clearPower();
-	  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
-	    this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
-	  }
-	};
-	
-	Game.prototype.clearPower = function () {
-	  var _this3 = this;
-	
-	  var _loop = function _loop(i) {
-	    if (_this3.currentLevel.wiring[i] instanceof _wire2.default) {
-	      _this3.currentLevel.wiring[i].hasPower = false;
-	    } else {
-	      Object.keys(_this3.currentLevel.wiring[i].segments).forEach(function (key) {
-	        this.currentLevel.wiring[i].segments[key].hasPower = false;
-	      }.bind(_this3));
-	    }
-	  };
-	
-	  for (var i = 0; i < this.currentLevel.wiring.length; i++) {
-	    _loop(i);
-	  }
-	  for (var _i = 0; _i < this.currentLevel.forceFieldBlocks.length; _i++) {
-	    this.currentLevel.forceFieldBlocks[_i].hasPower = false;
-	  }
-	  for (var _i2 = 0; _i2 < this.currentLevel.buttonBlocks.length; _i2++) {
-	    this.currentLevel.buttonBlocks[_i2].hasPower = false;
-	  }
-	};
-	
-	Game.prototype.getLeftButtonEdge = function (arrays) {
-	  var nextColumnToRight = this.getRightColumn(arrays) + 1;
-	  if (this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight].toString() === "ButtonBlock" && this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight].side === "left") {
-	    var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight];
-	    var robotRightX = this.getRealRightX(arrays);
-	    var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
-	    var buttonEdge = blockRealRightX - this.renderer.BUTTON_PANEL_WIDTH - 1;
-	    if (robotRightX > buttonEdge) {
-	      return [buttonEdge, button];
-	    } else {
-	      return -1;
-	    }
-	  } else {
-	    return -1;
-	  }
-	};
-	
-	Game.prototype.getRightButtonEdge = function (arrays) {
-	  var nextColumnToLeft = this.getLeftColumn(arrays) - 1;
-	  if (this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft].toString() === "ButtonBlock" && this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft].side === "right") {
-	    var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft];
-	    var robotLeftX = this.getRealLeftX(arrays);
-	    var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
-	    var buttonEdge = blockRealLeftX + this.renderer.BUTTON_PANEL_WIDTH;
-	    if (robotLeftX < buttonEdge) {
-	      return [buttonEdge, button];
-	    } else {
-	      return -1;
-	    }
-	  } else {
-	    return -1;
-	  }
-	};
-	
-	Game.prototype.getRightDoorEdge = function (arrays, door) {
-	  if (door.status !== "open" && door.side === "left") {
-	    var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
-	    var doorEdge = blockRealLeftX + this.BLOCK_LENGTH / 3;
-	    return doorEdge;
-	  } else {
-	    return -1;
-	  }
-	};
-	
-	Game.prototype.getLeftDoorEdge = function (arrays, door) {
-	  if (door.status !== "open" && door.side === "right") {
-	    var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
-	    var doorEdge = blockRealRightX - this.BLOCK_LENGTH / 3 - 1;
-	    return doorEdge;
-	  } else {
-	    return -1;
-	  }
-	};
-	
-	Game.prototype.passThrough = function (object, aboveObject, dir) {
-	  dir = dir || "";
-	  if (object === "block" || object === "platform" || object.toString() === "door" && object.status === "closed" && object.side !== dir || object.toString() === "ButtonBlock" || object.toString() === "ForceFieldBlock" || object.toString() === "PowerSource" || object === "forceField" && aboveObject.hasPower) {
-	    return false;
-	  } else {
-	    return true;
-	  }
-	};
-	
-	Game.prototype.handleVerticalKeys = function (leftCol, rightCol, topRow, bottomRow, key) {
-	  var elevators = this.currentLevel.elevators;
-	  var belowRow = bottomRow + 1;
-	  var foundElevator = false;
-	  if (leftCol === rightCol) {
-	    var elevatorsToLaunch = [];
-	    for (var el = 0; el < elevators.length; el++) {
-	      if (elevators[el].col === leftCol && elevators[el].baseRow - elevators[el].blocksHigh === bottomRow + 1) {
-	        foundElevator = true;
-	        elevatorsToLaunch.push(elevators[el]);
-	        for (var j = 0; j < elevators.length; j++) {
-	          if (j !== el && elevators[j].id === elevators[el].id) {
-	            elevatorsToLaunch.push(elevators[j]);
-	          }
-	        }
-	        var elevatorResult = this.launchElevatorMaybe(elevatorsToLaunch, key);
-	        if (elevatorResult === false) {
-	          this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
-	        }
-	        break;
+	  }, {
+	    key: 'advanceLevel',
+	    value: function advanceLevel() {
+	      this.levelSequence.shift();
+	      if (this.levelSequence.length === 0) {
+	        this.status = "end screen";
+	      } else {
+	        this.startLevel();
 	      }
 	    }
-	    if (foundElevator === false) {
-	      this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	  }, {
+	    key: 'main',
+	    value: function main(passedThen) {
+	      var _this2 = this;
+	
+	      if (this.spaceTime > 0) {
+	        this.spaceTime -= 1;
+	      }
+	      var now = Date.now();
+	      var delta = now - passedThen;
+	      this.update(delta / 1000);
+	      this.renderer.renderScreen();
+	      var newThen = now;
+	      window.requestAnimationFrame(function () {
+	        _this2.main(newThen);
+	      });
 	    }
-	  } else {
-	    for (var _el = 0; _el < elevators.length; _el++) {
-	      if (elevators[_el].col === leftCol && elevators[_el].baseRow - elevators[_el].blocksHigh === bottomRow + 1) {
-	        foundElevator = true;
-	        var foundSecondElevator = false;
-	        for (var el2 = 0; el2 < elevators.length; el2++) {
-	          if (elevators[el2] !== elevators[_el] && elevators[el2].id === elevators[_el].id && elevators[el2].col === rightCol) {
-	            foundSecondElevator = true;
-	            var _elevatorResult = this.launchElevatorMaybe([elevators[_el], elevators[el2]], key);
-	            if (_elevatorResult) {
-	              return;
-	            } else {
-	              //elevator didn't move (top or bottom floor)
-	              foundSecondElevator = false;
+	  }, {
+	    key: 'update',
+	    value: function update(modifier) {
+	      var realArrays = [this.origin, this.robot.pos];
+	      var topRow = this.getTopRow(realArrays);
+	      var bottomRow = this.getBottomRow(realArrays);
+	      var leftCol = this.getLeftColumn(realArrays);
+	      var rightCol = this.getRightColumn(realArrays);
+	      var ghostArrays = [this.origin, this.robot.pos];
+	      var aboveTopObj = null;
+	      var topObj = null;
+	      var bottomObj = null;
+	
+	      if (this.status === "rising" || this.status === "finished") {
+	        ghostArrays = this.moveUp(this.elevatorArray[0].speed, modifier);
+	        this.elevatorArray.forEach(function (elevator) {
+	          elevator.additionalPixels += elevator.speed * modifier;
+	        });
+	      } else if (this.status === "descending") {
+	        ghostArrays = this.moveDown(this.elevatorArray[0].speed, modifier);
+	        this.elevatorArray.forEach(function (elevator) {
+	          elevator.additionalPixels -= elevator.speed * modifier;
+	        });
+	      } else if (this.status === "inControl") {
+	        this.checkForSpring(topRow, bottomRow, leftCol, rightCol);
+	        if (38 in this.keysDown) {
+	          //up
+	          this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "up");
+	        } else if (40 in this.keysDown) {
+	          //down
+	          this.handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, "down");
+	        }
+	        if (39 in this.keysDown) {
+	          //right
+	          ghostArrays = this.moveRight(this.robot.speed, modifier);
+	          var ghostCol = this.getRightColumn(ghostArrays);
+	          aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][ghostCol];
+	          topObj = this.currentLevel.foregroundGrid[topRow][ghostCol];
+	          bottomObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol];
+	          var bottomRightObj = this.currentLevel.foregroundGrid[bottomRow][ghostCol + 1];
+	          if (this.passThrough(topObj, aboveTopObj, "right") === false || this.passThrough(bottomObj, topObj, "right") === false) {
+	            var robotX = this.getRealRightX(realArrays);
+	            edge = 0.5 + ghostCol * this.BLOCK_LENGTH - 1;
+	            var difference = edge - robotX;
+	            ghostArrays = this.moveRight(difference, 1);
+	          } else if (bottomRightObj.toString() === "ButtonBlock") {
+	            var _buttonStuff = this.getLeftButtonEdge(ghostArrays);
+	            if (_buttonStuff !== -1) {
+	              edge = _buttonStuff[0];
+	              var _button = _buttonStuff[1];
+	              var _robotX = this.getRealRightX(realArrays);
+	              var _difference = edge - _robotX;
+	              ghostArrays = this.moveRight(_difference, 1);
+	              if (_button.hasPower) {
+	                _button.pushFunc(_button);
+	              }
+	            }
+	          } else if (bottomObj.toString() === "door") {
+	            edge = this.getLeftDoorEdge(ghostArrays, bottomObj);
+	            if (edge !== -1) {
+	              var _robotX2 = this.getRealRightX(realArrays);
+	              var _difference2 = _robotX2 - edge;
+	              if (_difference2 > 0) {
+	                ghostArrays = this.moveLeft(_difference2, 1);
+	              }
+	            }
+	          }
+	        } else if (37 in this.keysDown) {
+	          //left
+	          ghostArrays = this.moveLeft(this.robot.speed, modifier);
+	          var _ghostCol = this.getLeftColumn(ghostArrays);
+	          aboveTopObj = this.currentLevel.foregroundGrid[topRow - 1][_ghostCol];
+	          topObj = this.currentLevel.foregroundGrid[topRow][_ghostCol];
+	          bottomObj = this.currentLevel.foregroundGrid[bottomRow][_ghostCol];
+	          var bottomLeftObj = this.currentLevel.foregroundGrid[bottomRow][_ghostCol - 1];
+	          if (this.passThrough(topObj, aboveTopObj, "left") === false || this.passThrough(bottomObj, topObj, "left") === false) {
+	            var _robotX3 = this.getRealLeftX(realArrays);
+	            edge = 0.5 + (_ghostCol + 1) * this.BLOCK_LENGTH;
+	            var _difference3 = _robotX3 - edge;
+	            ghostArrays = this.moveLeft(_difference3, 1);
+	          } else if (bottomLeftObj.toString() === "ButtonBlock") {
+	            var buttonStuff = this.getRightButtonEdge(ghostArrays);
+	            if (buttonStuff !== -1) {
+	              var edge = buttonStuff[0];
+	              var button = buttonStuff[1];
+	              var _robotX4 = this.getRealLeftX(realArrays);
+	              var _difference4 = _robotX4 - edge;
+	              ghostArrays = this.moveLeft(_difference4, 1);
+	              if (button.hasPower) {
+	                button.pushFunc(button);
+	              }
+	            }
+	          } else if (bottomObj.toString() === "door") {
+	            edge = this.getRightDoorEdge(ghostArrays, bottomObj);
+	            if (edge !== -1) {
+	              var _robotX5 = this.getRealLeftX(realArrays);
+	              var _difference5 = edge - _robotX5;
+	              if (_difference5 > 0) {
+	                ghostArrays = this.moveRight(_difference5, 1);
+	              }
+	            }
+	          }
+	        } else if (32 in this.keysDown && this.spaceTime === 0) {
+	          //space
+	          this.spaceTime = 20;
+	          var robotLeft = this.getRealLeftX(realArrays);
+	          var leftColumn = this.getLeftColumn(realArrays);
+	          var leftEdge = this.BLOCK_LENGTH * leftColumn + 0.5;
+	          var distanceToLeftEdge = robotLeft - leftEdge;
+	          if (distanceToLeftEdge <= 15) {
+	            var cubby = this.cubbyAt([topRow, leftColumn]);
+	            if (cubby && this.heightCloseEnough()) {
+	              this.moveLeft(distanceToLeftEdge, 1);
+	              this.swapCubbyItem(cubby);
+	            }
+	          } else {
+	            var robotRight = this.getRealRightX(realArrays);
+	            var rightColumn = this.getRightColumn(realArrays);
+	            var rightEdge = this.BLOCK_LENGTH * (rightColumn + 1);
+	            var distanceToRightEdge = rightEdge - robotRight;
+	            if (distanceToRightEdge <= 15) {
+	              var _cubby = this.cubbyAt([topRow, rightColumn]);
+	              if (_cubby && this.heightCloseEnough()) {
+	                this.moveRight(distanceToRightEdge, 1);
+	                this.swapCubbyItem(_cubby);
+	              }
 	            }
 	          }
 	        }
-	        if (foundSecondElevator === false) {
+	      }
+	      var ghostHeight = this.status === "rising" ? this.checkSpringHeight(ghostArrays) : undefined;
+	      this.setGhostToReal(ghostArrays, ghostHeight);
+	      if (this.status === "rising" || this.status === "descending") {
+	        this.checkElevator();
+	      }
+	      if (this.status === "finished" && this.robot.pos[1] < -200) {
+	        this.advanceLevel();
+	      }
+	    }
+	  }, {
+	    key: 'checkSpringHeight',
+	    value: function checkSpringHeight(ghostArrays) {
+	      var topRow = this.getTopRow(ghostArrays);
+	      var leftCol = this.getLeftColumn(ghostArrays);
+	      var rightCol = this.getRightColumn(ghostArrays);
+	      if (this.passThrough(this.currentLevel.foregroundGrid[topRow][leftCol]) === false || this.passThrough(this.currentLevel.foregroundGrid[topRow][rightCol]) === false) {
+	        var realTopY = this.getRealTopY(ghostArrays);
+	        var diff = this.getBlockRealBottomY(topRow) - this.getRealTopY(ghostArrays);
+	        return this.robot.height - diff;
+	      }
+	    }
+	  }, {
+	    key: 'cubbyAt',
+	    value: function cubbyAt(rowCol) {
+	      for (var i = 0; i < this.currentLevel.cubbies.length; i++) {
+	        if (this.currentLevel.cubbies[i].rowCol[0] === rowCol[0] && this.currentLevel.cubbies[i].rowCol[1] === rowCol[1]) {
+	          return this.currentLevel.cubbies[i];
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'heightCloseEnough',
+	    value: function heightCloseEnough() {
+	      return this.robot.height % BLOCK_LENGTH <= 20;
+	    }
+	  }, {
+	    key: 'swapCubbyItem',
+	    value: function swapCubbyItem(cubby) {
+	      var itemFromCubby = cubby.item;
+	      cubby.item = this.robot.item;
+	      this.robot.item = itemFromCubby;
+	      if (this.robot.item) {
+	        this.robot.item.hasPower = false;
+	      }
+	      this.updatePower();
+	    }
+	  }, {
+	    key: 'checkForSpring',
+	    value: function checkForSpring(topRow, bottomRow, leftCol, rightCol) {
+	      if (this.currentLevel.foregroundGrid[topRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][leftCol].pickedUp === false) {
+	        this.getSpring(this.currentLevel.foregroundGrid[topRow][leftCol]);
+	      }
+	      if (this.currentLevel.foregroundGrid[topRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[topRow][rightCol].pickedUp === false) {
+	        this.getSpring(this.currentLevel.foregroundGrid[topRow][rightCol]);
+	      }
+	      if (this.currentLevel.foregroundGrid[bottomRow][leftCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][leftCol].pickedUp === false) {
+	        this.getSpring(this.currentLevel.foregroundGrid[bottomRow][leftCol]);
+	      }
+	      if (this.currentLevel.foregroundGrid[bottomRow][rightCol].toString() === "spring" && this.currentLevel.foregroundGrid[bottomRow][rightCol].pickedUp === false) {
+	        this.getSpring(this.currentLevel.foregroundGrid[bottomRow][rightCol]);
+	      }
+	    }
+	  }, {
+	    key: 'getSpring',
+	    value: function getSpring(spring) {
+	      spring.pickedUp = true;
+	      this.robot.maxHeight += 75;
+	    }
+	  }, {
+	    key: 'updatePower',
+	    value: function updatePower() {
+	      this.clearPower();
+	      for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
+	        this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
+	      }
+	    }
+	  }, {
+	    key: 'clearPower',
+	    value: function clearPower() {
+	      var _this3 = this;
+	
+	      var _loop = function _loop(i) {
+	        if (_this3.currentLevel.wiring[i] instanceof _wire2.default) {
+	          _this3.currentLevel.wiring[i].hasPower = false;
+	        } else {
+	          Object.keys(_this3.currentLevel.wiring[i].segments).forEach(function (key) {
+	            this.currentLevel.wiring[i].segments[key].hasPower = false;
+	          }.bind(_this3));
+	        }
+	      };
+	
+	      for (var i = 0; i < this.currentLevel.wiring.length; i++) {
+	        _loop(i);
+	      }
+	      for (var _i = 0; _i < this.currentLevel.forceFieldBlocks.length; _i++) {
+	        this.currentLevel.forceFieldBlocks[_i].hasPower = false;
+	      }
+	      for (var _i2 = 0; _i2 < this.currentLevel.buttonBlocks.length; _i2++) {
+	        this.currentLevel.buttonBlocks[_i2].hasPower = false;
+	      }
+	    }
+	  }, {
+	    key: 'getLeftButtonEdge',
+	    value: function getLeftButtonEdge(arrays) {
+	      var nextColumnToRight = this.getRightColumn(arrays) + 1;
+	      if (this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight].toString() === "ButtonBlock" && this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight].side === "left") {
+	        var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToRight];
+	        var robotRightX = this.getRealRightX(arrays);
+	        var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
+	        var buttonEdge = blockRealRightX - this.renderer.BUTTON_PANEL_WIDTH - 1;
+	        if (robotRightX > buttonEdge) {
+	          return [buttonEdge, button];
+	        } else {
+	          return -1;
+	        }
+	      } else {
+	        return -1;
+	      }
+	    }
+	  }, {
+	    key: 'getRightButtonEdge',
+	    value: function getRightButtonEdge(arrays) {
+	      var nextColumnToLeft = this.getLeftColumn(arrays) - 1;
+	      if (this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft].toString() === "ButtonBlock" && this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft].side === "right") {
+	        var button = this.currentLevel.foregroundGrid[this.getTopRow(arrays)][nextColumnToLeft];
+	        var robotLeftX = this.getRealLeftX(arrays);
+	        var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
+	        var buttonEdge = blockRealLeftX + this.renderer.BUTTON_PANEL_WIDTH;
+	        if (robotLeftX < buttonEdge) {
+	          return [buttonEdge, button];
+	        } else {
+	          return -1;
+	        }
+	      } else {
+	        return -1;
+	      }
+	    }
+	  }, {
+	    key: 'getRightDoorEdge',
+	    value: function getRightDoorEdge(arrays, door) {
+	      if (door.status !== "open" && door.side === "left") {
+	        var blockRealLeftX = this.getBlockRealLeftX(this.getLeftColumn(arrays));
+	        var doorEdge = blockRealLeftX + this.BLOCK_LENGTH / 3;
+	        return doorEdge;
+	      } else {
+	        return -1;
+	      }
+	    }
+	  }, {
+	    key: 'getLeftDoorEdge',
+	    value: function getLeftDoorEdge(arrays, door) {
+	      if (door.status !== "open" && door.side === "right") {
+	        var blockRealRightX = this.getBlockRealRightX(this.getRightColumn(arrays));
+	        var doorEdge = blockRealRightX - this.BLOCK_LENGTH / 3 - 1;
+	        return doorEdge;
+	      } else {
+	        return -1;
+	      }
+	    }
+	  }, {
+	    key: 'passThrough',
+	    value: function passThrough(object, aboveObject, dir) {
+	      dir = dir || "";
+	      if (object === "block" || object === "platform" || object.toString() === "door" && object.status === "closed" && object.side !== dir || object.toString() === "ButtonBlock" || object.toString() === "ForceFieldBlock" || object.toString() === "PowerSource" || object === "forceField" && aboveObject.hasPower) {
+	        return false;
+	      } else {
+	        return true;
+	      }
+	    }
+	  }, {
+	    key: 'handleVerticalKeys',
+	    value: function handleVerticalKeys(leftCol, rightCol, topRow, bottomRow, key) {
+	      var elevators = this.currentLevel.elevators;
+	      var belowRow = bottomRow + 1;
+	      var foundElevator = false;
+	      if (leftCol === rightCol) {
+	        var elevatorsToLaunch = [];
+	        for (var el = 0; el < elevators.length; el++) {
+	          if (elevators[el].col === leftCol && elevators[el].baseRow - elevators[el].blocksHigh === bottomRow + 1) {
+	            foundElevator = true;
+	            elevatorsToLaunch.push(elevators[el]);
+	            for (var j = 0; j < elevators.length; j++) {
+	              if (j !== el && elevators[j].id === elevators[el].id) {
+	                elevatorsToLaunch.push(elevators[j]);
+	              }
+	            }
+	            var elevatorResult = this.launchElevatorMaybe(elevatorsToLaunch, key);
+	            if (elevatorResult === false) {
+	              this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	            }
+	            break;
+	          }
+	        }
+	        if (foundElevator === false) {
+	          this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	        }
+	      } else {
+	        for (var _el = 0; _el < elevators.length; _el++) {
+	          if (elevators[_el].col === leftCol && elevators[_el].baseRow - elevators[_el].blocksHigh === bottomRow + 1) {
+	            foundElevator = true;
+	            var foundSecondElevator = false;
+	            for (var el2 = 0; el2 < elevators.length; el2++) {
+	              if (elevators[el2] !== elevators[_el] && elevators[el2].id === elevators[_el].id && elevators[el2].col === rightCol) {
+	                foundSecondElevator = true;
+	                var _elevatorResult = this.launchElevatorMaybe([elevators[_el], elevators[el2]], key);
+	                if (_elevatorResult) {
+	                  return;
+	                } else {
+	                  //elevator didn't move (top or bottom floor)
+	                  foundSecondElevator = false;
+	                }
+	              }
+	            }
+	            if (foundSecondElevator === false) {
+	              this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
+	            }
+	          }
+	        }
+	        if (foundElevator === false) {
 	          this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
 	        }
 	      }
 	    }
-	    if (foundElevator === false) {
-	      this.adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key);
-	    }
-	  }
-	};
-	
-	Game.prototype.adjustRobotHeight = function (leftCol, rightCol, topRow, bottomRow, key) {
-	  var SPRING_SPEED = 6;
-	  var adjustedHeightIncrement = SPRING_SPEED;
-	  var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol];
-	  var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol];
-	  if (key === 'up') {
-	    if (this.robot.height < this.robot.maxHeight) {
-	      //reach end of spring?
-	      var ghostHeight = this.robot.height + SPRING_SPEED;
-	      if (ghostHeight > this.robot.maxHeight) {
-	        adjustedHeightIncrement -= ghostHeight - this.robot.maxHeight;
+	  }, {
+	    key: 'adjustRobotHeight',
+	    value: function adjustRobotHeight(leftCol, rightCol, topRow, bottomRow, key) {
+	      var SPRING_SPEED = 6;
+	      var adjustedHeightIncrement = SPRING_SPEED;
+	      var leftUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][leftCol];
+	      var rightUpperBlock = this.currentLevel.foregroundGrid[topRow - 1][rightCol];
+	      if (key === 'up') {
+	        if (this.robot.height < this.robot.maxHeight) {
+	          //reach end of spring?
+	          var ghostHeight = this.robot.height + SPRING_SPEED;
+	          if (ghostHeight > this.robot.maxHeight) {
+	            adjustedHeightIncrement -= ghostHeight - this.robot.maxHeight;
+	          }
+	          //hit next row?
+	          var distNextRow;
+	          if (this.robot.height <= 10) {
+	            distNextRow = 10 - this.robot.height;
+	          } else {
+	            distNextRow = 85 - this.robot.height;
+	          }
+	          var ghostDistNextRow = distNextRow - adjustedHeightIncrement;
+	          if (ghostDistNextRow >= 0 || this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock)) {
+	            this.robot.height += adjustedHeightIncrement;
+	          } else {
+	            this.robot.height += distNextRow;
+	          }
+	        }
+	      } else if (key === 'down') {
+	        if (this.robot.height > 0) {
+	          this.robot.height -= SPRING_SPEED;
+	          if (this.robot.height < 0) {
+	            this.robot.height = 0;
+	          }
+	        }
 	      }
-	      //hit next row?
-	      var distNextRow;
-	      if (this.robot.height <= 10) {
-	        distNextRow = 10 - this.robot.height;
+	    }
+	  }, {
+	    key: 'launchElevatorMaybe',
+	    value: function launchElevatorMaybe(elevatorArray, dir) {
+	      this.elevatorArray = elevatorArray;
+	      var blockHeightIndex = elevatorArray[0].heights.indexOf(elevatorArray[0].blocksHigh);
+	      var destinationRow, stopAt;
+	      if (dir === "up") {
+	        if (elevatorArray[0].exit === true) {
+	          this.status = "finished";
+	        } else {
+	          if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
+	            this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex + 1];
+	            destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex + 1];
+	            stopAt = 0 + BLOCK_LENGTH * destinationRow - 0.5;
+	            this.status = "rising";
+	            this.stopAt = stopAt;
+	            return true;
+	          } else {
+	            return false;
+	          }
+	        }
+	      } else if (dir === "down") {
+	        if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
+	          this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex - 1];
+	          destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex - 1];
+	          stopAt = 0 + BLOCK_LENGTH * destinationRow - 0.5;
+	          this.status = "descending";
+	          this.stopAt = stopAt;
+	          return true;
+	        } else {
+	          return false;
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'endOfElevator',
+	    value: function endOfElevator(elevatorArray, dir, blockHeightIndex) {
+	      if (dir === "up") {
+	        return blockHeightIndex + 1 === elevatorArray[0].heights.length;
+	      } else if (dir === "down") {
+	        return blockHeightIndex === 0;
+	      }
+	    }
+	  }, {
+	    key: 'checkElevator',
+	    value: function checkElevator() {
+	      var _this4 = this;
+	
+	      if (this.status === "rising") {
+	        var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos]);
+	        if (realRobotBottom === this.stopAt) {
+	          this._afterElevatorInNewSpot();
+	        } else if (realRobotBottom < this.stopAt) {
+	          (function () {
+	            var difference = _this4.stopAt - realRobotBottom;
+	            _this4.moveDown(difference, 1);
+	            _this4.elevatorArray.forEach(function (elevator) {
+	              elevator.additionalPixels -= difference;
+	            });
+	            _this4._afterElevatorInNewSpot();
+	          })();
+	        }
+	      } else if (this.status === "descending") {
+	        var _realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos]);
+	        if (_realRobotBottom === this.stopAt) {
+	          this._afterElevatorInNewSpot();
+	        } else if (_realRobotBottom > this.stopAt) {
+	          (function () {
+	            var difference = _realRobotBottom - _this4.stopAt;
+	            _this4.moveUp(difference, 1);
+	            _this4.elevatorArray.forEach(function (elevator) {
+	              elevator.additionalPixels += difference;
+	            });
+	            _this4._afterElevatorInNewSpot();
+	          })();
+	        }
+	      }
+	    }
+	  }, {
+	    key: '_afterElevatorInNewSpot',
+	    value: function _afterElevatorInNewSpot() {
+	      this.status = "inControl";
+	      var newElevatorHeight = this.newElevatorHeight;
+	      this.elevatorArray.forEach(function (elevator) {
+	        elevator.blocksHigh = newElevatorHeight;
+	        elevator.topRow = elevator.baseRow - elevator.blocksHigh;
+	        elevator.additionalPixels = 0;
+	      });
+	    }
+	  }, {
+	    key: 'moveLeft',
+	    value: function moveLeft(pixels, modifier) {
+	      var returnOrigin = this.origin;
+	      var returnPos = this.robot.pos;
+	      if (this.origin[0] < 0) {
+	        returnOrigin[0] = 0;
+	      } else if (this.robot.pos[0] === 263.5 && this.origin[0] > 0) {
+	        returnOrigin[0] -= pixels * modifier;
+	      } else if (this.robot.pos[0] < 263.5 && this.origin[0] > 0) {
+	        returnPos[0] = 263.5;
+	        returnOrigin[0] -= pixels * modifier;
 	      } else {
-	        distNextRow = 85 - this.robot.height;
+	        returnPos[0] -= pixels * modifier;
 	      }
-	      var ghostDistNextRow = distNextRow - adjustedHeightIncrement;
-	      if (ghostDistNextRow >= 0 || this.passThrough(leftUpperBlock) && this.passThrough(rightUpperBlock)) {
-	        this.robot.height += adjustedHeightIncrement;
+	      return [returnOrigin, returnPos];
+	    }
+	  }, {
+	    key: 'moveRight',
+	    value: function moveRight(pixels, modifier) {
+	      var returnOrigin = this.origin;
+	      var returnPos = this.robot.pos;
+	      if (this.levelWidth - this.origin[0] < this.BLOCK_LENGTH * 8) {
+	        returnOrigin[0] = this.levelWidth - this.BLOCK_LENGTH * 8;
+	      } else if (this.robot.pos[0] === 263.5 && this.levelWidth - this.origin[0] > this.BLOCK_LENGTH * 8) {
+	        returnOrigin[0] += pixels * modifier;
+	      } else if (this.robot.pos[0] > 263.5 && this.levelWidth - this.origin[0] > this.BLOCK_LENGTH * 8) {
+	        returnPos[0] = 263.5;
+	        returnOrigin[0] += pixels * modifier;
 	      } else {
-	        this.robot.height += distNextRow;
+	        returnPos[0] += pixels * modifier;
 	      }
+	      return [returnOrigin, returnPos];
 	    }
-	  } else if (key === 'down') {
-	    if (this.robot.height > 0) {
-	      this.robot.height -= SPRING_SPEED;
-	      if (this.robot.height < 0) {
-	        this.robot.height = 0;
-	      }
-	    }
-	  }
-	};
-	
-	Game.prototype.launchElevatorMaybe = function (elevatorArray, dir) {
-	  this.elevatorArray = elevatorArray;
-	  var blockHeightIndex = elevatorArray[0].heights.indexOf(elevatorArray[0].blocksHigh);
-	  var destinationRow, stopAt;
-	  if (dir === "up") {
-	    if (elevatorArray[0].exit === true) {
-	      this.status = "finished";
-	    } else {
-	      if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
-	        this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex + 1];
-	        destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex + 1];
-	        stopAt = 0 + BLOCK_LENGTH * destinationRow - 0.5;
-	        this.status = "rising";
-	        this.stopAt = stopAt;
-	        return true;
+	  }, {
+	    key: 'moveUp',
+	    value: function moveUp(pixels, modifier) {
+	      var returnOrigin = this.origin;
+	      var returnPos = this.robot.pos;
+	      if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
+	        returnOrigin[1] -= pixels * modifier;
+	      } else if (this.robot.pos[1] < 187.5 && this.origin[1] > 0) {
+	        var difference = 187.5 - this.robot.pos[1];
+	        returnOrigin[1] -= pixels * modifier;
+	        returnPos[1] = 187.5;
+	        returnOrigin[1] -= difference;
 	      } else {
-	        return false;
+	        returnPos[1] -= pixels * modifier;
+	      }
+	      if (returnOrigin[1] < 0) {
+	        //has the view passed the top of the level?
+	        var _difference6 = 0 - returnOrigin[1]; //by how much?
+	        returnOrigin[1] = 0; //set the view back to 0
+	        returnPos[1] -= _difference6; //push the robot down by the same amount
+	      }
+	      return [returnOrigin, returnPos];
+	    }
+	  }, {
+	    key: 'moveDown',
+	    value: function moveDown(pixels, modifier) {
+	      var returnOrigin = this.origin;
+	      var returnPos = this.robot.pos;
+	      var difference;
+	      if (this.robot.pos[1] === 187.5 && this.levelHeight - this.origin[1] > this.BLOCK_LENGTH * 6) {
+	        returnOrigin[1] += pixels * modifier;
+	      } else if (this.robot.pos[1] > 187.5 && this.levelHeight - this.origin[1] > this.BLOCK_LENGTH * 6) {
+	        difference = this.robot.pos[1] - 187.5;
+	        returnOrigin[1] += pixels * modifier;
+	        returnPos[1] = 187.5;
+	        returnOrigin[1] += difference;
+	      } else {
+	        returnPos[1] += pixels * modifier;
+	      }
+	      var topOfScreenToLevelBottom = this.levelHeight - returnOrigin[1];
+	      if (topOfScreenToLevelBottom < this.BLOCK_LENGTH * 6) {
+	        difference = this.BLOCK_LENGTH * 6 - topOfScreenToLevelBottom;
+	        returnOrigin[1] = this.levelHeight - this.BLOCK_LENGTH * 6;
+	        returnPos[1] += difference;
+	      }
+	      return [returnOrigin, returnPos];
+	    }
+	  }, {
+	    key: 'setGhostToReal',
+	    value: function setGhostToReal(ghostArrays, ghostHeight) {
+	      this.origin = ghostArrays[0];
+	      this.robot.pos = ghostArrays[1];
+	      if (ghostHeight) {
+	        this.robot.height = ghostHeight;
 	      }
 	    }
-	  } else if (dir === "down") {
-	    if (this.endOfElevator(elevatorArray, dir, blockHeightIndex) === false) {
-	      this.newElevatorHeight = elevatorArray[0].heights[blockHeightIndex - 1];
-	      destinationRow = elevatorArray[0].baseRow - elevatorArray[0].heights[blockHeightIndex - 1];
-	      stopAt = 0 + BLOCK_LENGTH * destinationRow - 0.5;
-	      this.status = "descending";
-	      this.stopAt = stopAt;
-	      return true;
-	    } else {
-	      return false;
+	  }, {
+	    key: 'getLeftColumn',
+	    value: function getLeftColumn(arrays) {
+	      var xInLevel = this.getRealLeftX(arrays);
+	      var column = Math.floor(xInLevel / this.BLOCK_LENGTH);
+	      return column;
 	    }
-	  }
-	};
-	
-	Game.prototype.endOfElevator = function (elevatorArray, dir, blockHeightIndex) {
-	  if (dir === "up") {
-	    return blockHeightIndex + 1 === elevatorArray[0].heights.length;
-	  } else if (dir === "down") {
-	    return blockHeightIndex === 0;
-	  }
-	};
-	
-	Game.prototype.checkElevator = function () {
-	  var _this4 = this;
-	
-	  if (this.status === "rising") {
-	    var realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos]);
-	    if (realRobotBottom === this.stopAt) {
-	      this._afterElevatorInNewSpot();
-	    } else if (realRobotBottom < this.stopAt) {
-	      (function () {
-	        var difference = _this4.stopAt - realRobotBottom;
-	        _this4.moveDown(difference, 1);
-	        _this4.elevatorArray.forEach(function (elevator) {
-	          elevator.additionalPixels -= difference;
-	        });
-	        _this4._afterElevatorInNewSpot();
-	      })();
+	  }, {
+	    key: 'getRightColumn',
+	    value: function getRightColumn(arrays) {
+	      var xInLevel = this.getRealRightX(arrays);
+	      var column = Math.floor(xInLevel / this.BLOCK_LENGTH);
+	      return column;
 	    }
-	  } else if (this.status === "descending") {
-	    var _realRobotBottom = this.getRealBottomY([this.origin, this.robot.pos]);
-	    if (_realRobotBottom === this.stopAt) {
-	      this._afterElevatorInNewSpot();
-	    } else if (_realRobotBottom > this.stopAt) {
-	      (function () {
-	        var difference = _realRobotBottom - _this4.stopAt;
-	        _this4.moveUp(difference, 1);
-	        _this4.elevatorArray.forEach(function (elevator) {
-	          elevator.additionalPixels += difference;
-	        });
-	        _this4._afterElevatorInNewSpot();
-	      })();
+	  }, {
+	    key: 'getTopRow',
+	    value: function getTopRow(arrays) {
+	      var yInLevel = this.getRealTopY(arrays);
+	      var row = Math.floor(yInLevel / this.BLOCK_LENGTH);
+	      return row;
 	    }
-	  }
-	};
+	  }, {
+	    key: 'getBottomRow',
+	    value: function getBottomRow(arrays) {
+	      var yInLevel = this.getRealBottomY(arrays);
+	      var row = Math.floor(yInLevel / this.BLOCK_LENGTH);
+	      return row;
+	    }
+	  }, {
+	    key: 'getRealLeftX',
+	    value: function getRealLeftX(arrays) {
+	      return arrays[0][0] + arrays[1][0];
+	    }
+	  }, {
+	    key: 'getRealRightX',
+	    value: function getRealRightX(arrays) {
+	      return arrays[0][0] + (arrays[1][0] + this.BLOCK_LENGTH - 1);
+	    }
+	  }, {
+	    key: 'getRealTopY',
+	    value: function getRealTopY(arrays) {
+	      return arrays[0][1] + arrays[1][1] - this.robot.height + 10;
+	    }
+	  }, {
+	    key: 'getRealBottomY',
+	    value: function getRealBottomY(arrays) {
+	      return arrays[0][1] + (arrays[1][1] + this.BLOCK_LENGTH - 1);
+	    }
+	  }, {
+	    key: 'getBlockRealRightX',
+	    value: function getBlockRealRightX(column) {
+	      return 0.5 + (column + 1) * this.BLOCK_LENGTH;
+	    }
+	  }, {
+	    key: 'getBlockRealLeftX',
+	    value: function getBlockRealLeftX(column) {
+	      return 0.5 + column * this.BLOCK_LENGTH;
+	    }
+	  }, {
+	    key: 'getBlockRealBottomY',
+	    value: function getBlockRealBottomY(row) {
+	      return 0.5 + (row + 1) * this.BLOCK_LENGTH;
+	    }
+	  }]);
 	
-	Game.prototype._afterElevatorInNewSpot = function () {
-	  this.status = "inControl";
-	  var newElevatorHeight = this.newElevatorHeight;
-	  this.elevatorArray.forEach(function (elevator) {
-	    elevator.blocksHigh = newElevatorHeight;
-	    elevator.topRow = elevator.baseRow - elevator.blocksHigh;
-	    elevator.additionalPixels = 0;
-	  });
-	};
-	
-	Game.prototype.moveLeft = function (pixels, modifier) {
-	  var returnOrigin = this.origin;
-	  var returnPos = this.robot.pos;
-	  if (this.origin[0] < 0) {
-	    returnOrigin[0] = 0;
-	  } else if (this.robot.pos[0] === 263.5 && this.origin[0] > 0) {
-	    returnOrigin[0] -= pixels * modifier;
-	  } else if (this.robot.pos[0] < 263.5 && this.origin[0] > 0) {
-	    returnPos[0] = 263.5;
-	    returnOrigin[0] -= pixels * modifier;
-	  } else {
-	    returnPos[0] -= pixels * modifier;
-	  }
-	  return [returnOrigin, returnPos];
-	};
-	
-	Game.prototype.moveRight = function (pixels, modifier) {
-	  var returnOrigin = this.origin;
-	  var returnPos = this.robot.pos;
-	  if (this.levelWidth - this.origin[0] < this.BLOCK_LENGTH * 8) {
-	    returnOrigin[0] = this.levelWidth - this.BLOCK_LENGTH * 8;
-	  } else if (this.robot.pos[0] === 263.5 && this.levelWidth - this.origin[0] > this.BLOCK_LENGTH * 8) {
-	    returnOrigin[0] += pixels * modifier;
-	  } else if (this.robot.pos[0] > 263.5 && this.levelWidth - this.origin[0] > this.BLOCK_LENGTH * 8) {
-	    returnPos[0] = 263.5;
-	    returnOrigin[0] += pixels * modifier;
-	  } else {
-	    returnPos[0] += pixels * modifier;
-	  }
-	  return [returnOrigin, returnPos];
-	};
-	
-	Game.prototype.moveUp = function (pixels, modifier) {
-	  var returnOrigin = this.origin;
-	  var returnPos = this.robot.pos;
-	  if (this.robot.pos[1] === 187.5 && this.origin[1] > 0) {
-	    returnOrigin[1] -= pixels * modifier;
-	  } else if (this.robot.pos[1] < 187.5 && this.origin[1] > 0) {
-	    var difference = 187.5 - this.robot.pos[1];
-	    returnOrigin[1] -= pixels * modifier;
-	    returnPos[1] = 187.5;
-	    returnOrigin[1] -= difference;
-	  } else {
-	    returnPos[1] -= pixels * modifier;
-	  }
-	  if (returnOrigin[1] < 0) {
-	    //has the view passed the top of the level?
-	    var _difference6 = 0 - returnOrigin[1]; //by how much?
-	    returnOrigin[1] = 0; //set the view back to 0
-	    returnPos[1] -= _difference6; //push the robot down by the same amount
-	  }
-	  return [returnOrigin, returnPos];
-	};
-	
-	Game.prototype.moveDown = function (pixels, modifier) {
-	  var returnOrigin = this.origin;
-	  var returnPos = this.robot.pos;
-	  var difference;
-	  if (this.robot.pos[1] === 187.5 && this.levelHeight - this.origin[1] > this.BLOCK_LENGTH * 6) {
-	    returnOrigin[1] += pixels * modifier;
-	  } else if (this.robot.pos[1] > 187.5 && this.levelHeight - this.origin[1] > this.BLOCK_LENGTH * 6) {
-	    difference = this.robot.pos[1] - 187.5;
-	    returnOrigin[1] += pixels * modifier;
-	    returnPos[1] = 187.5;
-	    returnOrigin[1] += difference;
-	  } else {
-	    returnPos[1] += pixels * modifier;
-	  }
-	  var topOfScreenToLevelBottom = this.levelHeight - returnOrigin[1];
-	  if (topOfScreenToLevelBottom < this.BLOCK_LENGTH * 6) {
-	    difference = this.BLOCK_LENGTH * 6 - topOfScreenToLevelBottom;
-	    returnOrigin[1] = this.levelHeight - this.BLOCK_LENGTH * 6;
-	    returnPos[1] += difference;
-	  }
-	  return [returnOrigin, returnPos];
-	};
-	
-	Game.prototype.setGhostToReal = function (ghostArrays, ghostHeight) {
-	  this.origin = ghostArrays[0];
-	  this.robot.pos = ghostArrays[1];
-	  if (ghostHeight) {
-	    this.robot.height = ghostHeight;
-	  }
-	};
-	
-	Game.prototype.getLeftColumn = function (arrays) {
-	  var xInLevel = this.getRealLeftX(arrays);
-	  var column = Math.floor(xInLevel / this.BLOCK_LENGTH);
-	  return column;
-	};
-	
-	Game.prototype.getRightColumn = function (arrays) {
-	  var xInLevel = this.getRealRightX(arrays);
-	  var column = Math.floor(xInLevel / this.BLOCK_LENGTH);
-	  return column;
-	};
-	
-	Game.prototype.getTopRow = function (arrays) {
-	  var yInLevel = this.getRealTopY(arrays);
-	  var row = Math.floor(yInLevel / this.BLOCK_LENGTH);
-	  return row;
-	};
-	
-	Game.prototype.getBottomRow = function (arrays) {
-	  var yInLevel = this.getRealBottomY(arrays);
-	  var row = Math.floor(yInLevel / this.BLOCK_LENGTH);
-	  return row;
-	};
-	
-	Game.prototype.getRealLeftX = function (arrays) {
-	  return arrays[0][0] + arrays[1][0];
-	};
-	
-	Game.prototype.getRealRightX = function (arrays) {
-	  return arrays[0][0] + (arrays[1][0] + this.BLOCK_LENGTH - 1);
-	};
-	
-	Game.prototype.getRealTopY = function (arrays) {
-	  return arrays[0][1] + arrays[1][1] - this.robot.height + 10;
-	};
-	
-	Game.prototype.getRealBottomY = function (arrays) {
-	  return arrays[0][1] + (arrays[1][1] + this.BLOCK_LENGTH - 1);
-	};
-	
-	Game.prototype.getBlockRealRightX = function (column) {
-	  return 0.5 + (column + 1) * this.BLOCK_LENGTH;
-	};
-	
-	Game.prototype.getBlockRealLeftX = function (column) {
-	  return 0.5 + column * this.BLOCK_LENGTH;
-	};
-	
-	Game.prototype.getBlockRealBottomY = function (row) {
-	  return 0.5 + (row + 1) * this.BLOCK_LENGTH;
-	};
+	  return Game;
+	}();
 	
 	module.exports = Game;
 
@@ -2623,11 +2659,6 @@
 	  return ExitElevator;
 	}(_elevator2.default);
 	
-	// var Surrogate = function () {};
-	// Surrogate.prototype = Elevator.prototype;
-	// ExitElevator.prototype = new Surrogate();
-	// ExitElevator.prototype.constructor = ExitElevator;
-	
 	module.exports = ExitElevator;
 
 /***/ },
@@ -2660,15 +2691,6 @@
 	  return PowerSource;
 	}(_powerObject2.default);
 	
-	// function PowerSource(options) {
-	//   this.initializePowerObject(options);
-	// }
-	//
-	// var Surrogate = function () {};
-	// Surrogate.prototype = PowerObject.prototype;
-	// PowerSource.prototype = new Surrogate();
-	// PowerSource.prototype.constructor = PowerSource;
-	
 	module.exports = PowerSource;
 
 /***/ },
@@ -2700,15 +2722,6 @@
 	
 	  return ForceFieldBlock;
 	}(_powerObject2.default);
-	
-	// function ForceFieldBlock(options) {
-	//   this.initializePowerObject(options);
-	// }
-	//
-	// var Surrogate = function () {};
-	// Surrogate.prototype = PowerObject.prototype;
-	// ForceFieldBlock.prototype = new Surrogate();
-	// ForceFieldBlock.prototype.constructor = ForceFieldBlock;
 	
 	module.exports = ForceFieldBlock;
 
@@ -3311,19 +3324,19 @@
 	
 	var PowerObject = function () {
 	  function PowerObject(options) {
-	    var _this = this;
-	
 	    _classCallCheck(this, PowerObject);
 	
 	    this.hasPower = false;
 	    this.id = options.id;
 	    this.rowCol = options.rowCol;
-	    this.toString = function () {
-	      return _this.constructor.name;
-	    };
 	  }
 	
 	  _createClass(PowerObject, [{
+	    key: "toString",
+	    value: function toString() {
+	      return this.constructor.name;
+	    }
+	  }, {
 	    key: "sendPower",
 	    value: function sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
 	

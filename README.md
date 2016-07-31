@@ -35,7 +35,7 @@ The main loop is the heart of the game. The current time is stored in a variable
 This difference is then passed to the game's update function, which checks what arrow keys are pressed and moves the robot by the appropriate amount. The distance the robot is moved is based on elapsed time since the last loop (and therefore the last frame update). Using this method, sometimes referred to as Time-Based Modeling, the robot will move at a consistent speed regardless of how fast the script is running.
 
 ```javascript
-Game.prototype.main = function (passedThen) {
+main(passedThen) {
   let now = Date.now();
   let delta = now - passedThen;
   this.update(delta / 1000);
@@ -44,7 +44,7 @@ Game.prototype.main = function (passedThen) {
   window.requestAnimationFrame(() => {
     this.main(newThen);
   });
-};
+}
   ```
 
 ### Using Inheritance for "Power Objects"
@@ -52,58 +52,49 @@ Game.prototype.main = function (passedThen) {
 A few different objects in this game can have power - power sources, wires, force field blocks, and button blocks. Therefore, I decided to create a parent class called PowerObject, which has a hasPower property, and have the four subclasses inherit from it.
 
 ```javascript
-function PowerObject() {}
+class PowerObject {
+  constructor(options) {
+    this.hasPower = false;
+    this.id = options.id;
+    this.rowCol = options.rowCol;
+  }
 
-PowerObject.prototype.initializePowerObject = function (options) {
-  this.hasPower = false;
-  this.id = options.id;
-  this.rowCol = options.rowCol;
-  this.toString = () => this.constructor.name;
-};
-  ```
-```javascript
-function PowerSource(options) {
-  this.initializePowerObject(options);
+  toString() {
+    return this.constructor.name;
+  }
 }
-
-var Surrogate = function () {};
-Surrogate.prototype = PowerObject.prototype;
-PowerSource.prototype = new Surrogate();
-PowerSource.prototype.constructor = PowerSource;
 ```
 ```javascript
-function Wire(options) {
-  this.initializePowerObject(options);
-  this.type = options.type;
+class PowerSource extends PowerObject {
+  constructor(options) {
+    super(options);
+  }
 }
-
-var Surrogate = function () {};
-Surrogate.prototype = PowerObject.prototype;
-Wire.prototype = new Surrogate();
-Wire.prototype.constructor = Wire;
+```
+```javascript
+class Wire extends PowerObject {
+  constructor(options) {
+    super(options);
+    this.type = options.type;
+  }
+}
   ```
 ```javascript
-function ButtonBlock(options) {
-  this.initializePowerObject(options);
-  this.side = options.side;
-  this.pushFunc = options.func;
-  this.color = options.color || 'red';
+class ButtonBlock extends PowerObject {
+  constructor(options) {
+    super(options);
+    this.side = options.side;
+    this.pushFunc = options.func;
+    this.color = options.color || 'red';
+  }
 }
-
-var Surrogate = function () {};
-Surrogate.prototype = PowerObject.prototype;
-ButtonBlock.prototype = new Surrogate();
-ButtonBlock.prototype.constructor = ButtonBlock;
   ```
 ```javascript
-function ForceFieldBlock(options) {
-  this.initializePowerObject(options);
+class ForceFieldBlock extends PowerObject {
+  constructor(options) {
+    super(options);
+  }
 }
-
-var Surrogate = function () {};
-Surrogate.prototype = PowerObject.prototype;
-ForceFieldBlock.prototype = new Surrogate();
-ForceFieldBlock.prototype.constructor = ForceFieldBlock;
   ```
 
 Additionally, power sources and wires can both send power to their neighbors, so the sendPower function was defined on the powerObject class. See below for more information about the sendPower function.
@@ -113,18 +104,18 @@ Additionally, power sources and wires can both send power to their neighbors, so
 Whenever a socket is inserted or removed, the updatePower function is called.
 
 ```javascript
-Game.prototype.updatePower = function () {
+updatePower() {
   this.clearPower();
-  for (let i = 0; i < this.currentLevel.powerSources.length; i++) {
+  for (var i = 0; i < this.currentLevel.powerSources.length; i++) {
     this.currentLevel.powerSources[i].sendPower(this.currentLevel.wiring, this.currentLevel.cubbies, this.currentLevel.buttonBlocks, this.currentLevel.forceFieldBlocks);
   }
-};
+}
   ```
 
 The updatePower function first calls the clearPower function, which sets the hasPower property of all the power objects in the level to false. The updatePower function then iterates through each power source, calling each source's sendPower instance method (defined on the parent PowerObject class).
 
 ```javascript
-PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
 
   let topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
   let leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
@@ -195,7 +186,7 @@ PowerObject.prototype.sendPower = function (wiring, cubbies, buttonBlocks, force
       buttonBlocks[i].hasPower = true;
     }
   }
-};
+}
   ```
 
   The sendPower function checks to see which directions power should be sent. If the object is a power source, power is sent in all four directions. If the object is a wire, power is sent only in the direction(s) where the wire is pointing (and not in the same direction where the power has come from).
