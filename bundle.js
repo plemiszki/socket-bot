@@ -50,7 +50,7 @@
 	
 	var _renderer2 = _interopRequireDefault(_renderer);
 	
-	var _game = __webpack_require__(10);
+	var _game = __webpack_require__(11);
 	
 	var _game2 = _interopRequireDefault(_game);
 	
@@ -60,7 +60,7 @@
 	  var canvas = document.getElementById('canvas');
 	  var context = canvas.getContext("2d");
 	  var renderer = new _renderer2.default(context);
-	  var levelSequence = [__webpack_require__(11), __webpack_require__(19), __webpack_require__(20), __webpack_require__(21)];
+	  var levelSequence = [__webpack_require__(12), __webpack_require__(20), __webpack_require__(21), __webpack_require__(22)];
 	
 	  var gameInstance = new _game2.default(renderer, levelSequence);
 	  renderer.game = gameInstance;
@@ -91,27 +91,27 @@
 	
 	var _wire2 = _interopRequireDefault(_wire);
 	
-	var _wireJunction = __webpack_require__(3);
+	var _wireJunction = __webpack_require__(4);
 	
 	var _wireJunction2 = _interopRequireDefault(_wireJunction);
 	
-	var _robot = __webpack_require__(5);
+	var _robot = __webpack_require__(6);
 	
 	var _robot2 = _interopRequireDefault(_robot);
 	
-	var _door = __webpack_require__(6);
+	var _door = __webpack_require__(7);
 	
 	var _door2 = _interopRequireDefault(_door);
 	
-	var _buttonBlock = __webpack_require__(7);
+	var _buttonBlock = __webpack_require__(8);
 	
 	var _buttonBlock2 = _interopRequireDefault(_buttonBlock);
 	
-	var _cubby = __webpack_require__(8);
+	var _cubby = __webpack_require__(9);
 	
 	var _cubby2 = _interopRequireDefault(_cubby);
 	
-	var _panel = __webpack_require__(9);
+	var _panel = __webpack_require__(10);
 	
 	var _panel2 = _interopRequireDefault(_panel);
 	
@@ -1162,7 +1162,7 @@
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(22);
+	var _powerObject = __webpack_require__(3);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
@@ -1193,13 +1193,118 @@
 
 /***/ },
 /* 3 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var PowerObject = function () {
+	  function PowerObject(options) {
+	    _classCallCheck(this, PowerObject);
+	
+	    this.hasPower = false;
+	    this.id = options.id;
+	    this.rowCol = options.rowCol;
+	  }
+	
+	  _createClass(PowerObject, [{
+	    key: "toString",
+	    value: function toString() {
+	      return this.constructor.name;
+	    }
+	  }, {
+	    key: "sendPower",
+	    value: function sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
+	
+	      var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
+	      var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
+	      var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
+	      var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
+	
+	      //if object is a Power Source, send power in all four directions
+	      if (this.constructor.name === 'PowerSource') {
+	        this.type = "NESW";
+	      }
+	
+	      //look through wires:
+	      for (var i = 0; i < wiring.length; i++) {
+	        if (this.type.split("").indexOf("W") !== -1) {
+	          if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
+	          }
+	        }
+	        if (this.type.split("").indexOf("N") !== -1) {
+	          if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
+	          }
+	        }
+	        if (this.type.split("").indexOf("E") !== -1) {
+	          if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
+	          }
+	        }
+	        if (this.type.split("").indexOf("S") !== -1) {
+	          if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
+	            wiring[i].hasPower = true;
+	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
+	          }
+	        }
+	      }
+	
+	      //look through force field blocks:
+	      for (var _i = 0; _i < forceFieldBlocks.length; _i++) {
+	        if (forceFieldBlocks[_i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[_i].rowCol[1] === leftRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	        if (forceFieldBlocks[_i].rowCol[0] === topRowCol[0] && forceFieldBlocks[_i].rowCol[1] === topRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	        if (forceFieldBlocks[_i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[_i].rowCol[1] === rightRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	        if (forceFieldBlocks[_i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[_i].rowCol[1] === bottomRowCol[1]) {
+	          forceFieldBlocks[_i].hasPower = true;
+	        }
+	      }
+	
+	      //look through button blocks:
+	      for (var _i2 = 0; _i2 < buttonBlocks.length; _i2++) {
+	        if (buttonBlocks[_i2].rowCol[0] === leftRowCol[0] && buttonBlocks[_i2].rowCol[1] === leftRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	        if (buttonBlocks[_i2].rowCol[0] === topRowCol[0] && buttonBlocks[_i2].rowCol[1] === topRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	        if (buttonBlocks[_i2].rowCol[0] === rightRowCol[0] && buttonBlocks[_i2].rowCol[1] === rightRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	        if (buttonBlocks[_i2].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i2].rowCol[1] === bottomRowCol[1]) {
+	          buttonBlocks[_i2].hasPower = true;
+	        }
+	      }
+	    }
+	  }]);
+	
+	  return PowerObject;
+	}();
+	
+	module.exports = PowerObject;
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _wireSegment = __webpack_require__(4);
+	var _wireSegment = __webpack_require__(5);
 	
 	var _wireSegment2 = _interopRequireDefault(_wireSegment);
 	
@@ -1340,7 +1445,7 @@
 	module.exports = WireJunction;
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1357,7 +1462,7 @@
 	module.exports = WireSegment;
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1376,7 +1481,7 @@
 	module.exports = Robot;
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1424,12 +1529,12 @@
 	module.exports = Door;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(22);
+	var _powerObject = __webpack_require__(3);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
@@ -1461,7 +1566,7 @@
 	module.exports = ButtonBlock;
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1479,7 +1584,7 @@
 	module.exports = Cubby;
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1588,14 +1693,14 @@
 	module.exports = Panel;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _robot = __webpack_require__(5);
+	var _robot = __webpack_require__(6);
 	
 	var _robot2 = _interopRequireDefault(_robot);
 	
@@ -2359,140 +2464,121 @@
 	module.exports = Game;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _level_builder = __webpack_require__(12);
+	var _level_builder = __webpack_require__(13);
 	
-	var _level_builder2 = _interopRequireDefault(_level_builder);
+	var builder = new _level_builder.LevelBuilder();
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var doors = [new _level_builder.Door(101, "left"), new _level_builder.Door(102, "left")];
 	
-	var Level = _level_builder2.default.Level;
-	var LevelBuilder = _level_builder2.default.LevelBuilder;
-	var Door = _level_builder2.default.Door;
-	var Elevator = _level_builder2.default.Elevator;
-	var ExitElevator = _level_builder2.default.ExitElevator;
-	var ButtonBlock = _level_builder2.default.ButtonBlock;
-	var Cubby = _level_builder2.default.Cubby;
-	var Wire = _level_builder2.default.Wire;
-	var WireJunction = _level_builder2.default.WireJunction;
-	var PowerSource = _level_builder2.default.PowerSource;
-	var ForceFieldBlock = _level_builder2.default.ForceFieldBlock;
-	var Panel = _level_builder2.default.Panel;
-	var Spring = _level_builder2.default.Spring;
-	var Message = _level_builder2.default.Message;
+	var messages = [new _level_builder.Message(0, 7, 0, 5, "top", "Use the arrow keys to move left and right."), new _level_builder.Message(9, 18, 3, 5, "top", "You can also use the up and down", "arrow keys to ride elevators."), new _level_builder.Message(9, 18, 0, 2, "bottom", "You can also use the up and down", "arrow keys to ride elevators."), new _level_builder.Message(23, 30, 2, 5, "top", "Push buttons to open doors."), new _level_builder.Message(35, 39, 2, 5, "top", "Press spacebar while in front of a socket", "to insert or remove a panel."), new _level_builder.Message(41, 43, 2, 5, "top", "Place the correct panel in this socket", "to send power to the button."), new _level_builder.Message(48, 54, 2, 5, "top", "Disrupt power to force fields", "to pass through them."), new _level_builder.Message(58, 61, 2, 5, "top", "The spring power-up allows you to extend", "the height of your robot."), new _level_builder.Message(61, 69, 2, 5, "top", "Now you can use the up and down", "arrow keys to adjust your height."), new _level_builder.Message(70, 76, 3, 4, "top", "Your goal is to find the red elevators.", "You can ride them up to the next level.")];
 	
-	var builder = new LevelBuilder();
-	
-	var doors = [new Door(101, "left"), new Door(102, "left")];
-	
-	var messages = [new Message(0, 7, 0, 5, "top", "Use the arrow keys to move left and right."), new Message(9, 18, 3, 5, "top", "You can also use the up and down", "arrow keys to ride elevators."), new Message(9, 18, 0, 2, "bottom", "You can also use the up and down", "arrow keys to ride elevators."), new Message(23, 30, 2, 5, "top", "Push buttons to open doors."), new Message(35, 39, 2, 5, "top", "Press spacebar while in front of a socket", "to insert or remove a panel."), new Message(41, 43, 2, 5, "top", "Place the correct panel in this socket", "to send power to the button."), new Message(48, 54, 2, 5, "top", "Disrupt power to force fields", "to pass through them."), new Message(58, 61, 2, 5, "top", "The spring power-up allows you to extend", "the height of your robot."), new Message(61, 69, 2, 5, "top", "Now you can use the up and down", "arrow keys to adjust your height."), new Message(70, 76, 3, 4, "top", "Your goal is to find the red elevators.", "You can ride them up to the next level.")];
-	
-	var elevators = [new Elevator({
+	var elevators = [new _level_builder.Elevator({
 	  id: 101,
 	  baseRowCol: [5, 11],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 101,
 	  baseRowCol: [5, 12],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 102,
 	  baseRowCol: [5, 17],
 	  startingHeight: 3,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 102,
 	  baseRowCol: [5, 18],
 	  startingHeight: 3,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [5, 24],
 	  startingHeight: 0,
 	  heights: [0, 2]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [5, 25],
 	  startingHeight: 0,
 	  heights: [0, 2]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 104,
 	  baseRowCol: [5, 45],
 	  startingHeight: 0,
 	  heights: [0, 2]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 104,
 	  baseRowCol: [5, 46],
 	  startingHeight: 0,
 	  heights: [0, 2]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 105,
 	  baseRowCol: [5, 75],
 	  startingHeight: 0,
 	  heights: [0, 10]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 105,
 	  baseRowCol: [5, 76],
 	  startingHeight: 0,
 	  heights: [0, 10]
 	})];
 	
-	var cubbies = [new Cubby({
+	var cubbies = [new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [4, 36],
-	  startItem: new Panel(["E", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["E", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [4, 37],
-	  startItem: new Panel(["N", "S"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["N", "S"])
+	}), new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [4, 38],
-	  startItem: new Panel(["S", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["S", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [4, 42],
 	  startItem: null
-	}), new Cubby({
+	}), new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [4, 52],
-	  startItem: new Panel(["N", "S"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["N", "S"])
+	}), new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [3, 68],
-	  startItem: new Panel(["N", "E"])
+	  startItem: new _level_builder.Panel(["N", "E"])
 	})];
 	
-	var powerSources = [new PowerSource({
+	var powerSources = [new _level_builder.PowerSource({
 	  id: "PS101",
 	  rowCol: [0, 29]
-	}), new PowerSource({
+	}), new _level_builder.PowerSource({
 	  id: "PS102",
 	  rowCol: [5, 42]
-	}), new PowerSource({
+	}), new _level_builder.PowerSource({
 	  id: "PS103",
 	  rowCol: [5, 52]
-	}), new PowerSource({
+	}), new _level_builder.PowerSource({
 	  id: "PS104",
 	  rowCol: [0, 68]
 	})];
 	
-	var wiring = [new Wire({ rowCol: [2, 29], type: "NW" }), new Wire({ rowCol: [1, 29], type: "NS" }), new WireJunction({ rowCol: [4, 42], segmentStrings: ["N", "S"] }), new Wire({ rowCol: [3, 42], type: "NS" }), new Wire({ rowCol: [2, 42], type: "ES" }), new WireJunction({ rowCol: [4, 52], segmentStrings: ["N", "S"] }), new Wire({ rowCol: [3, 52], type: "ES" }), new Wire({ rowCol: [3, 53], type: "EW" }), new Wire({ rowCol: [1, 68], type: "NS" }), new Wire({ rowCol: [2, 68], type: "NS" }), new WireJunction({ rowCol: [3, 68], segmentStrings: ["N", "E"] })];
+	var wiring = [new _level_builder.Wire({ rowCol: [2, 29], type: "NW" }), new _level_builder.Wire({ rowCol: [1, 29], type: "NS" }), new _level_builder.WireJunction({ rowCol: [4, 42], segmentStrings: ["N", "S"] }), new _level_builder.Wire({ rowCol: [3, 42], type: "NS" }), new _level_builder.Wire({ rowCol: [2, 42], type: "ES" }), new _level_builder.WireJunction({ rowCol: [4, 52], segmentStrings: ["N", "S"] }), new _level_builder.Wire({ rowCol: [3, 52], type: "ES" }), new _level_builder.Wire({ rowCol: [3, 53], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 68], type: "NS" }), new _level_builder.Wire({ rowCol: [2, 68], type: "NS" }), new _level_builder.WireJunction({ rowCol: [3, 68], segmentStrings: ["N", "E"] })];
 	
-	var buttonBlocks = [new ButtonBlock({
+	var buttonBlocks = [new _level_builder.ButtonBlock({
 	  id: "BB101",
 	  side: "left",
 	  rowCol: [2, 28],
 	  func: function func() {
 	    doors[0].open();
 	  }
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB102",
 	  side: "right",
 	  rowCol: [2, 43],
@@ -2501,19 +2587,19 @@
 	  }
 	})];
 	
-	var forceFieldBlocks = [new ForceFieldBlock({
+	var forceFieldBlocks = [new _level_builder.ForceFieldBlock({
 	  id: "FF101",
 	  rowCol: [2, 53]
-	}), new ForceFieldBlock({
+	}), new _level_builder.ForceFieldBlock({
 	  id: "FF101",
 	  rowCol: [3, 69]
 	})];
 	
-	var foregroundGrid = [builder.rowOf(29, "block").concat([powerSources[0]]).concat(builder.rowOf(38, "block")).concat([powerSources[3]]).concat(builder.rowOf(6, "block")).concat(["", "", "block"]), ["block"].concat(builder.rowOf(9, "")).concat(["block"]).concat(builder.rowOf(8, "")).concat(["block"]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(builder.rowOf(5, "")).concat(["block"]).concat(builder.rowOf(29, "")).concat(["block"]), ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat([buttonBlocks[0]]).concat(["", "block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(["", buttonBlocks[1]]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(29, "")).concat(["block"]), ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(9, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(10, "")).concat(["block", ""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[1]]).concat(builder.rowOf(7, "")).concat(["block"]), ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(13, "")).concat(doors[0]).concat(builder.rowOf(16, "")).concat(doors[1]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat([new Spring()]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat(["block"]), builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat([powerSources[1]]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat([powerSources[2]]).concat(builder.rowOf(22, "block")).concat(["", "", "block"])];
+	var foregroundGrid = [builder.rowOf(29, "block").concat([powerSources[0]]).concat(builder.rowOf(38, "block")).concat([powerSources[3]]).concat(builder.rowOf(6, "block")).concat(["", "", "block"]), ["block"].concat(builder.rowOf(9, "")).concat(["block"]).concat(builder.rowOf(8, "")).concat(["block"]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(builder.rowOf(5, "")).concat(["block"]).concat(builder.rowOf(29, "")).concat(["block"]), ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(6, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat([buttonBlocks[0]]).concat(["", "block"]).concat(builder.rowOf(10, "")).concat(["block"]).concat(["", buttonBlocks[1]]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(29, "")).concat(["block"]), ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(9, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(10, "")).concat(["block", ""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[1]]).concat(builder.rowOf(7, "")).concat(["block"]), ["block"].concat(builder.rowOf(12, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(13, "")).concat(doors[0]).concat(builder.rowOf(16, "")).concat(doors[1]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat([new _level_builder.Spring()]).concat(builder.rowOf(6, "")).concat(["forceField"]).concat(builder.rowOf(7, "")).concat(["block"]), builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat([powerSources[1]]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")).concat([powerSources[2]]).concat(builder.rowOf(22, "block")).concat(["", "", "block"])];
 	
 	var backgroundGrid = [builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick"), builder.rowOf(78, "brick")];
 	
-	var level = new Level({
+	var level = new _level_builder.Level({
 	  color: '#632612',
 	  foregroundGrid: foregroundGrid,
 	  backgroundGrid: backgroundGrid,
@@ -2531,30 +2617,30 @@
 	module.exports = level;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _door = __webpack_require__(6);
+	var _door = __webpack_require__(7);
 	
 	var _door2 = _interopRequireDefault(_door);
 	
-	var _elevator = __webpack_require__(13);
+	var _elevator = __webpack_require__(14);
 	
 	var _elevator2 = _interopRequireDefault(_elevator);
 	
-	var _exitElevator = __webpack_require__(14);
+	var _exitElevator = __webpack_require__(15);
 	
 	var _exitElevator2 = _interopRequireDefault(_exitElevator);
 	
-	var _buttonBlock = __webpack_require__(7);
+	var _buttonBlock = __webpack_require__(8);
 	
 	var _buttonBlock2 = _interopRequireDefault(_buttonBlock);
 	
-	var _cubby = __webpack_require__(8);
+	var _cubby = __webpack_require__(9);
 	
 	var _cubby2 = _interopRequireDefault(_cubby);
 	
@@ -2562,27 +2648,27 @@
 	
 	var _wire2 = _interopRequireDefault(_wire);
 	
-	var _wireJunction = __webpack_require__(3);
+	var _wireJunction = __webpack_require__(4);
 	
 	var _wireJunction2 = _interopRequireDefault(_wireJunction);
 	
-	var _powerSource = __webpack_require__(15);
+	var _powerSource = __webpack_require__(16);
 	
 	var _powerSource2 = _interopRequireDefault(_powerSource);
 	
-	var _forceFieldBlock = __webpack_require__(16);
+	var _forceFieldBlock = __webpack_require__(17);
 	
 	var _forceFieldBlock2 = _interopRequireDefault(_forceFieldBlock);
 	
-	var _panel = __webpack_require__(9);
+	var _panel = __webpack_require__(10);
 	
 	var _panel2 = _interopRequireDefault(_panel);
 	
-	var _spring = __webpack_require__(17);
+	var _spring = __webpack_require__(18);
 	
 	var _spring2 = _interopRequireDefault(_spring);
 	
-	var _message = __webpack_require__(18);
+	var _message = __webpack_require__(19);
 	
 	var _message2 = _interopRequireDefault(_message);
 	
@@ -2645,7 +2731,7 @@
 	};
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2682,12 +2768,12 @@
 	module.exports = Elevator;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _elevator = __webpack_require__(13);
+	var _elevator = __webpack_require__(14);
 	
 	var _elevator2 = _interopRequireDefault(_elevator);
 	
@@ -2717,12 +2803,12 @@
 	module.exports = ExitElevator;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(22);
+	var _powerObject = __webpack_require__(3);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
@@ -2749,12 +2835,12 @@
 	module.exports = PowerSource;
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _powerObject = __webpack_require__(22);
+	var _powerObject = __webpack_require__(3);
 	
 	var _powerObject2 = _interopRequireDefault(_powerObject);
 	
@@ -2781,7 +2867,7 @@
 	module.exports = ForceFieldBlock;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2810,7 +2896,7 @@
 	module.exports = Spring;
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2832,113 +2918,95 @@
 	module.exports = Message;
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _level_builder = __webpack_require__(12);
+	var _level_builder = __webpack_require__(13);
 	
-	var _level_builder2 = _interopRequireDefault(_level_builder);
+	var builder = new _level_builder.LevelBuilder();
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var doors = [new _level_builder.Door(101, "right"), new _level_builder.Door(102, "left")];
 	
-	var Level = _level_builder2.default.Level;
-	var LevelBuilder = _level_builder2.default.LevelBuilder;
-	var Door = _level_builder2.default.Door;
-	var Elevator = _level_builder2.default.Elevator;
-	var ExitElevator = _level_builder2.default.ExitElevator;
-	var ButtonBlock = _level_builder2.default.ButtonBlock;
-	var Cubby = _level_builder2.default.Cubby;
-	var Wire = _level_builder2.default.Wire;
-	var WireJunction = _level_builder2.default.WireJunction;
-	var PowerSource = _level_builder2.default.PowerSource;
-	var ForceFieldBlock = _level_builder2.default.ForceFieldBlock;
-	var Panel = _level_builder2.default.Panel;
-	var Spring = _level_builder2.default.Spring;
-	
-	var builder = new LevelBuilder();
-	
-	var doors = [new Door(101, "right"), new Door(102, "left")];
-	
-	var elevators = [new Elevator({
+	var elevators = [new _level_builder.Elevator({
 	  id: 101,
 	  baseRowCol: [10, 5],
 	  startingHeight: 4,
 	  heights: [0, 4, 8]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 101,
 	  baseRowCol: [10, 6],
 	  startingHeight: 4,
 	  heights: [0, 4, 8]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 102,
 	  baseRowCol: [10, 1],
 	  startingHeight: 0,
 	  heights: [0, 6]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [12, 17],
 	  startingHeight: 6,
 	  heights: [0, 3, 6, 10]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [12, 18],
 	  startingHeight: 6,
 	  heights: [0, 3, 6, 10]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 104,
 	  baseRowCol: [2, 21],
 	  startingHeight: 0,
 	  heights: [0, 3, 6, 10]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 104,
 	  baseRowCol: [2, 22],
 	  startingHeight: 0,
 	  heights: [0]
 	})];
 	
-	var cubbies = [new Cubby({
+	var cubbies = [new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [1, 2],
-	  startItem: new Panel(["N", "S"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["N", "S"])
+	}), new _level_builder.Cubby({
 	  id: "C102",
 	  rowCol: [11, 15],
-	  startItem: new Panel(["E", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["E", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C103",
 	  rowCol: [4, 13],
 	  startItem: null
-	}), new Cubby({
+	}), new _level_builder.Cubby({
 	  id: "C104",
 	  rowCol: [8, 21],
-	  startItem: new Panel(["S", "W"])
+	  startItem: new _level_builder.Panel(["S", "W"])
 	})];
 	
-	var powerSources = [new PowerSource({
+	var powerSources = [new _level_builder.PowerSource({
 	  id: "PS101",
 	  rowCol: [11, 22]
 	})];
 	
 	var wiring = [
 	//Force Field Block
-	new Wire({ rowCol: [11, 21], type: "EW" }), new Wire({ rowCol: [11, 20], type: "EW" }), new Wire({ rowCol: [11, 19], type: "EW" }), new Wire({ rowCol: [11, 18], type: "EW" }), new Wire({ rowCol: [11, 17], type: "EW" }), new Wire({ rowCol: [11, 16], type: "EW" }), new WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }), new Wire({ rowCol: [11, 14], type: "NE" }), new Wire({ rowCol: [10, 14], type: "NS" }), new Wire({ rowCol: [9, 14], type: "NS" }), new Wire({ rowCol: [8, 14], type: "NS" }), new Wire({ rowCol: [7, 14], type: "NS" }), new Wire({ rowCol: [6, 14], type: "NS" }), new Wire({ rowCol: [5, 14], type: "NSW" }), new Wire({ rowCol: [4, 14], type: "ES" }), new Wire({ rowCol: [4, 15], type: "EW" }), new Wire({ rowCol: [4, 16], type: "EW" }), new Wire({ rowCol: [4, 17], type: "EW" }), new Wire({ rowCol: [4, 18], type: "EW" }),
+	new _level_builder.Wire({ rowCol: [11, 21], type: "EW" }), new _level_builder.Wire({ rowCol: [11, 20], type: "EW" }), new _level_builder.Wire({ rowCol: [11, 19], type: "EW" }), new _level_builder.Wire({ rowCol: [11, 18], type: "EW" }), new _level_builder.Wire({ rowCol: [11, 17], type: "EW" }), new _level_builder.Wire({ rowCol: [11, 16], type: "EW" }), new _level_builder.WireJunction({ rowCol: [11, 15], segmentStrings: ["E", "W"] }), new _level_builder.Wire({ rowCol: [11, 14], type: "NE" }), new _level_builder.Wire({ rowCol: [10, 14], type: "NS" }), new _level_builder.Wire({ rowCol: [9, 14], type: "NS" }), new _level_builder.Wire({ rowCol: [8, 14], type: "NS" }), new _level_builder.Wire({ rowCol: [7, 14], type: "NS" }), new _level_builder.Wire({ rowCol: [6, 14], type: "NS" }), new _level_builder.Wire({ rowCol: [5, 14], type: "NSW" }), new _level_builder.Wire({ rowCol: [4, 14], type: "ES" }), new _level_builder.Wire({ rowCol: [4, 15], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 16], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 17], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 18], type: "EW" }),
 	
 	//Branch to top button
-	new Wire({ rowCol: [1, 13], type: "ES" }), new Wire({ rowCol: [2, 13], type: "NS" }), new Wire({ rowCol: [3, 13], type: "NS" }), new WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }), new Wire({ rowCol: [5, 13], type: "NE" }),
+	new _level_builder.Wire({ rowCol: [1, 13], type: "ES" }), new _level_builder.Wire({ rowCol: [2, 13], type: "NS" }), new _level_builder.Wire({ rowCol: [3, 13], type: "NS" }), new _level_builder.WireJunction({ rowCol: [4, 13], segmentStrings: ["N", "S", "W"] }), new _level_builder.Wire({ rowCol: [5, 13], type: "NE" }),
 	
 	//Branch to left button
-	new Wire({ rowCol: [3, 5], type: "EW" }), new Wire({ rowCol: [3, 6], type: "EW" }), new Wire({ rowCol: [3, 7], type: "WS" }), new Wire({ rowCol: [4, 7], type: "NE" }), new Wire({ rowCol: [4, 8], type: "EW" }), new Wire({ rowCol: [4, 9], type: "EW" }), new Wire({ rowCol: [4, 10], type: "EW" }), new Wire({ rowCol: [4, 11], type: "EW" }), new Wire({ rowCol: [4, 12], type: "EW" })];
+	new _level_builder.Wire({ rowCol: [3, 5], type: "EW" }), new _level_builder.Wire({ rowCol: [3, 6], type: "EW" }), new _level_builder.Wire({ rowCol: [3, 7], type: "WS" }), new _level_builder.Wire({ rowCol: [4, 7], type: "NE" }), new _level_builder.Wire({ rowCol: [4, 8], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 9], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 10], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 11], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 12], type: "EW" })];
 	
-	var buttonBlocks = [new ButtonBlock({
+	var buttonBlocks = [new _level_builder.ButtonBlock({
 	  id: "BB101",
 	  side: "left",
 	  rowCol: [3, 4],
 	  func: function func() {
 	    doors[0].open();
 	  }
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB102",
 	  side: "right",
 	  rowCol: [1, 14],
@@ -2947,16 +3015,16 @@
 	  }
 	})];
 	
-	var forceFieldBlocks = [new ForceFieldBlock({
+	var forceFieldBlocks = [new _level_builder.ForceFieldBlock({
 	  id: "FF101",
 	  rowCol: [4, 19]
 	})];
 	
-	var foregroundGrid = [builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]), builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new Spring()).concat([""]).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]), ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(7, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "powerBlock")), builder.rowOf(14, "block").concat(builder.rowOf(8, "")).concat([powerSources[0]]).concat(["powerBlock"]), builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))];
+	var foregroundGrid = [builder.rowOf(21, "block").concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(2, "")).concat(doors[0]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat([buttonBlocks[1]]).concat(builder.rowOf(4, "")).concat(doors[1]).concat(builder.rowOf(3, "")).concat(["block"]), builder.rowOf(5, "block").concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(6, "")).concat(builder.rowOf(3, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(12, "")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block"].concat([""]).concat(builder.rowOf(3, "block")).concat(builder.rowOf(14, "")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(3, "")).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(14, "")).concat(builder.rowOf(1, "forceField")).concat(builder.rowOf(1, "")).concat(new _level_builder.Spring()).concat([""]).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(["platform"]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]), ["block"].concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(6, "")).concat(["block"]), ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "")).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block", ""].concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, elevators[0])).concat(builder.rowOf(7, "block")).concat([""]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "powerBlock")), builder.rowOf(14, "block").concat(builder.rowOf(8, "")).concat([powerSources[0]]).concat(["powerBlock"]), builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block"))];
 	
 	var backgroundGrid = [builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick"), builder.rowOf(24, "brick")];
 	
-	var level = new Level({
+	var level = new _level_builder.Level({
 	  name: "Level 1",
 	  color: '#632612',
 	  foregroundGrid: foregroundGrid,
@@ -2974,112 +3042,94 @@
 	module.exports = level;
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _level_builder = __webpack_require__(12);
+	var _level_builder = __webpack_require__(13);
 	
-	var _level_builder2 = _interopRequireDefault(_level_builder);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var Level = _level_builder2.default.Level;
-	var LevelBuilder = _level_builder2.default.LevelBuilder;
-	var Door = _level_builder2.default.Door;
-	var Elevator = _level_builder2.default.Elevator;
-	var ExitElevator = _level_builder2.default.ExitElevator;
-	var ButtonBlock = _level_builder2.default.ButtonBlock;
-	var Cubby = _level_builder2.default.Cubby;
-	var Wire = _level_builder2.default.Wire;
-	var WireJunction = _level_builder2.default.WireJunction;
-	var PowerSource = _level_builder2.default.PowerSource;
-	var ForceFieldBlock = _level_builder2.default.ForceFieldBlock;
-	var Panel = _level_builder2.default.Panel;
-	var Spring = _level_builder2.default.Spring;
-	
-	var builder = new LevelBuilder();
+	var builder = new _level_builder.LevelBuilder();
 	
 	var doors = [];
 	
-	var elevators = [new Elevator({
+	var elevators = [new _level_builder.Elevator({
 	  id: 101,
 	  baseRowCol: [13, 13],
 	  startingHeight: 0,
 	  heights: [0, 4, 8]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 101,
 	  baseRowCol: [13, 14],
 	  startingHeight: 0,
 	  heights: [0, 4, 8]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 102,
 	  baseRowCol: [13, 7],
 	  startingHeight: 0,
 	  heights: [0, 2]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [17, 1],
 	  startingHeight: 12,
 	  heights: [0, 6, 12]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 104,
 	  baseRowCol: [9, 17],
 	  startingHeight: 0,
 	  heights: [0]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 104,
 	  baseRowCol: [9, 18],
 	  startingHeight: 0,
 	  heights: [0]
 	})];
 	
-	var cubbies = [new Cubby({
+	var cubbies = [new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [3, 12],
-	  startItem: new Panel(["E", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["E", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C102",
 	  rowCol: [7, 12],
-	  startItem: new Panel(["E", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["E", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C103",
 	  rowCol: [16, 3],
 	  startItem: null
 	})];
 	
-	var powerSources = [new PowerSource({
+	var powerSources = [new _level_builder.PowerSource({
 	  id: "PS101",
 	  rowCol: [11, 22]
-	}), new PowerSource({
+	}), new _level_builder.PowerSource({
 	  id: "PS102",
 	  rowCol: [7, 9]
-	}), new PowerSource({
+	}), new _level_builder.PowerSource({
 	  id: "PS103",
 	  rowCol: [8, 8]
 	})];
 	
-	var wiring = [new Wire({ rowCol: [7, 10], type: "EW" }), new Wire({ rowCol: [7, 11], type: "EW" }), new WireJunction({ rowCol: [7, 12], segmentStrings: ["E", "W"] }), new Wire({ rowCol: [7, 13], type: "EW" }), new Wire({ rowCol: [7, 14], type: "EW" }), new Wire({ rowCol: [6, 9], type: "NS" }), new Wire({ rowCol: [5, 9], type: "NS" }), new Wire({ rowCol: [4, 9], type: "NS" }), new Wire({ rowCol: [3, 9], type: "ES" }), new Wire({ rowCol: [3, 10], type: "EW" }), new Wire({ rowCol: [3, 11], type: "EW" }), new WireJunction({ rowCol: [3, 12], segmentStrings: ["E", "W"] }), new Wire({ rowCol: [3, 13], type: "EW" }), new Wire({ rowCol: [3, 14], type: "EW" }), new Wire({ rowCol: [3, 15], type: "EW" }), new Wire({ rowCol: [3, 16], type: "WS" }), new Wire({ rowCol: [4, 16], type: "NS" }), new Wire({ rowCol: [5, 16], type: "NS" }), new Wire({ rowCol: [6, 16], type: "NS" }), new Wire({ rowCol: [8, 7], type: "EW" }), new Wire({ rowCol: [8, 6], type: "EW" }), new Wire({ rowCol: [8, 5], type: "EW" }), new Wire({ rowCol: [8, 4], type: "ES" })];
+	var wiring = [new _level_builder.Wire({ rowCol: [7, 10], type: "EW" }), new _level_builder.Wire({ rowCol: [7, 11], type: "EW" }), new _level_builder.WireJunction({ rowCol: [7, 12], segmentStrings: ["E", "W"] }), new _level_builder.Wire({ rowCol: [7, 13], type: "EW" }), new _level_builder.Wire({ rowCol: [7, 14], type: "EW" }), new _level_builder.Wire({ rowCol: [6, 9], type: "NS" }), new _level_builder.Wire({ rowCol: [5, 9], type: "NS" }), new _level_builder.Wire({ rowCol: [4, 9], type: "NS" }), new _level_builder.Wire({ rowCol: [3, 9], type: "ES" }), new _level_builder.Wire({ rowCol: [3, 10], type: "EW" }), new _level_builder.Wire({ rowCol: [3, 11], type: "EW" }), new _level_builder.WireJunction({ rowCol: [3, 12], segmentStrings: ["E", "W"] }), new _level_builder.Wire({ rowCol: [3, 13], type: "EW" }), new _level_builder.Wire({ rowCol: [3, 14], type: "EW" }), new _level_builder.Wire({ rowCol: [3, 15], type: "EW" }), new _level_builder.Wire({ rowCol: [3, 16], type: "WS" }), new _level_builder.Wire({ rowCol: [4, 16], type: "NS" }), new _level_builder.Wire({ rowCol: [5, 16], type: "NS" }), new _level_builder.Wire({ rowCol: [6, 16], type: "NS" }), new _level_builder.Wire({ rowCol: [8, 7], type: "EW" }), new _level_builder.Wire({ rowCol: [8, 6], type: "EW" }), new _level_builder.Wire({ rowCol: [8, 5], type: "EW" }), new _level_builder.Wire({ rowCol: [8, 4], type: "ES" })];
 	
 	var buttonBlocks = [];
 	
-	var forceFieldBlocks = [new ForceFieldBlock({
+	var forceFieldBlocks = [new _level_builder.ForceFieldBlock({
 	  id: "FF101",
 	  rowCol: [7, 15]
-	}), new ForceFieldBlock({
+	}), new _level_builder.ForceFieldBlock({
 	  id: "FF102",
 	  rowCol: [7, 16]
-	}), new ForceFieldBlock({
+	}), new _level_builder.ForceFieldBlock({
 	  id: "FF103",
 	  rowCol: [9, 4]
 	})];
 	
-	var foregroundGrid = [builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(14, "")).concat(["block"]).concat(builder.rowOf(3, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(11, "platform")).concat(builder.rowOf(2, "")).concat(["platform"]).concat(builder.rowOf(3, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(7, "")).concat(["powerBlock"]).concat([powerSources[0]]).concat(builder.rowOf(5, "")).concat([forceFieldBlocks[0]]).concat([forceFieldBlocks[1]]).concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(7, "")).concat([powerSources[2]]).concat([powerSources[1]]).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "forceField")).concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(2, "")).concat([forceFieldBlocks[2]]).concat(builder.rowOf(3, "block")).concat(["block"]).concat(builder.rowOf(4, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(1, "block")), ["block"].concat(builder.rowOf(2, "")).concat(new Spring()).concat(["forceField"]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(7, "")).concat(builder.rowOf(4, "block")), ["block"].concat([""]).concat(builder.rowOf(5, "block")).concat(builder.rowOf(12, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(5, "block")).concat(builder.rowOf(12, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(5, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block"].concat([""]).concat(builder.rowOf(18, "block")), ["block"].concat([""]).concat(builder.rowOf(18, "block")), ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(15, "block")), ["block"].concat([""]).concat(builder.rowOf(18, "block"))];
+	var foregroundGrid = [builder.rowOf(17, "block").concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(14, "")).concat(["block"]).concat(builder.rowOf(3, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(11, "platform")).concat(builder.rowOf(2, "")).concat(["platform"]).concat(builder.rowOf(3, "")).concat(["block"]), ["block"].concat(builder.rowOf(18, "")).concat(["block"]), ["block"].concat(builder.rowOf(7, "")).concat(["powerBlock"]).concat([powerSources[0]]).concat(builder.rowOf(5, "")).concat([forceFieldBlocks[0]]).concat([forceFieldBlocks[1]]).concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat(builder.rowOf(7, "")).concat([powerSources[2]]).concat([powerSources[1]]).concat(builder.rowOf(5, "")).concat(builder.rowOf(2, "forceField")).concat(builder.rowOf(2, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(2, "")).concat([forceFieldBlocks[2]]).concat(builder.rowOf(3, "block")).concat(["block"]).concat(builder.rowOf(4, "platform")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(1, "block")), ["block"].concat(builder.rowOf(2, "")).concat(new _level_builder.Spring()).concat(["forceField"]).concat(builder.rowOf(3, "")).concat(["block"]).concat(builder.rowOf(7, "")).concat(builder.rowOf(4, "block")), ["block"].concat([""]).concat(builder.rowOf(5, "block")).concat(builder.rowOf(12, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(5, "block")).concat(builder.rowOf(12, "")).concat(["block"]), ["block"].concat([""]).concat(builder.rowOf(5, "block")).concat([""]).concat(builder.rowOf(5, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(5, "block")), ["block"].concat([""]).concat(builder.rowOf(18, "block")), ["block"].concat([""]).concat(builder.rowOf(18, "block")), ["block"].concat(builder.rowOf(4, "")).concat(builder.rowOf(15, "block")), ["block"].concat([""]).concat(builder.rowOf(18, "block"))];
 	
 	var backgroundGrid = [builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick"), builder.rowOf(20, "brick")];
 	
-	var level = new Level({
+	var level = new _level_builder.Level({
 	  name: "Level 2",
 	  color: '#4A7A36',
 	  foregroundGrid: foregroundGrid,
@@ -3097,164 +3147,146 @@
 	module.exports = level;
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _level_builder = __webpack_require__(12);
+	var _level_builder = __webpack_require__(13);
 	
-	var _level_builder2 = _interopRequireDefault(_level_builder);
+	var builder = new _level_builder.LevelBuilder();
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var doors = [new _level_builder.Door(101, "right", 'green'), new _level_builder.Door(102, "right"), new _level_builder.Door(103, "right"), new _level_builder.Door(104, "right"), new _level_builder.Door(105, "right", 'green'), new _level_builder.Door(106, "left"), new _level_builder.Door(107, "left", 'green'), new _level_builder.Door(108, "right", 'green'), new _level_builder.Door(109, "left", 'green'), new _level_builder.Door(110, "left")];
 	
-	var Level = _level_builder2.default.Level;
-	var LevelBuilder = _level_builder2.default.LevelBuilder;
-	var Door = _level_builder2.default.Door;
-	var Elevator = _level_builder2.default.Elevator;
-	var ExitElevator = _level_builder2.default.ExitElevator;
-	var ButtonBlock = _level_builder2.default.ButtonBlock;
-	var Cubby = _level_builder2.default.Cubby;
-	var Wire = _level_builder2.default.Wire;
-	var WireJunction = _level_builder2.default.WireJunction;
-	var PowerSource = _level_builder2.default.PowerSource;
-	var ForceFieldBlock = _level_builder2.default.ForceFieldBlock;
-	var Panel = _level_builder2.default.Panel;
-	var Spring = _level_builder2.default.Spring;
-	
-	var builder = new LevelBuilder();
-	
-	var doors = [new Door(101, "right", 'green'), new Door(102, "right"), new Door(103, "right"), new Door(104, "right"), new Door(105, "right", 'green'), new Door(106, "left"), new Door(107, "left", 'green'), new Door(108, "right", 'green'), new Door(109, "left", 'green'), new Door(110, "left")];
-	
-	var elevators = [new Elevator({
+	var elevators = [new _level_builder.Elevator({
 	  id: 102,
 	  baseRowCol: [9, 9],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 102,
 	  baseRowCol: [9, 10],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [6, 6],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 103,
 	  baseRowCol: [6, 7],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 104,
 	  baseRowCol: [15, 6],
 	  startingHeight: 0,
 	  heights: [0, 3, 6]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 104,
 	  baseRowCol: [15, 7],
 	  startingHeight: 0,
 	  heights: [0, 3, 6]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 105,
 	  baseRowCol: [9, 1],
 	  startingHeight: 3,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 106,
 	  baseRowCol: [18, 11],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 106,
 	  baseRowCol: [18, 12],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 107,
 	  baseRowCol: [18, 19],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 107,
 	  baseRowCol: [18, 20],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 108,
 	  baseRowCol: [15, 24],
 	  startingHeight: 0,
 	  heights: [0, 3, 6]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 108,
 	  baseRowCol: [15, 25],
 	  startingHeight: 0,
 	  heights: [0, 3, 6]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 109,
 	  baseRowCol: [9, 21],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 109,
 	  baseRowCol: [9, 22],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 110,
 	  baseRowCol: [6, 24],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 110,
 	  baseRowCol: [6, 25],
 	  startingHeight: 0,
 	  heights: [0, 3]
-	}), new Elevator({
+	}), new _level_builder.Elevator({
 	  id: 111,
 	  baseRowCol: [9, 30],
 	  startingHeight: 3,
 	  heights: [0, 3]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 101,
 	  baseRowCol: [3, 15],
 	  startingHeight: 0,
 	  heights: [0, 3, 6, 10]
-	}), new ExitElevator({
+	}), new _level_builder.ExitElevator({
 	  id: 101,
 	  baseRowCol: [3, 16],
 	  startingHeight: 0,
 	  heights: [0]
 	})];
 	
-	var cubbies = [new Cubby({
+	var cubbies = [new _level_builder.Cubby({
 	  id: "C101",
 	  rowCol: [8, 3],
-	  startItem: new Panel(["E", "S", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["E", "S", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C102",
 	  rowCol: [4, 28],
-	  startItem: new Panel(["E", "N", "W"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["E", "N", "W"])
+	}), new _level_builder.Cubby({
 	  id: "C103",
 	  rowCol: [14, 3],
-	  startItem: new Panel(["N", "E"])
-	}), new Cubby({
+	  startItem: new _level_builder.Panel(["N", "E"])
+	}), new _level_builder.Cubby({
 	  id: "C104",
 	  rowCol: [14, 28],
-	  startItem: new Panel(["N", "S"])
+	  startItem: new _level_builder.Panel(["N", "S"])
 	})];
 	
-	var powerSources = [new PowerSource({
+	var powerSources = [new _level_builder.PowerSource({
 	  id: "PS101",
 	  rowCol: [15, 16]
-	}), new PowerSource({
+	}), new _level_builder.PowerSource({
 	  id: "PS102",
 	  rowCol: [15, 15]
 	})];
 	
-	var wiring = [new Wire({ rowCol: [16, 16], type: "NE" }), new Wire({ rowCol: [16, 17], type: "EW" }), new Wire({ rowCol: [16, 18], type: "EW" }), new Wire({ rowCol: [16, 19], type: "EW" }), new Wire({ rowCol: [16, 20], type: "EW" }), new Wire({ rowCol: [16, 21], type: "EW" }), new Wire({ rowCol: [16, 22], type: "WS" }), new Wire({ rowCol: [17, 22], type: "NE" }), new Wire({ rowCol: [17, 23], type: "EW" }), new Wire({ rowCol: [17, 24], type: "EW" }), new Wire({ rowCol: [17, 25], type: "EW" }), new Wire({ rowCol: [17, 26], type: "EW" }), new Wire({ rowCol: [17, 27], type: "EW" }), new Wire({ rowCol: [17, 28], type: "NW" }), new Wire({ rowCol: [16, 28], type: "NS" }), new Wire({ rowCol: [15, 28], type: "NS" }), new WireJunction({ rowCol: [14, 28], segmentStrings: ["N", "S"] }), new Wire({ rowCol: [13, 28], type: "NS" }), new Wire({ rowCol: [12, 28], type: "NS" }), new Wire({ rowCol: [11, 28], type: "NS" }), new Wire({ rowCol: [10, 28], type: "NS" }), new Wire({ rowCol: [9, 28], type: "NS" }), new Wire({ rowCol: [8, 28], type: "ESW" }), new Wire({ rowCol: [8, 29], type: "NW" }), new Wire({ rowCol: [7, 29], type: "NS" }), new Wire({ rowCol: [6, 29], type: "NS" }), new Wire({ rowCol: [5, 29], type: "NS" }), new Wire({ rowCol: [4, 29], type: "WS" }), new WireJunction({ rowCol: [4, 28], segmentStrings: ["E", "W", "N"] }), new Wire({ rowCol: [4, 27], type: "EW" }), new Wire({ rowCol: [4, 26], type: "EW" }), new Wire({ rowCol: [4, 25], type: "EW" }), new Wire({ rowCol: [4, 24], type: "EW" }), new Wire({ rowCol: [4, 23], type: "EW" }), new Wire({ rowCol: [4, 22], type: "EW" }), new Wire({ rowCol: [4, 21], type: "EW" }), new Wire({ rowCol: [4, 20], type: "EW" }), new Wire({ rowCol: [4, 19], type: "EW" }), new Wire({ rowCol: [4, 18], type: "ES" }), new Wire({ rowCol: [5, 18], type: "NS" }), new Wire({ rowCol: [6, 18], type: "NS" }), new Wire({ rowCol: [7, 18], type: "NS" }), new Wire({ rowCol: [3, 28], type: "NS" }), new Wire({ rowCol: [2, 28], type: "NS" }), new Wire({ rowCol: [1, 28], type: "WS" }), new Wire({ rowCol: [1, 27], type: "EW" }), new Wire({ rowCol: [1, 26], type: "EW" }), new Wire({ rowCol: [1, 25], type: "EW" }), new Wire({ rowCol: [1, 24], type: "EW" }), new Wire({ rowCol: [1, 23], type: "EW" }), new Wire({ rowCol: [1, 22], type: "EW" }), new Wire({ rowCol: [1, 21], type: "EW" }), new Wire({ rowCol: [1, 20], type: "EW" }), new Wire({ rowCol: [1, 19], type: "EW" }), new Wire({ rowCol: [1, 18], type: "EW" }), new Wire({ rowCol: [16, 15], type: "NW" }), new Wire({ rowCol: [16, 14], type: "EW" }), new Wire({ rowCol: [16, 13], type: "EW" }), new Wire({ rowCol: [16, 12], type: "EW" }), new Wire({ rowCol: [16, 11], type: "EW" }), new Wire({ rowCol: [16, 10], type: "EW" }), new Wire({ rowCol: [16, 9], type: "ES" }), new Wire({ rowCol: [17, 9], type: "NW" }), new Wire({ rowCol: [17, 8], type: "EW" }), new Wire({ rowCol: [17, 7], type: "EW" }), new Wire({ rowCol: [17, 6], type: "EW" }), new Wire({ rowCol: [17, 5], type: "EW" }), new Wire({ rowCol: [17, 4], type: "NE" }), new Wire({ rowCol: [16, 4], type: "NS" }), new Wire({ rowCol: [15, 4], type: "NS" }), new Wire({ rowCol: [14, 4], type: "WS" }), new WireJunction({ rowCol: [14, 3], segmentStrings: ["N", "E"] }), new Wire({ rowCol: [13, 3], type: "NS" }), new Wire({ rowCol: [12, 3], type: "NS" }), new Wire({ rowCol: [11, 3], type: "NSE" }), new Wire({ rowCol: [10, 3], type: "NS" }), new Wire({ rowCol: [9, 3], type: "NS" }), new WireJunction({ rowCol: [8, 3], segmentStrings: ["E", "W", "S"] }), new Wire({ rowCol: [8, 2], type: "NE" }), new Wire({ rowCol: [7, 2], type: "NS" }), new Wire({ rowCol: [6, 2], type: "NS" }), new Wire({ rowCol: [5, 2], type: "NS" }), new Wire({ rowCol: [4, 2], type: "NS" }), new Wire({ rowCol: [3, 2], type: "NS" }), new Wire({ rowCol: [2, 2], type: "NS" }), new Wire({ rowCol: [1, 2], type: "ES" }), new Wire({ rowCol: [1, 3], type: "EW" }), new Wire({ rowCol: [1, 4], type: "EW" }), new Wire({ rowCol: [1, 5], type: "EW" }), new Wire({ rowCol: [1, 6], type: "EW" }), new Wire({ rowCol: [1, 7], type: "EW" }), new Wire({ rowCol: [1, 8], type: "EW" }), new Wire({ rowCol: [1, 9], type: "EW" }), new Wire({ rowCol: [1, 10], type: "EW" }), new Wire({ rowCol: [1, 11], type: "EW" }), new Wire({ rowCol: [1, 12], type: "ESW" }), new Wire({ rowCol: [1, 13], type: "EW" }), new Wire({ rowCol: [2, 12], type: "NS" }), new Wire({ rowCol: [3, 12], type: "NS" }), new Wire({ rowCol: [4, 12], type: "NE" }), new Wire({ rowCol: [4, 13], type: "WS" }), new Wire({ rowCol: [5, 13], type: "NS" }), new Wire({ rowCol: [6, 13], type: "NS" }), new Wire({ rowCol: [7, 13], type: "NS" })];
+	var wiring = [new _level_builder.Wire({ rowCol: [16, 16], type: "NE" }), new _level_builder.Wire({ rowCol: [16, 17], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 18], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 19], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 20], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 21], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 22], type: "WS" }), new _level_builder.Wire({ rowCol: [17, 22], type: "NE" }), new _level_builder.Wire({ rowCol: [17, 23], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 24], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 25], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 26], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 27], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 28], type: "NW" }), new _level_builder.Wire({ rowCol: [16, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [15, 28], type: "NS" }), new _level_builder.WireJunction({ rowCol: [14, 28], segmentStrings: ["N", "S"] }), new _level_builder.Wire({ rowCol: [13, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [12, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [11, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [10, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [9, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [8, 28], type: "ESW" }), new _level_builder.Wire({ rowCol: [8, 29], type: "NW" }), new _level_builder.Wire({ rowCol: [7, 29], type: "NS" }), new _level_builder.Wire({ rowCol: [6, 29], type: "NS" }), new _level_builder.Wire({ rowCol: [5, 29], type: "NS" }), new _level_builder.Wire({ rowCol: [4, 29], type: "WS" }), new _level_builder.WireJunction({ rowCol: [4, 28], segmentStrings: ["E", "W", "N"] }), new _level_builder.Wire({ rowCol: [4, 27], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 26], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 25], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 24], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 23], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 22], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 21], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 20], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 19], type: "EW" }), new _level_builder.Wire({ rowCol: [4, 18], type: "ES" }), new _level_builder.Wire({ rowCol: [5, 18], type: "NS" }), new _level_builder.Wire({ rowCol: [6, 18], type: "NS" }), new _level_builder.Wire({ rowCol: [7, 18], type: "NS" }), new _level_builder.Wire({ rowCol: [3, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [2, 28], type: "NS" }), new _level_builder.Wire({ rowCol: [1, 28], type: "WS" }), new _level_builder.Wire({ rowCol: [1, 27], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 26], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 25], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 24], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 23], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 22], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 21], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 20], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 19], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 18], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 15], type: "NW" }), new _level_builder.Wire({ rowCol: [16, 14], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 13], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 12], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 11], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 10], type: "EW" }), new _level_builder.Wire({ rowCol: [16, 9], type: "ES" }), new _level_builder.Wire({ rowCol: [17, 9], type: "NW" }), new _level_builder.Wire({ rowCol: [17, 8], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 7], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 6], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 5], type: "EW" }), new _level_builder.Wire({ rowCol: [17, 4], type: "NE" }), new _level_builder.Wire({ rowCol: [16, 4], type: "NS" }), new _level_builder.Wire({ rowCol: [15, 4], type: "NS" }), new _level_builder.Wire({ rowCol: [14, 4], type: "WS" }), new _level_builder.WireJunction({ rowCol: [14, 3], segmentStrings: ["N", "E"] }), new _level_builder.Wire({ rowCol: [13, 3], type: "NS" }), new _level_builder.Wire({ rowCol: [12, 3], type: "NS" }), new _level_builder.Wire({ rowCol: [11, 3], type: "NSE" }), new _level_builder.Wire({ rowCol: [10, 3], type: "NS" }), new _level_builder.Wire({ rowCol: [9, 3], type: "NS" }), new _level_builder.WireJunction({ rowCol: [8, 3], segmentStrings: ["E", "W", "S"] }), new _level_builder.Wire({ rowCol: [8, 2], type: "NE" }), new _level_builder.Wire({ rowCol: [7, 2], type: "NS" }), new _level_builder.Wire({ rowCol: [6, 2], type: "NS" }), new _level_builder.Wire({ rowCol: [5, 2], type: "NS" }), new _level_builder.Wire({ rowCol: [4, 2], type: "NS" }), new _level_builder.Wire({ rowCol: [3, 2], type: "NS" }), new _level_builder.Wire({ rowCol: [2, 2], type: "NS" }), new _level_builder.Wire({ rowCol: [1, 2], type: "ES" }), new _level_builder.Wire({ rowCol: [1, 3], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 4], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 5], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 6], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 7], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 8], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 9], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 10], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 11], type: "EW" }), new _level_builder.Wire({ rowCol: [1, 12], type: "ESW" }), new _level_builder.Wire({ rowCol: [1, 13], type: "EW" }), new _level_builder.Wire({ rowCol: [2, 12], type: "NS" }), new _level_builder.Wire({ rowCol: [3, 12], type: "NS" }), new _level_builder.Wire({ rowCol: [4, 12], type: "NE" }), new _level_builder.Wire({ rowCol: [4, 13], type: "WS" }), new _level_builder.Wire({ rowCol: [5, 13], type: "NS" }), new _level_builder.Wire({ rowCol: [6, 13], type: "NS" }), new _level_builder.Wire({ rowCol: [7, 13], type: "NS" })];
 	
 	var openGreenDoors = function openGreenDoors(button) {
 	  for (var i = 0; i < doors.length; i++) {
@@ -3276,81 +3308,81 @@
 	  }
 	};
 	
-	var buttonBlocks = [new ButtonBlock({
+	var buttonBlocks = [new _level_builder.ButtonBlock({
 	  id: "BB101",
 	  side: "left",
 	  rowCol: [5, 12],
 	  color: 'green',
 	  func: openGreenDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB102",
 	  side: "right",
 	  rowCol: [8, 4],
 	  func: openRedDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB103",
 	  side: "right",
 	  rowCol: [8, 4],
 	  func: openRedDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB104",
 	  side: "right",
 	  color: 'green',
 	  rowCol: [17, 9],
 	  func: openGreenDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB105",
 	  side: "right",
 	  color: 'green',
 	  rowCol: [11, 4], //check
 	  func: openGreenDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB106",
 	  side: "left",
 	  rowCol: [8, 4],
 	  func: openRedDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB107",
 	  side: "left",
 	  rowCol: [17, 22],
 	  func: openRedDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB108",
 	  side: "left",
 	  rowCol: [11, 27],
 	  func: openRedDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB109",
 	  side: "right",
 	  color: 'green',
 	  rowCol: [8, 18],
 	  func: openGreenDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB110",
 	  side: "left",
 	  color: 'green',
 	  rowCol: [8, 27],
 	  func: openGreenDoors
-	}), new ButtonBlock({
+	}), new _level_builder.ButtonBlock({
 	  id: "BB111",
 	  side: "right",
 	  rowCol: [5, 18],
 	  func: openRedDoors
 	})];
 	
-	var forceFieldBlocks = [new ForceFieldBlock({
+	var forceFieldBlocks = [new _level_builder.ForceFieldBlock({
 	  id: "FF101",
 	  rowCol: [1, 14]
-	}), new ForceFieldBlock({
+	}), new _level_builder.ForceFieldBlock({
 	  id: "FF102",
 	  rowCol: [1, 17]
 	})];
 	
-	var foregroundGrid = [builder.rowOf(15, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(15, "block")), builder.rowOf(6, "block").concat(builder.rowOf(7, "")).concat(builder.rowOf(1, "block")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(2, "")).concat([forceFieldBlocks[1]]).concat(builder.rowOf(1, "block")).concat(builder.rowOf(12, "")).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(7, "")).concat(doors[0]).concat("forceField").concat(builder.rowOf(2, "")).concat(["forceField"]).concat(doors[9]).concat(builder.rowOf(7, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(8, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(8, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat([doors[1]]).concat(builder.rowOf(7, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[10]]).concat(builder.rowOf(7, "")).concat([doors[8]]).concat(builder.rowOf(4, "")).concat(["block"]), builder.rowOf(1, "block").concat(builder.rowOf(1, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(1, "")).concat(["block"]), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(14, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(3, "")).concat([buttonBlocks[2]]).concat(builder.rowOf(3, "")).concat([doors[2]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[5]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[8]]).concat(builder.rowOf(4, "")).concat([doors[7]]).concat(builder.rowOf(3, "")).concat([buttonBlocks[9]]).concat(builder.rowOf(3, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(1, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat([""]).concat(["block"]), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(8, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")), builder.rowOf(4, "block").concat([buttonBlocks[4]]).concat(builder.rowOf(3, "")).concat(builder.rowOf(16, "block")).concat(builder.rowOf(3, "")).concat([buttonBlocks[7]]).concat(builder.rowOf(4, "block")), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "powerBlock")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat([doors[3]]).concat(builder.rowOf(3, "")).concat([doors[4]]).concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "powerBlock")).concat(["block"]).concat(builder.rowOf(4, "")).concat([doors[5]]).concat(builder.rowOf(3, "")).concat([doors[6]]).concat(builder.rowOf(3, "")).concat([new Spring()]).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat([powerSources[0]]).concat([powerSources[0]]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")), builder.rowOf(9, "block").concat(builder.rowOf(14, "")).concat(builder.rowOf(9, "block")), builder.rowOf(9, "block").concat(buttonBlocks[3]).concat(builder.rowOf(12, "")).concat(buttonBlocks[6]).concat(builder.rowOf(9, "block")), builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(11, "block")), builder.rowOf(32, "block"), builder.rowOf(32, "block"), builder.rowOf(32, "block")];
+	var foregroundGrid = [builder.rowOf(15, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(15, "block")), builder.rowOf(6, "block").concat(builder.rowOf(7, "")).concat(builder.rowOf(1, "block")).concat([forceFieldBlocks[0]]).concat(builder.rowOf(2, "")).concat([forceFieldBlocks[1]]).concat(builder.rowOf(1, "block")).concat(builder.rowOf(12, "")).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(7, "")).concat(doors[0]).concat("forceField").concat(builder.rowOf(2, "")).concat(["forceField"]).concat(doors[9]).concat(builder.rowOf(7, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(7, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(8, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(8, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat([doors[1]]).concat(builder.rowOf(7, "")).concat([buttonBlocks[0]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[10]]).concat(builder.rowOf(7, "")).concat([doors[8]]).concat(builder.rowOf(4, "")).concat(["block"]), builder.rowOf(1, "block").concat(builder.rowOf(1, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(1, "")).concat(["block"]), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(14, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(3, "")).concat([buttonBlocks[2]]).concat(builder.rowOf(3, "")).concat([doors[2]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[5]]).concat(builder.rowOf(4, "")).concat([buttonBlocks[8]]).concat(builder.rowOf(4, "")).concat([doors[7]]).concat(builder.rowOf(3, "")).concat([buttonBlocks[9]]).concat(builder.rowOf(3, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(1, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(10, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat([""]).concat(["block"]), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(8, "")).concat(builder.rowOf(4, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")), builder.rowOf(4, "block").concat([buttonBlocks[4]]).concat(builder.rowOf(3, "")).concat(builder.rowOf(16, "block")).concat(builder.rowOf(3, "")).concat([buttonBlocks[7]]).concat(builder.rowOf(4, "block")), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(16, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "powerBlock")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(["block"]).concat(builder.rowOf(4, "")).concat(builder.rowOf(1, "block")), builder.rowOf(1, "block").concat(builder.rowOf(4, "")).concat([doors[3]]).concat(builder.rowOf(3, "")).concat([doors[4]]).concat(builder.rowOf(4, "")).concat(["block"]).concat(builder.rowOf(2, "powerBlock")).concat(["block"]).concat(builder.rowOf(4, "")).concat([doors[5]]).concat(builder.rowOf(3, "")).concat([doors[6]]).concat(builder.rowOf(3, "")).concat([new _level_builder.Spring()]).concat(builder.rowOf(1, "block")), builder.rowOf(6, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(2, "block")).concat([powerSources[0]]).concat([powerSources[0]]).concat(builder.rowOf(2, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(3, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")), builder.rowOf(9, "block").concat(builder.rowOf(14, "")).concat(builder.rowOf(9, "block")), builder.rowOf(9, "block").concat(buttonBlocks[3]).concat(builder.rowOf(12, "")).concat(buttonBlocks[6]).concat(builder.rowOf(9, "block")), builder.rowOf(11, "block").concat(builder.rowOf(2, "")).concat(builder.rowOf(6, "block")).concat(builder.rowOf(2, "")).concat(builder.rowOf(11, "block")), builder.rowOf(32, "block"), builder.rowOf(32, "block"), builder.rowOf(32, "block")];
 	
 	var backgroundGrid = [builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick"), builder.rowOf(32, "brick")];
 	
-	var level = new Level({
+	var level = new _level_builder.Level({
 	  name: "Level 3",
 	  color: '#8B8D9A',
 	  foregroundGrid: foregroundGrid,
@@ -3366,111 +3398,6 @@
 	});
 	
 	module.exports = level;
-
-/***/ },
-/* 22 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var PowerObject = function () {
-	  function PowerObject(options) {
-	    _classCallCheck(this, PowerObject);
-	
-	    this.hasPower = false;
-	    this.id = options.id;
-	    this.rowCol = options.rowCol;
-	  }
-	
-	  _createClass(PowerObject, [{
-	    key: "toString",
-	    value: function toString() {
-	      return this.constructor.name;
-	    }
-	  }, {
-	    key: "sendPower",
-	    value: function sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, flowing) {
-	
-	      var topRowCol = [this.rowCol[0] - 1, this.rowCol[1]];
-	      var leftRowCol = [this.rowCol[0], this.rowCol[1] - 1];
-	      var rightRowCol = [this.rowCol[0], this.rowCol[1] + 1];
-	      var bottomRowCol = [this.rowCol[0] + 1, this.rowCol[1]];
-	
-	      //if object is a Power Source, send power in all four directions
-	      if (this.constructor.name === 'PowerSource') {
-	        this.type = "NESW";
-	      }
-	
-	      //look through wires:
-	      for (var i = 0; i < wiring.length; i++) {
-	        if (this.type.split("").indexOf("W") !== -1) {
-	          if (wiring[i].rowCol[0] === leftRowCol[0] && wiring[i].rowCol[1] === leftRowCol[1] && flowing !== "rightward") {
-	            wiring[i].hasPower = true;
-	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "leftward");
-	          }
-	        }
-	        if (this.type.split("").indexOf("N") !== -1) {
-	          if (wiring[i].rowCol[0] === topRowCol[0] && wiring[i].rowCol[1] === topRowCol[1] && flowing !== "downward") {
-	            wiring[i].hasPower = true;
-	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "upward");
-	          }
-	        }
-	        if (this.type.split("").indexOf("E") !== -1) {
-	          if (wiring[i].rowCol[0] === rightRowCol[0] && wiring[i].rowCol[1] === rightRowCol[1] && flowing !== "leftward") {
-	            wiring[i].hasPower = true;
-	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "rightward");
-	          }
-	        }
-	        if (this.type.split("").indexOf("S") !== -1) {
-	          if (wiring[i].rowCol[0] === bottomRowCol[0] && wiring[i].rowCol[1] === bottomRowCol[1] && flowing !== "upward") {
-	            wiring[i].hasPower = true;
-	            wiring[i].sendPower(wiring, cubbies, buttonBlocks, forceFieldBlocks, "downward");
-	          }
-	        }
-	      }
-	
-	      //look through force field blocks:
-	      for (var _i = 0; _i < forceFieldBlocks.length; _i++) {
-	        if (forceFieldBlocks[_i].rowCol[0] === leftRowCol[0] && forceFieldBlocks[_i].rowCol[1] === leftRowCol[1]) {
-	          forceFieldBlocks[_i].hasPower = true;
-	        }
-	        if (forceFieldBlocks[_i].rowCol[0] === topRowCol[0] && forceFieldBlocks[_i].rowCol[1] === topRowCol[1]) {
-	          forceFieldBlocks[_i].hasPower = true;
-	        }
-	        if (forceFieldBlocks[_i].rowCol[0] === rightRowCol[0] && forceFieldBlocks[_i].rowCol[1] === rightRowCol[1]) {
-	          forceFieldBlocks[_i].hasPower = true;
-	        }
-	        if (forceFieldBlocks[_i].rowCol[0] === bottomRowCol[0] && forceFieldBlocks[_i].rowCol[1] === bottomRowCol[1]) {
-	          forceFieldBlocks[_i].hasPower = true;
-	        }
-	      }
-	
-	      //look through button blocks:
-	      for (var _i2 = 0; _i2 < buttonBlocks.length; _i2++) {
-	        if (buttonBlocks[_i2].rowCol[0] === leftRowCol[0] && buttonBlocks[_i2].rowCol[1] === leftRowCol[1]) {
-	          buttonBlocks[_i2].hasPower = true;
-	        }
-	        if (buttonBlocks[_i2].rowCol[0] === topRowCol[0] && buttonBlocks[_i2].rowCol[1] === topRowCol[1]) {
-	          buttonBlocks[_i2].hasPower = true;
-	        }
-	        if (buttonBlocks[_i2].rowCol[0] === rightRowCol[0] && buttonBlocks[_i2].rowCol[1] === rightRowCol[1]) {
-	          buttonBlocks[_i2].hasPower = true;
-	        }
-	        if (buttonBlocks[_i2].rowCol[0] === bottomRowCol[0] && buttonBlocks[_i2].rowCol[1] === bottomRowCol[1]) {
-	          buttonBlocks[_i2].hasPower = true;
-	        }
-	      }
-	    }
-	  }]);
-	
-	  return PowerObject;
-	}();
-	
-	module.exports = PowerObject;
 
 /***/ }
 /******/ ]);
