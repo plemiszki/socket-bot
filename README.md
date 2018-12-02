@@ -6,7 +6,7 @@
 
 Socket Bot is a platformer browser game built with HTML Canvas. In each level, the player must redirect the flow of electricity by inserting or removing panels from sockets, creating a path to the exit.
 
-[![Screenshot](/images/shot-2.jpg)][live]
+[![Screenshot](/images/demo.gif)][live]
 
 ## How to Play
 
